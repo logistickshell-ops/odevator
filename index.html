@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#4F46E5" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="description" content="МетеоОдевайка — умный сервис подбора детской одежды по погоде. Работает как Telegram Mini App." />
+    <title>МетеоОдевайка — Умный подбор одежды для детей по погоде</title>
+    
+    <!-- Telegram Web App SDK - обязательный скрипт для интеграции в Telegram Mini App -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <!-- Google Fonts for child/parent themed friendly interface -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+    
+    <style>
+      html, body {
+        font-family: 'Nunito', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        margin: 0;
+        padding: 0;
+        overscroll-behavior: none;
+        -webkit-tap-highlight-color: transparent;
+        -webkit-touch-callout: none;
+      }
+      #root {
+        min-height: 100vh;
+        min-height: 100dvh;
+      }
+    </style>
+    
+    <!-- Telegram Mini App Initialization Script -->
+    <script>
+      // Инициализация Telegram Web App при загрузке страницы
+      (function() {
+        if (window.Telegram && window.Telegram.WebApp) {
+          const tg = window.Telegram.WebApp;
+          
+          // Готовность приложения
+          tg.ready();
+          
+          // Раскрыть на весь экран
+          tg.expand();
+          
+          // Отключить закрытие приложения свайпом вниз (для лучшего UX)
+          if (tg.disableVerticalSwipes) {
+            tg.disableVerticalSwipes();
+          }
+          
+          // Установить цветовую схему в соответствии с темой Telegram
+          if (tg.setHeaderColor) {
+            tg.setHeaderColor('#ffffff');
+          }
+          if (tg.setBackgroundColor) {
+            tg.setBackgroundColor('#f8fafc');
+          }
+          
+          // Включить подтверждение закрытия приложения
+          if (tg.enableClosingConfirmation) {
+            tg.enableClosingConfirmation();
+          }
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

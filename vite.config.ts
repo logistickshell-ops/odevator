@@ -9,30 +9,32 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// https://vite.dev/config/
 export default defineConfig({
+  // КРИТИЧЕСКИ ВАЖНО ДЛЯ RENDER И STATIK HOSTING:
+  // Относительные пути предотвращают ошибки MIME-type и 404
+  base: './', 
+  
   plugins: [
-    // React 18 плагин для Vite 6
     react(),
-    // Tailwind CSS v4 beta - новый плагин, больше не нужен postcss.config.js
     tailwindcss(),
-    // Собирает весь проект в один HTML файл
     viteSingleFile(),
   ],
+  
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),
     },
   },
-  // React 18 + Vite 6 - оптимальные настройки
+  
   esbuild: {
     jsx: 'automatic',
   },
+  
   build: {
-    // Для singlefile плагина
+    // Принудительно инлайним ВСЕ ассеты (картинки, шрифты, CSS) в HTML
+    assetsInlineLimit: Infinity, 
     rollupOptions: {
       output: {
-        // Инлайним все ассеты в HTML
         inlineDynamicImports: true,
       },
     },

@@ -3,10 +3,10 @@ export type WeatherPeriodType = 'morning' | 'day' | 'evening' | 'night';
 export interface WeatherData {
   temp: number;
   feelsLike: number;
-  windSpeed: number; // in km/h or m/s
-  humidity: number; // in %
-  precipProb: number; // in %
-  weatherCode: number; // WMO code
+  windSpeed: number;
+  humidity: number;
+  precipProb: number;
+  weatherCode: number;
   description: string;
   icon: string;
   isRainy: boolean;
@@ -15,8 +15,8 @@ export interface WeatherData {
 }
 
 export interface DayForecast {
-  date: string; // YYYY-MM-DD
-  formattedDate: string; // e.g., "Сегодня, 12 Октября"
+  date: string;
+  formattedDate: string;
   periods: {
     morning: WeatherData;
     day: WeatherData;
@@ -50,24 +50,51 @@ export interface ParentTip {
   icon: string;
 }
 
+/** 7 слоёв одеватора */
+export type ClothingCategory =
+  | 'underwear'
+  | 'lower'
+  | 'upper'
+  | 'outer'
+  | 'headwear'
+  | 'shoes'
+  | 'accessory';
+
 export interface ClothingItem {
   id: string;
   name: string;
-  category: 'base' | 'middle' | 'outer' | 'shoes' | 'accessory';
+  category: ClothingCategory;
   description: string;
   color: string;
   emoji: string;
-  layerIndex: number; // 1: base, 2: middle, 3: outer
+  layerIndex: number;
   tips?: string;
 }
 
 export interface RecommendedOutfit {
   summary: string;
-  base: ClothingItem[];
-  middle: ClothingItem[];
+  underwear: ClothingItem[];
+  lower: ClothingItem[];
+  upper: ClothingItem[];
   outer: ClothingItem[];
+  headwear: ClothingItem[];
   shoes: ClothingItem[];
   accessories: ClothingItem[];
   specialAdvice: string[];
   parentTips: ParentTip[];
 }
+
+export type LayerId = ClothingCategory;
+export type LayerVisibility = Record<LayerId, boolean>;
+
+export const LAYER_ORDER: LayerId[] = ['outer', 'upper', 'lower', 'underwear', 'headwear', 'shoes', 'accessory'];
+
+export const LAYER_LABELS: Record<LayerId, string> = {
+  underwear: 'Нательное бельё',
+  lower: 'Нижний слой',
+  upper: 'Верхний слой',
+  outer: 'Верхняя одежда',
+  headwear: 'Головной убор',
+  shoes: 'Обувь',
+  accessory: 'Аксессуары',
+};

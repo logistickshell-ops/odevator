@@ -821,12 +821,17 @@ export default function App() {
                 <div className="flex items-start gap-2.5 sm:gap-3">
                   <span className="text-3xl sm:text-4xl leading-none">{selectedItem.emoji}</span>
                   <div>
-                    <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-wider bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-md border border-indigo-100">
-                      {selectedItem.category === 'base' ? 'Слой 1. Влагоотвод' :
-                       selectedItem.category === 'middle' ? 'Слой 2. Термоизоляция' :
-                       selectedItem.category === 'outer' ? 'Слой 3. Ветро-влагозащита' :
-                       selectedItem.category === 'shoes' ? 'Обувь' : 'Аксессуары'}
-                    </span>
+<span className="text-[8px] sm:text-[9px] font-black uppercase tracking-wider bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-md border border-indigo-100">
+  {({
+    underwear: 'Слой 1 · Нательное бельё',
+    lower: 'Слой 2 · Нижний слой',
+    upper: 'Слой 3 · Верхний слой',
+    outer: 'Слой 4 · Верхняя одежда',
+    headwear: 'Головной убор',
+    shoes: 'Обувь',
+    accessory: 'Аксессуары',
+  } as Record<string, string>)[selectedItem.category]}
+</span>
                     <h3 className="text-sm font-extrabold text-slate-800 mt-1.5">{selectedItem.name}</h3>
                   </div>
                 </div>

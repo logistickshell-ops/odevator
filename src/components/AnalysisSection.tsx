@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Check, X, AlertCircle, ChevronDown, ChevronUp, ShieldCheck, Sparkles } from 'lucide-react';
 
 export const AnalysisSection: React.FC = () => {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
 
   const competitors = [
     {
@@ -14,8 +14,8 @@ export const AnalysisSection: React.FC = () => {
     {
       name: 'Стандартные погодные виджеты',
       description: 'Обычные погодные приложения (iOS Weather, Яндекс.Погода и т.д.).',
-      pros: ['Точный прогноз погоды по часам.', 'Всегда под рукой на телефоне.', 'Показывают ощущаемую температуру.'],
-      cons: ['Никаких рекомендаций по одежде.', 'Родителю приходится самому угадывать.', 'Нет разделения на слои и специфику для детей.']
+      pros: ['Точный прогноз погоды по часам.', 'Всегда под рукой в телефоне.', 'Показывают ощущаемую температуру.'],
+      cons: ['Никаких рекомендаций по одежде.', 'Родителю приходится самому угадывать.', 'Нет разделения на слои и специфики для детей.']
     },
     {
       name: 'Узкие калькуляторы одежды',
@@ -114,8 +114,8 @@ export const AnalysisSection: React.FC = () => {
               </div>
               <div className="p-2.5 sm:p-4 bg-teal-50/40 border border-teal-100/50 rounded-xl sm:rounded-2xl">
                 <div className="text-base sm:text-lg mb-0.5 sm:mb-1">🧅</div>
-                <h5 className="font-bold text-slate-800 text-[10px] sm:text-xs">Луковый разбор</h5>
-                <p className="text-[9px] sm:text-[11px] text-slate-500 mt-0.5 sm:mt-1 leading-relaxed">Интерактивный манекен позволяет поочередно снимать слои, видя всё под ними.</p>
+                <h5 className="font-bold text-slate-800 text-[10px] sm:text-xs">Луковый разбор · 7 слоёв</h5>
+                <p className="text-[9px] sm:text-[11px] text-slate-500 mt-0.5 sm:mt-1 leading-relaxed">Интерактивный манекен с 7 слоями — от нательного белья до головного убора. Снимайте куртку, кофту или шапку и видьте всё, что под ними.</p>
               </div>
             </div>
           </div>

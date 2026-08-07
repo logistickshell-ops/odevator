@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { RecommendedOutfit, ClothingItem, ChildGender, LayerId, LayerVisibility, LAYER_ORDER, LAYER_LABELS } from '../types';
-import { Eye, EyeOff, Shirt, Layers, Footprints, Hat, Gem, Underline } from 'lucide-react';
+import { Eye, EyeOff, Shirt, Layers, Footprints } from 'lucide-react';
 import { ChildFigure } from './ChildFigure';
 
 interface AvatarVisualizerProps {

@@ -45,6 +45,7 @@ const it = (
 export const generateOutfit = (
   gender: ChildGender, w: WeatherData, activity: ActivityLevel,
   sensitivity: ColdSensitivity, age: AgeGroup,
+  _period?: string, // 6-й аргумент App.tsx — игнорируется, сигнатура совместима
 ): RecommendedOutfit => {
   const girl = gender === 'girl';
   const eff = calculateEffectiveTemp(w.temp, w.windSpeed, w.humidity, activity, sensitivity, age);

@@ -19,6 +19,7 @@ import { WeatherSelector } from './components/WeatherSelector';
 import { AvatarVisualizer } from './components/AvatarVisualizer';
 import { CustomWeatherControls } from './components/CustomWeatherControls';
 import { ParentTipsSection } from './components/ParentTipsSection';
+import { AnalysisSection } from './components/AnalysisSection';
 import { 
   MapPin, 
   Search, 
@@ -748,62 +749,65 @@ export default function App() {
             </div>
           )}
 
-          {/* 5. FAQ & Scientific School for Parents */}
+          {/* 5. FAQ & Scientific School for Parents + Market Analysis */}
           {activeTab === 'faq' && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6">
-              
-              {/* FAQ 1 */}
-              <div className="bg-white p-3 sm:p-5 rounded-xl sm:rounded-3xl border border-slate-100 shadow-xs space-y-1.5 sm:space-y-2">
-                <h4 className="font-bold text-slate-800 text-[11px] sm:text-sm flex items-center gap-1.5 sm:gap-2">
-                  <span className="text-base sm:text-lg">🧥</span>
-                  <span>Как работает «правило многослойности»?</span>
-                </h4>
-                <p className="text-[10px] sm:text-xs text-slate-500 leading-relaxed">
-                  Многослойная структура — золотой стандарт детского гардероба в холодное время. 3 обязательных элемента:
-                </p>
-                <ul className="text-[10px] sm:text-[11px] text-slate-500 space-y-1 list-disc list-inside pl-1 sm:pl-2">
-                  <li><strong>Слой 1 (Белье):</strong> отводит влагу. Влажное тело остывает в 25 раз быстрее сухого!</li>
-                  <li><strong>Слой 2 (Утеплитель):</strong> сохраняет воздух (флис или шерсть).</li>
-                  <li><strong>Слой 3 (Внешний):</strong> блокирует ветер и воду (мембрана).</li>
-                </ul>
-              </div>
+            <div className="space-y-3 sm:space-y-6">
+              <AnalysisSection />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6">
+                
+                {/* FAQ 1 */}
+                <div className="bg-white p-3 sm:p-5 rounded-xl sm:rounded-3xl border border-slate-100 shadow-xs space-y-1.5 sm:space-y-2">
+                  <h4 className="font-bold text-slate-800 text-[11px] sm:text-sm flex items-center gap-1.5 sm:gap-2">
+                    <span className="text-base sm:text-lg">🧥</span>
+                    <span>Как работает «правило многослойности»?</span>
+                  </h4>
+                  <p className="text-[10px] sm:text-xs text-slate-500 leading-relaxed">
+                    Многослойная структура — золотой стандарт детского гардероба в холодное время. 3 обязательных элемента:
+                  </p>
+                  <ul className="text-[10px] sm:text-[11px] text-slate-500 space-y-1 list-disc list-inside pl-1 sm:pl-2">
+                    <li><strong>Слой 1 (Белье):</strong> отводит влагу. Влажное тело остывает в 25 раз быстрее сухого!</li>
+                    <li><strong>Слой 2 (Утеплитель):</strong> сохраняет воздух (флис или шерсть).</li>
+                    <li><strong>Слой 3 (Внешний):</strong> блокирует ветер и воду (мембрана).</li>
+                  </ul>
+                </div>
 
-              {/* FAQ 2 */}
-              <div className="bg-white p-3 sm:p-5 rounded-xl sm:rounded-3xl border border-slate-100 shadow-xs space-y-1.5 sm:space-y-2">
-                <h4 className="font-bold text-slate-800 text-[11px] sm:text-sm flex items-center gap-1.5 sm:gap-2">
-                  <span className="text-base sm:text-lg">👶</span>
-                  <span>Как проверить, жарко или холодно ребенку?</span>
-                </h4>
-                <p className="text-[10px] sm:text-xs text-slate-500 leading-relaxed">
-                  Не ориентируйтесь на нос или ладошки: на ветру они остывают первыми. Проверьте <strong>заднюю сторону шеи (загривок)</strong>:
-                </p>
-                <ul className="text-[10px] sm:text-[11px] text-slate-500 space-y-1 list-disc list-inside pl-1 sm:pl-2">
-                  <li>Шея горячая и влажная — перегрев, снимите слой.</li>
-                  <li>Шея холодная — ребенок мерзнет, добавьте слой.</li>
-                  <li>Шея теплая и сухая — температура идеальна!</li>
-                </ul>
-              </div>
+                {/* FAQ 2 */}
+                <div className="bg-white p-3 sm:p-5 rounded-xl sm:rounded-3xl border border-slate-100 shadow-xs space-y-1.5 sm:space-y-2">
+                  <h4 className="font-bold text-slate-800 text-[11px] sm:text-sm flex items-center gap-1.5 sm:gap-2">
+                    <span className="text-base sm:text-lg">👶</span>
+                    <span>Как проверить, жарко или холодно ребенку?</span>
+                  </h4>
+                  <p className="text-[10px] sm:text-xs text-slate-500 leading-relaxed">
+                    Не ориентируйтесь на нос или ладошки: на ветру они остывают первыми. Проверьте <strong>заднюю сторону шеи (загривок)</strong>:
+                  </p>
+                  <ul className="text-[10px] sm:text-[11px] text-slate-500 space-y-1 list-disc list-inside pl-1 sm:pl-2">
+                    <li>Шея горячая и влажная — перегрев, снимите слой.</li>
+                    <li>Шея холодная — ребенок мерзнет, добавьте слой.</li>
+                    <li>Шея теплая и сухая — температура идеальна!</li>
+                  </ul>
+                </div>
 
-              {/* FAQ 3 */}
-              <div className="bg-white p-3 sm:p-5 rounded-xl sm:rounded-3xl border border-slate-100 shadow-xs space-y-1.5 sm:space-y-2">
-                <h4 className="font-bold text-slate-800 text-[11px] sm:text-sm flex items-center gap-1.5 sm:gap-2">
-                  <span className="text-base sm:text-lg">🌬️</span>
-                  <span>Как ветер меняет комфортную температуру?</span>
-                </h4>
-                <p className="text-[10px] sm:text-xs text-slate-500 leading-relaxed">
-                  Сильный ветер уносит тепловую прослойку воздуха вокруг тела. При +2°С и ветре 10 м/с кожа теряет тепло как при -5°С! Наш сервис всегда рассчитывает <strong>«эффективную ощущаемую температуру»</strong>.
-                </p>
-              </div>
+                {/* FAQ 3 */}
+                <div className="bg-white p-3 sm:p-5 rounded-xl sm:rounded-3xl border border-slate-100 shadow-xs space-y-1.5 sm:space-y-2">
+                  <h4 className="font-bold text-slate-800 text-[11px] sm:text-sm flex items-center gap-1.5 sm:gap-2">
+                    <span className="text-base sm:text-lg">🌬️</span>
+                    <span>Как ветер меняет комфортную температуру?</span>
+                  </h4>
+                  <p className="text-[10px] sm:text-xs text-slate-500 leading-relaxed">
+                    Сильный ветер уносит тепловую прослойку воздуха вокруг тела. При +2°С и ветре 10 м/с кожа теряет тепло как при -5°С! Наш сервис всегда рассчитывает <strong>«эффективную ощущаемую температуру»</strong>.
+                  </p>
+                </div>
 
-              {/* FAQ 4 */}
-              <div className="bg-white p-3 sm:p-5 rounded-xl sm:rounded-3xl border border-slate-100 shadow-xs space-y-1.5 sm:space-y-2">
-                <h4 className="font-bold text-slate-800 text-[11px] sm:text-sm flex items-center gap-1.5 sm:gap-2">
-                  <span className="text-base sm:text-lg">☔</span>
-                  <span>Что делать в сырую погоду весной и осенью?</span>
-                </h4>
-                <p className="text-[10px] sm:text-xs text-slate-500 leading-relaxed">
-                  В слякоть обычные джинсы быстро промокают. Отдавайте предпочтение мембранным полукомбинезонам. Обувь — на толстой подошве или Gore-Tex, чтобы изолировать ноги от холодной земли.
-                </p>
+                {/* FAQ 4 */}
+                <div className="bg-white p-3 sm:p-5 rounded-xl sm:rounded-3xl border border-slate-100 shadow-xs space-y-1.5 sm:space-y-2">
+                  <h4 className="font-bold text-slate-800 text-[11px] sm:text-sm flex items-center gap-1.5 sm:gap-2">
+                    <span className="text-base sm:text-lg">☔</span>
+                    <span>Что делать в сырую погоду весной и осенью?</span>
+                  </h4>
+                  <p className="text-[10px] sm:text-xs text-slate-500 leading-relaxed">
+                    В слякоть обычные джинсы быстро промокают. Отдавайте предпочтение мембранным полукомбинезонам. Обувь — на толстой подошве или Gore-Tex, чтобы изолировать ноги от холодной земли.
+                  </p>
+                </div>
               </div>
             </div>
           )}
@@ -821,17 +825,17 @@ export default function App() {
                 <div className="flex items-start gap-2.5 sm:gap-3">
                   <span className="text-3xl sm:text-4xl leading-none">{selectedItem.emoji}</span>
                   <div>
-<span className="text-[8px] sm:text-[9px] font-black uppercase tracking-wider bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-md border border-indigo-100">
-  {({
-    underwear: 'Слой 1 · Нательное бельё',
-    lower: 'Слой 2 · Нижний слой',
-    upper: 'Слой 3 · Верхний слой',
-    outer: 'Слой 4 · Верхняя одежда',
-    headwear: 'Головной убор',
-    shoes: 'Обувь',
-    accessory: 'Аксессуары',
-  } as Record<string, string>)[selectedItem.category]}
-</span>
+                    <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-wider bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-md border border-indigo-100">
+                      {({
+                        underwear: 'Слой 1 · Нательное бельё',
+                        lower: 'Слой 2 · Нижний слой',
+                        upper: 'Слой 3 · Верхний слой',
+                        outer: 'Слой 4 · Верхняя одежда',
+                        headwear: 'Головной убор',
+                        shoes: 'Обувь',
+                        accessory: 'Аксессуары',
+                      } as Record<string, string>)[selectedItem.category]}
+                    </span>
                     <h3 className="text-sm font-extrabold text-slate-800 mt-1.5">{selectedItem.name}</h3>
                   </div>
                 </div>

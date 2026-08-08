@@ -453,14 +453,15 @@ export default function App() {
         </div>
 
 <nav className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 border-t border-slate-100/70">
+
   <div className="grid grid-cols-5 py-1 sm:flex sm:items-center sm:justify-start sm:gap-6">
-    {/* Одежда */}
-    <button
-      onClick={() => setActiveTab('clothing')}
-      className={`py-2 font-extrabold text-[9px] xs:text-[11px] sm:text-sm border-b-2 transition flex flex-col xs:flex-row items-center justify-center gap-1 sm:gap-1.5 whitespace-nowrap ${
-        activeTab === 'clothing' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-600'
-      }`}
-    >
+  <button
+    onClick={() => setActiveTab('clothing')}
+    className={`py-2 font-extrabold text-[9px] xs:text-[11px] sm:text-sm border-b-2 transition flex flex-col xs:flex-row items-center justify-center gap-1 sm:gap-1.5 whitespace-nowrap ${
+      activeTab === 'clothing' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-600'
+    }`}
+  >
+    
       <span>👕</span>
       <span>Одежда</span>
     </button>
@@ -870,7 +871,7 @@ export default function App() {
       {/* FOOTER */}
       <footer className="mt-16 border-t border-indigo-50 pt-8 text-center space-y-3 max-w-7xl mx-auto px-4">
         <p className="text-xs text-slate-400">
-          Created by Disa. <br> Разработано с любовью и заботой о здоровье детей во всем мире ❤️
+          Created by Disa. <br> Разработано с любовью и заботой о здоровье детей во всем мире ❤️ <br> </>
         </p>
         <p className="text-[10px] text-slate-300">
           Все данные о погоде предоставляются бесплатно в режиме реального времени через Open-Meteo API. 

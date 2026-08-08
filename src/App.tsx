@@ -863,7 +863,7 @@ export default function App() {
       {/* FOOTER */}
       <footer className="mt-16 border-t border-indigo-50 pt-8 text-center space-y-3 max-w-7xl mx-auto px-4">
         <p className="text-xs text-slate-400">
-          Разработано с любовью и заботой о здоровье детей во всем мире ❤️
+          Created by Disa. Разработано с любовью и заботой о здоровье детей во всем мире ❤️
         </p>
         <p className="text-[10px] text-slate-300">
           Все данные о погоде предоставляются бесплатно в режиме реального времени через Open-Meteo API. 

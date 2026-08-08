@@ -453,10 +453,14 @@ export default function App() {
         </div>
 
 <nav className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 border-t border-slate-100/70">
-
-  <div className="grid grid-cols-[repeat(5,minmax(0,1fr))] gap-1 py-1 sm:flex sm:items-center sm:justify-start sm:gap-6">
-    
-      <span>👕</span>
+ <div className="flex items-center justify-between gap-1 py-1 sm:justify-start sm:gap-6">
+  <button
+    onClick={() => setActiveTab('clothing')}
+    className={`py-2 px-1 font-extrabold text-[9px] xs:text-[11px] sm:text-sm border-b-2 transition flex flex-col xs:flex-row items-center justify-center gap-1 sm:gap-1.5 whitespace-nowrap flex-1 sm:flex-none ${
+      activeTab === 'clothing' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-600'
+    }`}
+  >
+          <span>👕</span>
       <span>Одежда</span>
     </button>
     {/* Подсказки */}
@@ -501,8 +505,7 @@ export default function App() {
     </button>
   </div>
 </nav>
-        
-    </header>
+</header>
 
       {/* MAIN SECTION */}
       <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 mt-4 sm:mt-8 space-y-5 sm:space-y-8">
@@ -864,8 +867,10 @@ export default function App() {
 
       {/* FOOTER */}
       <footer className="mt-16 border-t border-indigo-50 pt-8 text-center space-y-3 max-w-7xl mx-auto px-4">
+
+       <p className="text-xs text-slate-400"> Created by Disa.  </p>
         <p className="text-xs text-slate-400">
-          Created by Disa. <br> Разработано с любовью и заботой о здоровье детей во всем мире ❤️ <br> </>
+          Разработано с любовью и заботой о здоровье детей во всем мире ❤️ 
         </p>
         <p className="text-[10px] text-slate-300">
           Все данные о погоде предоставляются бесплатно в режиме реального времени через Open-Meteo API. 

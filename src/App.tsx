@@ -469,7 +469,7 @@ export default function App() {
                 activeTab === 'tips' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-600'
               }`}
             >
-              {  <span>💡</span>}
+                <span>|</span>
               <span>Подсказки</span>
             </button>
             <button
@@ -478,7 +478,7 @@ export default function App() {
                 activeTab === 'parameters' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-600'
               }`}
             >
-              {   <Baby size={10} className="shrink-0" />}
+             <span>|</span>
               <span>Параметры</span>
             </button>
             <button
@@ -487,7 +487,7 @@ export default function App() {
                 activeTab === 'simulator' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-600'
               }`}
             >
-              { <RefreshCw size={10} className="shrink-0" />}
+             <span>|</span>
               <span>Симулятор</span>
             </button>
             <button
@@ -496,7 +496,7 @@ export default function App() {
                 activeTab === 'faq' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-600'
               }`}
             >
-              {   <HelpCircle size={10} className="shrink-0" />}
+             <span>|</span>
               <span>FAQ</span>
             </button>
           </div>

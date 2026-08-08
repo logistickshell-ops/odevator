@@ -451,6 +451,7 @@ export default function App() {
             )}
           </div>
         </div>
+        
         <nav className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 border-t border-slate-100/70">
           <div className="grid grid-cols-5 gap-1 py-1 sm:flex sm:items-center sm:justify-start sm:gap-6">
             <button
@@ -486,7 +487,7 @@ export default function App() {
                 activeTab === 'simulator' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-600'
               }`}
             >
-              <RefreshCw size={14} className="shrink-0" />
+              <RefreshCw size={10} className="shrink-0" />
               <span>Симулятор</span>
             </button>
             <button
@@ -495,7 +496,7 @@ export default function App() {
                 activeTab === 'faq' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-600'
               }`}
             >
-              <HelpCircle size={14} className="shrink-0" />
+              <HelpCircle size={10} className="shrink-0" />
               <span>FAQ</span>
             </button>
           </div>

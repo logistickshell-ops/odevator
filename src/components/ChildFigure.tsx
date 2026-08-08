@@ -25,9 +25,9 @@ export const ChildFigure: React.FC<ChildFigureProps> = ({
   const hot = zone === 'hot';
 
   const CX = 120;
-  // Chibi-пропорции (2,5 головы): голова 40%, тело 30%, ноги 30%
   const HEAD_CY = 95, HEAD_R = 60;
   const TORSO_TOP = 162, TORSO_BOT = 256;
+  const WAIST_Y = 236, HIP_Y = 252;
   const HAND_Y = 256, ANKLE_Y = 348;
 
   const C = girl
@@ -48,7 +48,7 @@ export const ChildFigure: React.FC<ChildFigureProps> = ({
   const drawSkirt = girl && !cold && zone !== 'chilly';
   const drawShorts = !girl && (hot || zone === 'warm');
 
-  // Центр-линии конечностей (для double-stroke)
+  // Центр-линии конечностей
   const armL = `M 86 174 Q 70 196 66 226 Q 64 246 68 ${HAND_Y}`;
   const armR = `M 154 174 Q 170 196 174 226 Q 176 246 172 ${HAND_Y}`;
   const slvL = `M 86 174 Q 70 196 66 226 Q 65 240 67 248`;
@@ -58,11 +58,10 @@ export const ChildFigure: React.FC<ChildFigureProps> = ({
   const legL = `M 106 254 L 103 ${ANKLE_Y}`;
   const legR = `M 134 254 L 137 ${ANKLE_Y}`;
 
-  // Торс-«трапеция» с параметрами ширины
+  // Торс с ПЛОСКИМ низом (выпуклость +5, без «пуза»)
   const torso = (ht: number, hb: number, ty: number, by: number) =>
-    `M ${CX - ht} ${ty} Q ${CX} ${ty - 10} ${CX + ht} ${ty} L ${CX + hb + 2} ${(ty + by) / 2} Q ${CX + hb} ${by} ${CX} ${by + 8} Q ${CX - hb} ${by} ${CX - hb - 2} ${(ty + by) / 2} Z`;
+    `M ${CX - ht} ${ty} Q ${CX} ${ty - 10} ${CX + ht} ${ty} L ${CX + hb + 2} ${(ty + by) / 2} Q ${CX + hb} ${by} ${CX} ${by + 5} Q ${CX - hb} ${by} ${CX - hb - 2} ${(ty + by) / 2} Z`;
 
-  // Double-stroke: контур + заливка
   const limb = (d: string, fill: string, w: number, outline = C.outline) => (
     <>
       <path d={d} stroke={outline} strokeWidth={w + 5} strokeLinecap="round" fill="none" />
@@ -72,10 +71,8 @@ export const ChildFigure: React.FC<ChildFigureProps> = ({
 
   return (
     <svg viewBox="0 0 240 400" className="h-full w-full select-none" role="img" aria-label="Иллюстрация ребёнка по погоде">
-      {/* Тень под ногами */}
       <ellipse cx={CX} cy={ANKLE_Y + 22} rx="52" ry="8" fill={C.outline} opacity="0.14" />
 
-      {/* Погода */}
       {isSnowy && (
         <g fill="#FFFFFF" opacity="0.9">
           {[28, 68, 108, 148, 188, 218].map((x, i) => (
@@ -92,7 +89,7 @@ export const ChildFigure: React.FC<ChildFigureProps> = ({
       )}
 
       <g>
-        {/* === ВОЛОСЫ СЗАДИ (девочка: хвостики) === */}
+        {/* Волосы сзади (девочка) */}
         {girl && (
           <g>
             <ellipse cx={CX - 66} cy={HEAD_CY + 16} rx="15" ry="22" fill={C.hair} stroke={C.outline} strokeWidth="2.5" />
@@ -104,39 +101,39 @@ export const ChildFigure: React.FC<ChildFigureProps> = ({
           </g>
         )}
 
-        {/* === КАПЮШОН (за головой, если надет верхний слой) === */}
+        {/* Капюшон за головой */}
         {show.upper && (coolish || zone === 'mild') && (
           <path d={`M 78 150 Q 58 172 74 188 Q ${CX} 202 ${CX + 46} 188 Q ${CX + 62} 172 ${CX + 42} 150 Q ${CX} 170 78 150 Z`} fill={C.upperSh} stroke={C.outline} strokeWidth="2.5" />
         )}
 
-        {/* === НОГИ (кожа) === */}
+        {/* Ноги (кожа) */}
         {limb(legL, C.skin, 20)}
         {limb(legR, C.skin, 20)}
 
-        {/* === СЛОЙ 1: бельё (низ) === */}
+        {/* СЛОЙ 1: бельё (низ) — трусики, 236→260 */}
         {show.underwear && (
-          <path d={`M 84 240 Q ${CX} 234 ${CX + 36} 240 L ${CX + 38} 262 Q ${CX} 272 ${CX - 38} 262 Z`} fill={C.under} stroke={C.outline} strokeWidth="2.5" />
+          <path d={`M 84 ${WAIST_Y} Q ${CX} ${WAIST_Y - 6} ${CX + 36} ${WAIST_Y} L ${CX + 38} 260 Q ${CX} 268 ${CX - 38} 260 Z`} fill={C.under} stroke={C.outline} strokeWidth="2.5" />
         )}
 
-        {/* === СЛОЙ 2: нижний (низ) === */}
+        {/* СЛОЙ 2: нижний (низ) — пояс 236, штаны до 344 / шорты до 296 / юбка до 304 */}
         {show.lower && (
           <g>
             {drawSkirt ? (
               <>
-                <path d={`M 82 238 L ${CX + 38} 238 L ${CX + 56} 306 Q ${CX} 318 ${CX - 56} 306 Z`} fill={C.bottom} stroke={C.outline} strokeWidth="2.5" />
+                <path d={`M 82 ${WAIST_Y} L ${CX + 38} ${WAIST_Y} L ${CX + 56} 304 Q ${CX} 316 ${CX - 56} 304 Z`} fill={C.bottom} stroke={C.outline} strokeWidth="2.5" />
                 {[-30, -15, 0, 15, 30].map((dx) => (
-                  <line key={dx} x1={CX + dx * 0.6} y1={242} x2={CX + dx} y2={302} stroke={C.outline} strokeWidth="1.8" opacity="0.3" />
+                  <line key={dx} x1={CX + dx * 0.6} y1={WAIST_Y + 4} x2={CX + dx} y2={300} stroke={C.outline} strokeWidth="1.8" opacity="0.3" />
                 ))}
               </>
             ) : drawShorts ? (
               <>
-                <path d={`M 82 238 Q ${CX} 232 ${CX + 38} 238 L ${CX + 40} 262 Q ${CX} 272 ${CX - 40} 262 Z`} fill={C.bottom} stroke={C.outline} strokeWidth="2.5" />
+                <path d={`M 82 ${WAIST_Y} Q ${CX} ${WAIST_Y - 6} ${CX + 38} ${WAIST_Y} L ${CX + 40} 260 Q ${CX} 268 ${CX - 40} 260 Z`} fill={C.bottom} stroke={C.outline} strokeWidth="2.5" />
                 {limb(`M 106 252 L 104 296`, C.bottom, 24)}
                 {limb(`M 134 252 L 136 296`, C.bottom, 24)}
               </>
             ) : (
               <>
-                <path d={`M 82 238 Q ${CX} 232 ${CX + 38} 238 L ${CX + 40} 262 Q ${CX} 272 ${CX - 40} 262 Z`} fill={C.bottom} stroke={C.outline} strokeWidth="2.5" />
+                <path d={`M 82 ${WAIST_Y} Q ${CX} ${WAIST_Y - 6} ${CX + 38} ${WAIST_Y} L ${CX + 40} 260 Q ${CX} 268 ${CX - 40} 260 Z`} fill={C.bottom} stroke={C.outline} strokeWidth="2.5" />
                 {limb(`M 106 252 L 103 344`, C.bottom, 24)}
                 {limb(`M 134 252 L 137 344`, C.bottom, 24)}
               </>
@@ -144,7 +141,7 @@ export const ChildFigure: React.FC<ChildFigureProps> = ({
           </g>
         )}
 
-        {/* === СЛОЙ 6: обувь === */}
+        {/* СЛОЙ 6: обувь */}
         {show.shoes ? (
           <g>
             {cold ? (
@@ -181,19 +178,19 @@ export const ChildFigure: React.FC<ChildFigureProps> = ({
           </g>
         )}
 
-        {/* === РУКИ (кожа) + кисти === */}
+        {/* Руки (кожа) + кисти */}
         {limb(armL, C.skin, 16)}
         {limb(armR, C.skin, 16)}
         <circle cx={68} cy={HAND_Y} r="10" fill={C.skin} stroke={C.outline} strokeWidth="2.5" />
         <circle cx={172} cy={HAND_Y} r="10" fill={C.skin} stroke={C.outline} strokeWidth="2.5" />
 
-        {/* === ШЕЯ === */}
+        {/* Шея */}
         <rect x={108} y={142} width="24" height="24" rx="8" fill={C.skin} />
 
-        {/* === ТОРС (кожа) === */}
+        {/* Торс (кожа) */}
         <path d={torso(32, 36, TORSO_TOP, TORSO_BOT)} fill={C.skin} stroke={C.outline} strokeWidth="2.5" />
 
-        {/* === СЛОЙ 1: бельё (верх) === */}
+        {/* СЛОЙ 1: бельё (верх) — майка ЗАПРАВЛЕНА: 160→236 */}
         {show.underwear && (
           <g>
             {cold ? (
@@ -207,12 +204,12 @@ export const ChildFigure: React.FC<ChildFigureProps> = ({
                 <line x1={138} y1={160} x2={134} y2={172} stroke={C.under} strokeWidth="6" strokeLinecap="round" />
               </>
             )}
-            <path d={torso(34, 38, 160, 258)} fill={C.under} stroke={C.outline} strokeWidth="2.5" />
+            <path d={torso(33, 35, 160, WAIST_Y)} fill={C.under} stroke={C.outline} strokeWidth="2.5" />
             <path d={`M 108 160 Q ${CX} 176 ${CX + 12} 160`} fill={C.skin} stroke={C.outline} strokeWidth="2" />
           </g>
         )}
 
-        {/* === СЛОЙ 2: нижний (верх) === */}
+        {/* СЛОЙ 2: нижний (верх) — футболка 158→246 (шорты видны!) */}
         {show.lower && (
           <g>
             {shortSleeve ? (
@@ -226,42 +223,42 @@ export const ChildFigure: React.FC<ChildFigureProps> = ({
                 {limb(slvR, C.top, 20)}
               </>
             )}
-            <path d={torso(36, 40, 158, 260)} fill={C.top} stroke={C.outline} strokeWidth="2.5" />
+            <path d={torso(35, 38, 158, 246)} fill={C.top} stroke={C.outline} strokeWidth="2.5" />
             <path d={`M 106 158 Q ${CX} 176 ${CX + 14} 158`} fill={show.underwear ? C.under : C.skin} stroke={C.outline} strokeWidth="2" />
-            <path d={`M 96 170 Q 92 200 96 236`} stroke="#FFFFFF" strokeWidth="4" strokeLinecap="round" fill="none" opacity="0.25" />
+            <path d={`M 96 170 Q 92 198 96 232`} stroke="#FFFFFF" strokeWidth="4" strokeLinecap="round" fill="none" opacity="0.25" />
           </g>
         )}
 
-        {/* === СЛОЙ 3: верхний (худи) === */}
+        {/* СЛОЙ 3: верхний (худи) — 156→256 */}
         {show.upper && (coolish || zone === 'mild') && (
           <g>
             {limb(slvL, C.upper, 23)}
             {limb(slvR, C.upper, 23)}
-            <path d={torso(38, 42, 156, 262)} fill={C.upper} stroke={C.outline} strokeWidth="2.5" />
+            <path d={torso(38, 41, 156, 256)} fill={C.upper} stroke={C.outline} strokeWidth="2.5" />
             <path d={`M 104 156 Q ${CX} 178 ${CX + 16} 156`} fill={C.top} stroke={C.outline} strokeWidth="2" />
             <line x1={114} y1={170} x2={114} y2={192} stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" />
             <line x1={126} y1={170} x2={126} y2={192} stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" />
             <circle cx={114} cy={193} r="2.5" fill="#FFFFFF" />
             <circle cx={126} cy={193} r="2.5" fill="#FFFFFF" />
-            <path d={`M 102 236 Q ${CX} 230 ${CX + 18} 236 L ${CX + 22} 256 Q ${CX} 262 ${CX - 22} 256 Z`} fill={C.upperSh} opacity="0.5" stroke={C.outline} strokeWidth="2" />
+            <path d={`M 102 232 Q ${CX} 226 ${CX + 18} 232 L ${CX + 22} 252 Q ${CX} 258 ${CX - 22} 252 Z`} fill={C.upperSh} opacity="0.5" stroke={C.outline} strokeWidth="2" />
           </g>
         )}
 
-        {/* === СЛОЙ 4: верхняя одежда === */}
+        {/* СЛОЙ 4: верхняя одежда — куртка 154→266 */}
         {show.outer && (
           <g>
             {limb(slvL, C.outer, 26)}
             {limb(slvR, C.outer, 26)}
-            <path d={torso(40, 44, 154, 264)} fill={C.outer} stroke={C.outline} strokeWidth="2.5" />
+            <path d={torso(40, 44, 154, 266)} fill={C.outer} stroke={C.outline} strokeWidth="2.5" />
             <line x1={CX} y1={152} x2={CX} y2={268} stroke={C.hatSh} strokeWidth="3.5" strokeLinecap="round" />
             <circle cx={CX} cy={164} r="3" fill={C.hatSh} />
-            <rect x={94} y={234} width="14" height="16" rx="5" fill={C.outerSh} opacity="0.6" stroke={C.outline} strokeWidth="1.8" />
-            <rect x={132} y={234} width="14" height="16" rx="5" fill={C.outerSh} opacity="0.6" stroke={C.outline} strokeWidth="1.8" />
+            <rect x={94} y={238} width="14" height="16" rx="5" fill={C.outerSh} opacity="0.6" stroke={C.outline} strokeWidth="1.8" />
+            <rect x={132} y={238} width="14" height="16" rx="5" fill={C.outerSh} opacity="0.6" stroke={C.outline} strokeWidth="1.8" />
             {(zone === 'arctic' || zone === 'winter') && !isRainy && (
               <g stroke={C.outline} strokeWidth="1.8" opacity="0.3" fill="none">
                 <line x1={84} y1={182} x2={156} y2={182} />
                 <line x1={82} y1={210} x2={158} y2={210} />
-                <line x1={82} y1={238} x2={158} y2={238} />
+                <line x1={82} y1={240} x2={158} y2={240} />
               </g>
             )}
             {zone === 'arctic' && !isRainy && (
@@ -270,7 +267,7 @@ export const ChildFigure: React.FC<ChildFigureProps> = ({
           </g>
         )}
 
-        {/* === ВАРЕЖКИ === */}
+        {/* Варежки */}
         {cold && show.accessory && (
           <g>
             <circle cx={68} cy={HAND_Y} r="12" fill={C.mitt} stroke={C.outline} strokeWidth="2.5" />
@@ -280,7 +277,7 @@ export const ChildFigure: React.FC<ChildFigureProps> = ({
           </g>
         )}
 
-        {/* === ШАРФ === */}
+        {/* Шарф */}
         {coolish && show.accessory && (
           <g>
             <rect x={94} y={146} width="52" height="20" rx="10" fill={C.scarf} stroke={C.outline} strokeWidth="2.5" />
@@ -290,17 +287,13 @@ export const ChildFigure: React.FC<ChildFigureProps> = ({
           </g>
         )}
 
-        {/* === ГОЛОВА === */}
+        {/* Голова */}
         <g>
           <circle cx={CX} cy={HEAD_CY} r={HEAD_R} fill={C.skin} stroke={C.outline} strokeWidth="3" />
-
-          {/* Брови */}
           <g stroke={C.hair} strokeWidth="3.5" strokeLinecap="round" fill="none">
             <path d={`M 84 78 Q 92 72 100 78`} />
             <path d={`M 140 78 Q 148 72 156 78`} />
           </g>
-
-          {/* Глаза: большие, с бликами */}
           <ellipse cx={98} cy={100} rx="11" ry="13" fill="#FFFFFF" stroke={C.outline} strokeWidth="2.5" />
           <ellipse cx={142} cy={100} rx="11" ry="13" fill="#FFFFFF" stroke={C.outline} strokeWidth="2.5" />
           <circle cx={98} cy={102} r="7.5" fill={C.hair} />
@@ -315,50 +308,36 @@ export const ChildFigure: React.FC<ChildFigureProps> = ({
               <line x1={153} y1={92} x2={158} y2={88} />
             </g>
           )}
-
-          {/* Румянец */}
           <circle cx={82} cy={116} r={cold ? 10 : 8} fill={C.blush} opacity="0.6" />
           <circle cx={158} cy={116} r={cold ? 10 : 8} fill={C.blush} opacity="0.6" />
-
-          {/* Нос */}
           <circle cx={CX} cy={112} r="2" fill={C.skinSh} />
-
-          {/* Рот */}
           {hot ? (
             <path d={`M 110 124 Q ${CX} 138 ${CX + 10} 124 Z`} fill={C.hair} stroke={C.outline} strokeWidth="2.5" />
           ) : (
             <path d={`M 111 126 Q ${CX} 134 ${CX + 9} 126`} fill="none" stroke={C.outline} strokeWidth="3" strokeLinecap="round" />
           )}
-
-          {/* Веснушки */}
           {!girl && (
             <g fill={C.hair} opacity="0.45">
               <circle cx={84} cy={110} r="1.6" /><circle cx={79} cy={115} r="1.6" />
               <circle cx={156} cy={110} r="1.6" /><circle cx={161} cy={115} r="1.6" />
             </g>
           )}
-
-          {/* Дыхание на морозе */}
           {cold && (
             <g opacity="0.5" className="animate-float" style={{ animationDuration: '2s' }}>
               <ellipse cx={140} cy={132} rx="7" ry="3.5" fill="#FFFFFF" />
               <ellipse cx={150} cy={127} rx="5" ry="2.5" fill="#FFFFFF" />
             </g>
           )}
-
-          {/* Волосы спереди */}
           <g fill={C.hair} stroke={C.outline} strokeWidth="2.5">
             {girl ? (
               <path d={`M 60 100 Q 56 36 ${CX} 32 Q 184 36 180 100 Q 172 78 160 84 Q 152 68 140 80 Q 130 66 ${CX} 80 Q 110 66 100 80 Q 88 68 80 84 Q 68 78 60 100 Z`} />
             ) : (
               <path d={`M 62 96 Q 58 34 ${CX} 30 Q 182 34 178 96 Q 174 70 162 76 Q 166 58 150 66 Q 148 50 134 62 Q 126 46 114 62 Q 104 50 98 68 Q 86 58 88 76 Q 74 68 76 84 Q 66 80 62 96 Z`} />
             )}
-            <path d={girl
-              ? `M 74 62 Q 90 48 108 54 Q 96 44 82 50 Z`
-              : `M 78 56 Q 96 42 116 48 Q 100 38 84 46 Z`} fill={C.hairHi} opacity="0.6" />
+            <path d={girl ? `M 74 62 Q 90 48 108 54 Q 96 44 82 50 Z` : `M 78 56 Q 96 42 116 48 Q 100 38 84 46 Z`} fill={C.hairHi} opacity="0.6" />
           </g>
 
-          {/* === ГОЛОВНОЙ УБОР === */}
+          {/* Головной убор */}
           {show.headwear && (
             <g>
               {hot ? (
@@ -395,7 +374,7 @@ export const ChildFigure: React.FC<ChildFigureProps> = ({
           )}
         </g>
 
-        {/* === ЗОНТ === */}
+        {/* Зонт */}
         {isRainy && show.accessory && (
           <g className="animate-float" style={{ animationDuration: '4s' }}>
             <line x1={172} y1={HAND_Y} x2={172} y2={20} stroke={C.outline} strokeWidth="4" strokeLinecap="round" />

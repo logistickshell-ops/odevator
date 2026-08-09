@@ -13,6 +13,12 @@ export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({ tips }) =>
   const [currentTipIndex, setCurrentTipIndex] = useState(0);
   const AUTO_CHANGE_INTERVAL = 15000; // 15 секунд
 
+  // ===== ОТЛАДКА =====
+  console.log('🔄 Рендер ParentTipsSection, получено советов:', tips.length);
+  if (tips.length > 0) {
+    console.log(' Первый совет:', tips[0].title);
+  }
+
   const toggleCheck = (id: string) => {
     setCheckedItems(prev => ({ ...prev, [id]: !prev[id] }));
   };
@@ -57,6 +63,7 @@ export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({ tips }) =>
     { id: 'general', label: 'Общее', icon: '📝', count: tips.filter(t => t.category === 'general').length },
   ];
 
+  // ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ UI =====
   const getCategoryColor = (category: string) => {
     if (category === 'health') return 'bg-rose-50 border-rose-200 text-rose-900';
     if (category === 'weather') return 'bg-blue-50 border-blue-200 text-blue-900';
@@ -67,10 +74,11 @@ export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({ tips }) =>
   const getCategoryBadge = (category: string) => {
     if (category === 'health') return '❤️ Здоровье';
     if (category === 'weather') return '🌤️ Погода';
-    if (category === 'clothing') return '👕 Одежда';
+    if (category === 'clothing') return ' Одежда';
     return '📝 Общее';
   };
 
+  // ===== ЧЕК-ЛИСТЫ =====
   const checklists = {
     before: [
       { id: 'b1', text: 'Погода проверена (температура, ветер, осадки)' },
@@ -105,10 +113,12 @@ export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({ tips }) =>
     ]
   };
 
+  // ===== UI =====
   return (
     <div className="space-y-6">
       {/* Заголовок с фильтрами */}
       <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-100 shadow-sm">
+        {/* Заголовок с управлением */}
         <div className="flex items-center justify-between gap-3 mb-4">
           <div className="flex items-center gap-2">
             <Lightbulb className="text-amber-500 shrink-0" size={22} />

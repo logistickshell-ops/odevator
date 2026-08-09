@@ -1,3 +1,4 @@
+import { Tip } from './tips';
 import { useState, useEffect, useCallback } from 'react';
 import { 
   DayForecast, 
@@ -681,7 +682,13 @@ export default function App() {
           {/* 2. Parent Tips Tab */}
           {activeTab === 'tips' && (
             <div className="space-y-4">
-              <ParentTipsSection tips={activeOutfit.parentTips} />
+             <ParentTipsSection tips={(activeOutfit.parentTips ?? []).map(t => ({
+  id: typeof t.id === 'string' ? parseInt(t.id, 10) || 0 : t.id,
+  title: t.title,
+  text: t.text,
+  icon: t.icon,
+  category: (t.category as Tip['category']) ?? 'general',
+}))} />
             </div>
           )}
 

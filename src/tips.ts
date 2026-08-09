@@ -1,82 +1,272 @@
-// src/data/tips.ts
-export interface Tip {
-  id: number;
-  title: string;
-  text: string;
-  icon: string;
-  category?: 'weather' | 'health' | 'clothing' | 'general';
+import React, { useState, useEffect } from 'react';
+import { ParentTip } from '../types';
+import { ShieldCheck, Lightbulb, RefreshCw, ChevronLeft, ChevronRight, Clock, Baby, Package, CheckSquare, Square } from 'lucide-react';
+
+interface ParentTipsSectionProps {
+  tips: ParentTip[];
 }
 
-export const tipsPool: Tip[] = [
-  {
-    id: 1,
-    title: "Загривок - индикатор температуры",
-    text: "Пощупайте шею сзади (загривок) ребенка — если он влажный и горячий, малышу жарко. Если холодный — пора утепляться. Ладони и нос — не показатель!",
-    icon: "🌡️",
-    category: "health"
-  },
-  {
-    id: 2,
-    title: "Правило слоев для детей",
-    text: "Одевайте ребенка на 1 слой больше, чем себя, если ему до 1 года. Для детей постарше — столько же слоев, сколько и у взрослого, но с учетом активности.",
-    icon: "🧅",
-    category: "clothing"
-  },
-  {
-    id: 3,
-    title: "Ветер + влажность = холоднее",
-    text: "При ветре и высокой влажности ощущаемая температура ниже реальной. В такую погоду добавляйте ветрозащитный слой даже в плюсовую температуру.",
-    icon: "💨",
-    category: "weather"
-  },
-  {
-    id: 4,
-    title: "Проверка перегрева",
-    text: "Ребенок перегрелся, если: кожа красная и горячая, учащенное дыхание, капризность без причины. Снимите 1 слой одежды и дайте воды.",
-    icon: "🔥",
-    category: "health"
-  },
-  {
-    id: 5,
-    title: "Обувь по размеру",
-    text: "У ребенка должна быть возможность пошевелить пальцами в обуви. Оптимальный запас — 0.5-1 см. Тесная обувь замедляет кровообращение и быстрее охлаждает ноги.",
-    icon: "👢",
-    category: "clothing"
-  },
-  {
-    id: 6,
-    title: "Активность и одежда",
-    text: "Если ребенок бегает и играет — одевайте легче, чем для спокойной прогулки. От активных движений дети потеют и перегреваются, а потом легко простужаются от ветра.",
-    icon: "🏃",
-    category: "general"
-  },
-  {
-    id: 7,
-    title: "Шея и грудь — главные индикаторы",
-    text: "Лучший способ проверить комфорт ребенка — потрогать его грудь и шею. Если они теплые и сухие — все хорошо. Холодные — замерз, горячие и влажные — перегрет.",
-    icon: "🫀",
-    category: "health"
-  },
-  {
-    id: 8,
-    title: "Без шапки при ветре",
-    text: "Даже в +5°C при сильном ветре ребенок теряет до 30% тепла через голову. Шапка обязательна, даже если кажется, что солнце греет.",
-    icon: "🧢",
-    category: "weather"
-  },
-  {
-    id: 9,
-    title: "Правило 3-х минут",
-    text: "После выхода на улицу подождите 3 минуты и оцените состояние ребенка. Это время нужно, чтобы организм перестроился с теплого помещения на холодный воздух.",
-    icon: "⏱️",
-    category: "general"
-  },
-  {
-    id: 10,
-    title: "Водоотталкивающий слой",
-    text: "При температуре около 0°C и мокром снеге обязателен верхний водоотталкивающий слой. Промокшая одежда отводит тепло в 2 раза быстрее сухой.",
-    icon: "🧥",
-    category: "clothing"
-  },
-  // Добавь сколько хочешь советов
-];
+export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({ tips }) => {
+  const [currentTipIndex, setCurrentTipIndex] = useState(0);
+  const [isAutoRotate, setIsAutoRotate] = useState(true);
+  const [activeChecklist, setActiveChecklist] = useState<'before' | 'during' | 'after'>('before');
+  const [checkedItems, setCheckedItems] = useState<{ [key: string]: boolean }>({});
+
+  const toggleCheck = (id: string) => {
+    setCheckedItems(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  // Функция для получения случайного индекса (не равного текущему)
+  const getRandomIndex = (currentIdx: number) => {
+    if (tips.length <= 1) return 0;
+    let newIdx;
+    do {
+      newIdx = Math.floor(Math.random() * tips.length);
+    } while (newIdx === currentIdx);
+    return newIdx;
+  };
+
+  // Функция смены совета
+  const rotateTip = () => {
+    setCurrentTipIndex(prev => getRandomIndex(prev));
+  };
+
+  // Переключение на следующий/предыдущий совет (по кругу)
+  const nextTip = () => {
+    setCurrentTipIndex(prev => (prev + 1) % tips.length);
+  };
+
+  const prevTip = () => {
+    setCurrentTipIndex(prev => (prev - 1 + tips.length) % tips.length);
+  };
+
+  // При монтировании — случайный совет
+  useEffect(() => {
+    if (tips.length > 0) {
+      setCurrentTipIndex(Math.floor(Math.random() * tips.length));
+    }
+  }, [tips]);
+
+  // Автосмена каждые 15 секунд (если включена)
+  useEffect(() => {
+    if (!isAutoRotate || tips.length <= 1) return;
+    
+    const interval = setInterval(() => {
+      rotateTip();
+    }, 15000);
+
+    return () => clearInterval(interval);
+  }, [isAutoRotate, tips, currentTipIndex]);
+
+  // Если нет советов — показываем заглушку
+  if (tips.length === 0) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-white rounded-2xl sm:rounded-3xl p-6 border border-slate-100 shadow-sm text-center">
+          <Lightbulb className="text-slate-300 mx-auto mb-2" size={32} />
+          <p className="text-slate-500 text-sm">Скоро здесь появятся полезные советы</p>
+        </div>
+      </div>
+    );
+  }
+
+  const currentTip = tips[currentTipIndex];
+
+  // Функция для определения цвета в зависимости от категории
+  const getCategoryColor = (category?: string) => {
+    if (category === 'health') return 'bg-rose-50 border-rose-200 text-rose-900';
+    if (category === 'weather') return 'bg-blue-50 border-blue-200 text-blue-900';
+    if (category === 'clothing') return 'bg-emerald-50 border-emerald-200 text-emerald-900';
+    return 'bg-amber-50 border-amber-200 text-amber-900'; // general
+  };
+
+  const getCategoryBadge = (category?: string) => {
+    if (category === 'health') return '❤️ Здоровье';
+    if (category === 'weather') return '🌤️ Погода';
+    if (category === 'clothing') return '👕 Одежда';
+    return '📝 Общее';
+  };
+
+  // Чек-листы (оставляем как есть)
+  const checklists = {
+    before: [
+      { id: 'b1', text: 'Погода проверена (температура, ветер, осадки)' },
+      { id: 'b2', text: 'Одежда выбрана по температуре и активности' },
+      { id: 'b3', text: 'Слои готовы (можно легко снять/надеть на улице)' },
+      { id: 'b4', text: 'Обувь удобная, сухая и по сезону' },
+      { id: 'b5', text: 'Головной убор надет правильно (закрывает уши/от солнца)' },
+      { id: 'b6', text: 'Руки защищены (варежки/перчатки по погоде)' },
+      { id: 'b7', text: 'Сменка собрана в рюкзак (при необходимости)' },
+      { id: 'b8', text: 'Вода взята (обязательно при жаре > +25°C)' },
+      { id: 'b9', text: 'Солнцезащитный крем нанесен (при активном солнце)' },
+      { id: 'b10', text: 'Дождевик или зонт приготовлен (при вероятности дождя)' },
+      { id: 'b11', text: 'Термос с теплым напитком взят (при морозе)' },
+    ],
+    during: [
+      { id: 'd1', text: 'Ребёнку комфортно? (не капризничает от жары/холода)' },
+      { id: 'd2', text: 'Шея и спина проверены тыльной стороной ладони (тепло/не потеет)' },
+      { id: 'd3', text: 'Ручки тёплые и розовые' },
+      { id: 'd4', text: 'Ножки в тепле (проверка по возвращению или при смене обуви)' },
+      { id: 'd5', text: 'Голова и уши надежно закрыты / защищены от солнца' },
+      { id: 'd6', text: 'Одежда не намокла от снега или луж' },
+      { id: 'd7', text: 'Ребёнок пьёт воду каждые 15-20 минут (в жару)' },
+      { id: 'd8', text: 'Есть укрытие от внезапного дождя или сильного ветра' },
+    ],
+    after: [
+      { id: 'a1', text: 'Оценка общего состояния ребёнка (не замерз ли, не перегрелся)' },
+      { id: 'a2', text: 'Переодеть в сухое (если вспотел или промок)' },
+      { id: 'a3', text: 'Обувь поставить на просушку (вынуть стельки)' },
+      { id: 'a4', text: 'Варежки и шапку высушить к следующей прогулке' },
+      { id: 'a5', text: 'Оценить, была ли выбранная одежда адекватна погоде' },
+      { id: 'a6', text: 'Запомнить или записать выводы для завтрашней прогулки' },
+    ]
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* 1. ДИНАМИЧЕСКИЙ СОВЕТ */}
+      <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-100 shadow-sm">
+        {/* Заголовок с управлением */}
+        <div className="flex items-center justify-between gap-3 mb-4">
+          <div className="flex items-center gap-2">
+            <Lightbulb className="text-amber-500 shrink-0" size={22} />
+            <h3 className="text-base sm:text-xl font-black text-slate-800">
+              Умные подсказки родителям
+            </h3>
+          </div>
+          
+          <div className="flex items-center gap-1 sm:gap-2">
+            {/* Кнопка автосмены */}
+            <button
+              onClick={() => setIsAutoRotate(!isAutoRotate)}
+              className={`p-1.5 sm:p-2 rounded-lg transition-all text-[10px] sm:text-xs font-bold ${
+                isAutoRotate 
+                  ? 'bg-indigo-100 text-indigo-600 hover:bg-indigo-200' 
+                  : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
+              }`}
+              title={isAutoRotate ? 'Выключить автосмену' : 'Включить автосмену'}
+            >
+              {isAutoRotate ? '🔄 Авто' : '⏸️ Стоп'}
+            </button>
+
+            {/* Кнопка обновления */}
+            <button
+              onClick={rotateTip}
+              className="p-1.5 sm:p-2 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-all"
+              title="Случайный совет"
+            >
+              <RefreshCw size={16} className="sm:w-[18px] sm:h-[18px]" />
+            </button>
+          </div>
+        </div>
+
+        {/* Карточка совета */}
+        <div className={`p-4 sm:p-5 rounded-xl sm:rounded-2xl border-2 transition-all ${getCategoryColor(currentTip.category)}`}>
+          <div className="flex items-start gap-3 sm:gap-4">
+            <span className="text-3xl sm:text-4xl leading-none shrink-0 mt-0.5">
+              {currentTip.icon}
+            </span>
+            
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center justify-between gap-2 flex-wrap mb-1.5">
+                <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-white/80 border border-black/10 text-slate-700">
+                  {getCategoryBadge(currentTip.category)}
+                </span>
+                <span className="text-[9px] sm:text-[10px] text-slate-400 font-medium">
+                  {currentTipIndex + 1} / {tips.length}
+                </span>
+              </div>
+              
+              <h4 className="font-extrabold text-sm sm:text-base leading-tight mb-1.5 text-slate-800">
+                {currentTip.title}
+              </h4>
+              <p className="text-xs sm:text-sm leading-relaxed text-slate-700">
+                {currentTip.text}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Навигация */}
+        <div className="flex items-center justify-between mt-4">
+          <button
+            onClick={prevTip}
+            className="p-2 rounded-lg hover:bg-slate-100 transition-colors text-slate-500 hover:text-slate-700"
+            title="Предыдущий совет"
+          >
+            <ChevronLeft size={18} className="sm:w-[20px] sm:h-[20px]" />
+          </button>
+          
+          <span className="text-[10px] sm:text-xs text-slate-400 font-medium">
+            {isAutoRotate ? '🔄 Автосмена каждые 15 сек' : '⏸️ Ручной режим'}
+          </span>
+          
+          <button
+            onClick={nextTip}
+            className="p-2 rounded-lg hover:bg-slate-100 transition-colors text-slate-500 hover:text-slate-700"
+            title="Следующий совет"
+          >
+            <ChevronRight size={18} className="sm:w-[20px] sm:h-[20px]" />
+          </button>
+        </div>
+      </div>
+
+      {/* 2. ЧЕК-ЛИСТЫ (без изменений) */}
+      <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-100 shadow-sm space-y-4">
+        <div>
+          <h3 className="text-base sm:text-xl font-black text-slate-800 flex items-center gap-2">
+            <ShieldCheck className="text-indigo-500 shrink-0" size={22} />
+            <span>Чек-листы безопасности прогулки</span>
+          </h3>
+          <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 leading-relaxed">
+            Отмечайте выполненные пункты для полной уверенности в комфорте малыша на каждом этапе.
+          </p>
+        </div>
+
+        {/* Checklist Tabs */}
+        <div className="flex bg-slate-100 p-1 sm:p-1.5 rounded-xl sm:rounded-2xl border border-slate-200/60">
+          <button onClick={() => setActiveChecklist('before')}
+            className={`flex-1 py-2 sm:py-2.5 px-2 sm:px-4 rounded-lg sm:rounded-xl font-extrabold text-[10px] sm:text-xs transition-all flex items-center justify-center gap-1 sm:gap-1.5 ${
+              activeChecklist === 'before' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-600 hover:text-slate-800'
+            }`}>
+            <Clock size={14} className="shrink-0" />
+            <span className="truncate">Перед выходом</span>
+          </button>
+          <button onClick={() => setActiveChecklist('during')}
+            className={`flex-1 py-2 sm:py-2.5 px-2 sm:px-4 rounded-lg sm:rounded-xl font-extrabold text-[10px] sm:text-xs transition-all flex items-center justify-center gap-1 sm:gap-1.5 ${
+              activeChecklist === 'during' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-600 hover:text-slate-800'
+            }`}>
+            <Baby size={14} className="shrink-0" />
+            <span className="truncate">На улице</span>
+          </button>
+          <button onClick={() => setActiveChecklist('after')}
+            className={`flex-1 py-2 sm:py-2.5 px-2 sm:px-4 rounded-lg sm:rounded-xl font-extrabold text-[10px] sm:text-xs transition-all flex items-center justify-center gap-1 sm:gap-1.5 ${
+              activeChecklist === 'after' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-600 hover:text-slate-800'
+            }`}>
+            <Package size={14} className="shrink-0" />
+            <span className="truncate">После прогулки</span>
+          </button>
+        </div>
+
+        {/* Checklist Items */}
+        <div className="space-y-2 pt-2">
+          {checklists[activeChecklist].map((item) => (
+            <button key={item.id} onClick={() => toggleCheck(item.id)}
+              className={`w-full text-left p-3 sm:p-4 rounded-xl sm:rounded-2xl border-2 transition-all flex items-start gap-3 active:scale-[0.99] ${
+                checkedItems[item.id]
+                  ? 'bg-emerald-50/50 border-emerald-200 text-slate-500'
+                  : 'bg-slate-50/50 border-slate-100 hover:border-slate-200 text-slate-700'
+              }`}>
+              <div className={`mt-0.5 shrink-0 transition-colors ${checkedItems[item.id] ? 'text-emerald-600' : 'text-slate-300'}`}>
+                {checkedItems[item.id] ? <CheckSquare size={18} /> : <Square size={18} />}
+              </div>
+              <span className={`text-[11px] sm:text-xs leading-snug font-bold ${checkedItems[item.id] ? 'line-through decoration-emerald-600/40 opacity-70' : ''}`}>
+                {item.text}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};

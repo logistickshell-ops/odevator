@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ShieldCheck, Lightbulb, RefreshCw, ChevronLeft, ChevronRight, Clock, Baby, Package, CheckSquare, Square } from 'lucide-react';
 import { Tip } from '../tips';
 
@@ -7,87 +7,49 @@ interface ParentTipsSectionProps {
 }
 
 export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({ tips }) => {
-  const [currentTipIndex, setCurrentTipIndex] = useState<number>(0);
-  const [isAutoRotate, setIsAutoRotate] = useState<boolean>(true);
+  const [currentIndex, setCurrentIndex] = useState<number>(0);
+  const [isAuto, setIsAuto] = useState<boolean>(true);
   const [activeChecklist, setActiveChecklist] = useState<'before' | 'during' | 'after'>('before');
   const [checkedItems, setCheckedItems] = useState<{ [key: string]: boolean }>({});
 
-  const toggleCheck = (id: string) => {
-    setCheckedItems(prev => ({ ...prev, [id]: !prev[id] }));
+  // Простая функция смены на случайный
+  const randomTip = () => {
+    if (tips.length === 0) return;
+    const randomIndex = Math.floor(Math.random() * tips.length);
+    setCurrentIndex(randomIndex);
   };
 
-  // Используем useCallback для стабильной ссылки на функцию
-  const rotateTip = useCallback(() => {
-    if (tips.length === 0) return;
-    setCurrentTipIndex(prev => {
-      if (tips.length <= 1) return 0;
-      let newIdx;
-      do {
-        newIdx = Math.floor(Math.random() * tips.length);
-      } while (newIdx === prev);
-      return newIdx;
-    });
-  }, [tips]);
-
+  // Следующий по порядку
   const nextTip = () => {
     if (tips.length === 0) return;
-    setCurrentTipIndex(prev => (prev + 1) % tips.length);
+    setCurrentIndex((prev) => (prev + 1) % tips.length);
   };
 
+  // Предыдущий по порядку
   const prevTip = () => {
     if (tips.length === 0) return;
-    setCurrentTipIndex(prev => (prev - 1 + tips.length) % tips.length);
+    setCurrentIndex((prev) => (prev - 1 + tips.length) % tips.length);
   };
 
-  // Инициализация случайным советом
+  // При загрузке - случайный
   useEffect(() => {
     if (tips.length > 0) {
-      setCurrentTipIndex(Math.floor(Math.random() * tips.length));
+      randomTip();
     }
   }, [tips]);
 
-  // Автосмена - теперь все работает!
+  // Автосмена
   useEffect(() => {
-    if (!isAutoRotate || tips.length <= 1) return;
-    
-    console.log('🔄 Автосмена включена, меняем каждые 15 секунд');
-    const interval = setInterval(() => {
-      rotateTip();
+    if (!isAuto || tips.length <= 1) return;
+
+    const timer = setInterval(() => {
+      randomTip();
     }, 15000);
 
-    return () => {
-      console.log('⏹️ Автосмена остановлена');
-      clearInterval(interval);
-    };
-  }, [isAutoRotate, rotateTip]); // ← rotateTip теперь стабилен из-за useCallback
+    return () => clearInterval(timer);
+  }, [isAuto, tips.length]);
 
-  if (tips.length === 0) {
-    return (
-      <div className="space-y-6">
-        <div className="bg-white rounded-2xl sm:rounded-3xl p-6 border border-slate-100 shadow-sm text-center">
-          <Lightbulb className="text-slate-300 mx-auto mb-2" size={32} />
-          <p className="text-slate-500 text-sm">Скоро здесь появятся полезные советы</p>
-        </div>
-      </div>
-    );
-  }
-
-  const currentTip = tips[currentTipIndex];
-
-  const getCategoryColor = (category: string) => {
-    if (category === 'health') return 'bg-rose-50 border-rose-200 text-rose-900';
-    if (category === 'weather') return 'bg-blue-50 border-blue-200 text-blue-900';
-    if (category === 'clothing') return 'bg-emerald-50 border-emerald-200 text-emerald-900';
-    return 'bg-amber-50 border-amber-200 text-amber-900';
-  };
-
-  const getCategoryBadge = (category: string) => {
-    if (category === 'health') return '❤️ Здоровье';
-    if (category === 'weather') return '🌤️ Погода';
-    if (category === 'clothing') return '👕 Одежда';
-    return '📝 Общее';
-  };
-
+  // Чек-листы
   const checklists = {
     before: [
       { id: 'b1', text: 'Погода проверена (температура, ветер, осадки)' },
@@ -122,10 +84,44 @@ export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({ tips }) =>
     ]
   };
 
+  const toggleCheck = (id: string) => {
+    setCheckedItems(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const getCategoryColor = (category: string) => {
+    if (category === 'health') return 'bg-rose-50 border-rose-200 text-rose-900';
+    if (category === 'weather') return 'bg-blue-50 border-blue-200 text-blue-900';
+    if (category === 'clothing') return 'bg-emerald-50 border-emerald-200 text-emerald-900';
+    return 'bg-amber-50 border-amber-200 text-amber-900';
+  };
+
+  const getCategoryBadge = (category: string) => {
+    if (category === 'health') return '❤️ Здоровье';
+    if (category === 'weather') return '🌤️ Погода';
+    if (category === 'clothing') return '👕 Одежда';
+    return '📝 Общее';
+  };
+
+  // Если нет советов
+  if (tips.length === 0) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-white rounded-2xl sm:rounded-3xl p-6 border border-slate-100 shadow-sm text-center">
+          <Lightbulb className="text-slate-300 mx-auto mb-2" size={32} />
+          <p className="text-slate-500 text-sm">Скоро здесь появятся полезные советы</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Текущий совет
+  const currentTip = tips[currentIndex];
+
   return (
     <div className="space-y-6">
-      {/* Динамический совет */}
+      {/* Блок с советом */}
       <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-100 shadow-sm">
+        {/* Заголовок */}
         <div className="flex items-center justify-between gap-3 mb-4">
           <div className="flex items-center gap-2">
             <Lightbulb className="text-amber-500 shrink-0" size={22} />
@@ -136,19 +132,19 @@ export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({ tips }) =>
           
           <div className="flex items-center gap-1 sm:gap-2">
             <button
-              onClick={() => setIsAutoRotate(!isAutoRotate)}
+              onClick={() => setIsAuto(!isAuto)}
               className={`p-1.5 sm:p-2 rounded-lg transition-all text-[10px] sm:text-xs font-bold ${
-                isAutoRotate 
+                isAuto 
                   ? 'bg-indigo-100 text-indigo-600 hover:bg-indigo-200' 
                   : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
               }`}
-              title={isAutoRotate ? 'Выключить автосмену' : 'Включить автосмену'}
+              title={isAuto ? 'Выключить автосмену' : 'Включить автосмену'}
             >
-              {isAutoRotate ? '🔄 Авто' : '⏸️ Стоп'}
+              {isAuto ? '🔄 Авто' : '⏸️ Стоп'}
             </button>
 
             <button
-              onClick={rotateTip}
+              onClick={randomTip}
               className="p-1.5 sm:p-2 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-all"
               title="Случайный совет"
             >
@@ -157,6 +153,7 @@ export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({ tips }) =>
           </div>
         </div>
 
+        {/* Карточка совета */}
         <div className={`p-4 sm:p-5 rounded-xl sm:rounded-2xl border-2 transition-all ${getCategoryColor(currentTip.category)}`}>
           <div className="flex items-start gap-3 sm:gap-4">
             <span className="text-3xl sm:text-4xl leading-none shrink-0 mt-0.5">
@@ -169,7 +166,7 @@ export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({ tips }) =>
                   {getCategoryBadge(currentTip.category)}
                 </span>
                 <span className="text-[9px] sm:text-[10px] text-slate-400 font-medium">
-                  {currentTipIndex + 1} / {tips.length}
+                  {currentIndex + 1} / {tips.length}
                 </span>
               </div>
               
@@ -183,6 +180,7 @@ export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({ tips }) =>
           </div>
         </div>
 
+        {/* Навигация */}
         <div className="flex items-center justify-between mt-4">
           <button
             onClick={prevTip}
@@ -193,7 +191,7 @@ export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({ tips }) =>
           </button>
           
           <span className="text-[10px] sm:text-xs text-slate-400 font-medium">
-            {isAutoRotate ? '🔄 Автосмена каждые 15 сек' : '⏸️ Ручной режим'}
+            {isAuto ? '🔄 Автосмена каждые 15 сек' : '⏸️ Ручной режим'}
           </span>
           
           <button

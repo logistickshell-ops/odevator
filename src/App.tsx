@@ -19,6 +19,7 @@ import { WeatherSelector } from './components/WeatherSelector';
 import { AvatarVisualizer } from './components/AvatarVisualizer';
 import { CustomWeatherControls } from './components/CustomWeatherControls';
 import { ParentTipsSection } from './components/ParentTipsSection';
+import { AnalysisSection } from './components/AnalysisSection';
 import { 
   MapPin, 
   Search, 
@@ -450,56 +451,61 @@ export default function App() {
             )}
           </div>
         </div>
-        <nav className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 border-t border-slate-100/70">
-         <div className="flex items-center justify-between gap-1 py-1 sm:justify-start sm:gap-6">
+
+<nav className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 border-t border-slate-100/70">
+ <div className="flex items-center justify-between gap-1 py-1 sm:justify-start sm:gap-6">
   <button
     onClick={() => setActiveTab('clothing')}
     className={`py-2 px-1 font-extrabold text-[9px] xs:text-[11px] sm:text-sm border-b-2 transition flex flex-col xs:flex-row items-center justify-center gap-1 sm:gap-1.5 whitespace-nowrap flex-1 sm:flex-none ${
       activeTab === 'clothing' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-600'
     }`}
   >
-              <span>👕</span>
-              <span>Одежда</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('tips')}
-              className={`py-2 px-1 font-extrabold text-[9px] xs:text-[11px] sm:text-sm border-b-2 transition flex flex-col xs:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-1.5 whitespace-nowrap ${
-                activeTab === 'tips' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-600'
-              }`}
-            >
-              <span>💡</span>
-              <span>Подсказки</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('parameters')}
-              className={`py-2 px-1 font-extrabold text-[9px] xs:text-[11px] sm:text-sm border-b-2 transition flex flex-col xs:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-1.5 whitespace-nowrap ${
-                activeTab === 'parameters' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-600'
-              }`}
-            >
-              <Baby size={14} className="shrink-0" />
-              <span>Параметры</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('simulator')}
-              className={`py-2 px-1 font-extrabold text-[9px] xs:text-[11px] sm:text-sm border-b-2 transition flex flex-col xs:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-1.5 whitespace-nowrap ${
-                activeTab === 'simulator' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-600'
-              }`}
-            >
-              <RefreshCw size={14} className="shrink-0" />
-              <span>Симулятор</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('faq')}
-              className={`py-2 px-1 font-extrabold text-[9px] xs:text-[11px] sm:text-sm border-b-2 transition flex flex-col xs:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-1.5 whitespace-nowrap ${
-                activeTab === 'faq' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-600'
-              }`}
-            >
-              <HelpCircle size={14} className="shrink-0" />
-              <span>FAQ</span>
-            </button>
-          </div>
-        </nav>
-      </header>
+          <span>👕</span>
+      <span>Одежда</span>
+    </button>
+    {/* Подсказки */}
+    <button
+      onClick={() => setActiveTab('tips')}
+      className={`py-2 font-extrabold text-[9px] xs:text-[11px] sm:text-sm border-b-2 transition flex flex-col xs:flex-row items-center justify-center gap-1 sm:gap-1.5 whitespace-nowrap ${
+        activeTab === 'tips' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-600'
+      }`}
+    >
+      <span>💡</span>
+      <span>Подсказки</span>
+    </button>
+    {/* Параметры */}
+    <button
+      onClick={() => setActiveTab('parameters')}
+      className={`py-2 font-extrabold text-[9px] xs:text-[11px] sm:text-sm border-b-2 transition flex flex-col xs:flex-row items-center justify-center gap-1 sm:gap-1.5 whitespace-nowrap ${
+        activeTab === 'parameters' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-600'
+      }`}
+    >
+      <span>🛠</span>
+      <span>Параметры</span>
+    </button>
+    {/* Симулятор */}
+    <button
+      onClick={() => setActiveTab('simulator')}
+      className={`py-2 font-extrabold text-[9px] xs:text-[11px] sm:text-sm border-b-2 transition flex flex-col xs:flex-row items-center justify-center gap-1 sm:gap-1.5 whitespace-nowrap ${
+        activeTab === 'simulator' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-600'
+      }`}
+    >
+      <span>⚙</span>
+      <span>Симулятор</span>
+    </button>
+    {/* FAQ */}
+    <button
+      onClick={() => setActiveTab('faq')}
+      className={`py-2 font-extrabold text-[9px] xs:text-[11px] sm:text-sm border-b-2 transition flex flex-col xs:flex-row items-center justify-center gap-1 sm:gap-1.5 whitespace-nowrap ${
+        activeTab === 'faq' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-600'
+      }`}
+    >
+      <span>☺</span>
+      <span>FAQ</span>
+    </button>
+  </div>
+</nav>
+</header>
 
       {/* MAIN SECTION */}
       <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 mt-4 sm:mt-8 space-y-5 sm:space-y-8">
@@ -748,62 +754,65 @@ export default function App() {
             </div>
           )}
 
-          {/* 5. FAQ & Scientific School for Parents */}
+          {/* 5. FAQ & Scientific School for Parents + Market Analysis */}
           {activeTab === 'faq' && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6">
-              
-              {/* FAQ 1 */}
-              <div className="bg-white p-3 sm:p-5 rounded-xl sm:rounded-3xl border border-slate-100 shadow-xs space-y-1.5 sm:space-y-2">
-                <h4 className="font-bold text-slate-800 text-[11px] sm:text-sm flex items-center gap-1.5 sm:gap-2">
-                  <span className="text-base sm:text-lg">🧥</span>
-                  <span>Как работает «правило многослойности»?</span>
-                </h4>
-                <p className="text-[10px] sm:text-xs text-slate-500 leading-relaxed">
-                  Многослойная структура — золотой стандарт детского гардероба в холодное время. 3 обязательных элемента:
-                </p>
-                <ul className="text-[10px] sm:text-[11px] text-slate-500 space-y-1 list-disc list-inside pl-1 sm:pl-2">
-                  <li><strong>Слой 1 (Белье):</strong> отводит влагу. Влажное тело остывает в 25 раз быстрее сухого!</li>
-                  <li><strong>Слой 2 (Утеплитель):</strong> сохраняет воздух (флис или шерсть).</li>
-                  <li><strong>Слой 3 (Внешний):</strong> блокирует ветер и воду (мембрана).</li>
-                </ul>
-              </div>
+            <div className="space-y-3 sm:space-y-6">
+              <AnalysisSection />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6">
+                
+                {/* FAQ 1 */}
+                <div className="bg-white p-3 sm:p-5 rounded-xl sm:rounded-3xl border border-slate-100 shadow-xs space-y-1.5 sm:space-y-2">
+                  <h4 className="font-bold text-slate-800 text-[11px] sm:text-sm flex items-center gap-1.5 sm:gap-2">
+                    <span className="text-base sm:text-lg">🧥</span>
+                    <span>Как работает «правило многослойности»?</span>
+                  </h4>
+                  <p className="text-[10px] sm:text-xs text-slate-500 leading-relaxed">
+                    Многослойная структура — золотой стандарт детского гардероба в холодное время. 3 обязательных элемента:
+                  </p>
+                  <ul className="text-[10px] sm:text-[11px] text-slate-500 space-y-1 list-disc list-inside pl-1 sm:pl-2">
+                    <li><strong>Слой 1 (Белье):</strong> отводит влагу. Влажное тело остывает в 25 раз быстрее сухого!</li>
+                    <li><strong>Слой 2 (Утеплитель):</strong> сохраняет воздух (флис или шерсть).</li>
+                    <li><strong>Слой 3 (Внешний):</strong> блокирует ветер и воду (мембрана).</li>
+                  </ul>
+                </div>
 
-              {/* FAQ 2 */}
-              <div className="bg-white p-3 sm:p-5 rounded-xl sm:rounded-3xl border border-slate-100 shadow-xs space-y-1.5 sm:space-y-2">
-                <h4 className="font-bold text-slate-800 text-[11px] sm:text-sm flex items-center gap-1.5 sm:gap-2">
-                  <span className="text-base sm:text-lg">👶</span>
-                  <span>Как проверить, жарко или холодно ребенку?</span>
-                </h4>
-                <p className="text-[10px] sm:text-xs text-slate-500 leading-relaxed">
-                  Не ориентируйтесь на нос или ладошки: на ветру они остывают первыми. Проверьте <strong>заднюю сторону шеи (загривок)</strong>:
-                </p>
-                <ul className="text-[10px] sm:text-[11px] text-slate-500 space-y-1 list-disc list-inside pl-1 sm:pl-2">
-                  <li>Шея горячая и влажная — перегрев, снимите слой.</li>
-                  <li>Шея холодная — ребенок мерзнет, добавьте слой.</li>
-                  <li>Шея теплая и сухая — температура идеальна!</li>
-                </ul>
-              </div>
+                {/* FAQ 2 */}
+                <div className="bg-white p-3 sm:p-5 rounded-xl sm:rounded-3xl border border-slate-100 shadow-xs space-y-1.5 sm:space-y-2">
+                  <h4 className="font-bold text-slate-800 text-[11px] sm:text-sm flex items-center gap-1.5 sm:gap-2">
+                    <span className="text-base sm:text-lg">👶</span>
+                    <span>Как проверить, жарко или холодно ребенку?</span>
+                  </h4>
+                  <p className="text-[10px] sm:text-xs text-slate-500 leading-relaxed">
+                    Не ориентируйтесь на нос или ладошки: на ветру они остывают первыми. Проверьте <strong>заднюю сторону шеи (загривок)</strong>:
+                  </p>
+                  <ul className="text-[10px] sm:text-[11px] text-slate-500 space-y-1 list-disc list-inside pl-1 sm:pl-2">
+                    <li>Шея горячая и влажная — перегрев, снимите слой.</li>
+                    <li>Шея холодная — ребенок мерзнет, добавьте слой.</li>
+                    <li>Шея теплая и сухая — температура идеальна!</li>
+                  </ul>
+                </div>
 
-              {/* FAQ 3 */}
-              <div className="bg-white p-3 sm:p-5 rounded-xl sm:rounded-3xl border border-slate-100 shadow-xs space-y-1.5 sm:space-y-2">
-                <h4 className="font-bold text-slate-800 text-[11px] sm:text-sm flex items-center gap-1.5 sm:gap-2">
-                  <span className="text-base sm:text-lg">🌬️</span>
-                  <span>Как ветер меняет комфортную температуру?</span>
-                </h4>
-                <p className="text-[10px] sm:text-xs text-slate-500 leading-relaxed">
-                  Сильный ветер уносит тепловую прослойку воздуха вокруг тела. При +2°С и ветре 10 м/с кожа теряет тепло как при -5°С! Наш сервис всегда рассчитывает <strong>«эффективную ощущаемую температуру»</strong>.
-                </p>
-              </div>
+                {/* FAQ 3 */}
+                <div className="bg-white p-3 sm:p-5 rounded-xl sm:rounded-3xl border border-slate-100 shadow-xs space-y-1.5 sm:space-y-2">
+                  <h4 className="font-bold text-slate-800 text-[11px] sm:text-sm flex items-center gap-1.5 sm:gap-2">
+                    <span className="text-base sm:text-lg">🌬️</span>
+                    <span>Как ветер меняет комфортную температуру?</span>
+                  </h4>
+                  <p className="text-[10px] sm:text-xs text-slate-500 leading-relaxed">
+                    Сильный ветер уносит тепловую прослойку воздуха вокруг тела. При +2°С и ветре 10 м/с кожа теряет тепло как при -5°С! Наш сервис всегда рассчитывает <strong>«эффективную ощущаемую температуру»</strong>.
+                  </p>
+                </div>
 
-              {/* FAQ 4 */}
-              <div className="bg-white p-3 sm:p-5 rounded-xl sm:rounded-3xl border border-slate-100 shadow-xs space-y-1.5 sm:space-y-2">
-                <h4 className="font-bold text-slate-800 text-[11px] sm:text-sm flex items-center gap-1.5 sm:gap-2">
-                  <span className="text-base sm:text-lg">☔</span>
-                  <span>Что делать в сырую погоду весной и осенью?</span>
-                </h4>
-                <p className="text-[10px] sm:text-xs text-slate-500 leading-relaxed">
-                  В слякоть обычные джинсы быстро промокают. Отдавайте предпочтение мембранным полукомбинезонам. Обувь — на толстой подошве или Gore-Tex, чтобы изолировать ноги от холодной земли.
-                </p>
+                {/* FAQ 4 */}
+                <div className="bg-white p-3 sm:p-5 rounded-xl sm:rounded-3xl border border-slate-100 shadow-xs space-y-1.5 sm:space-y-2">
+                  <h4 className="font-bold text-slate-800 text-[11px] sm:text-sm flex items-center gap-1.5 sm:gap-2">
+                    <span className="text-base sm:text-lg">☔</span>
+                    <span>Что делать в сырую погоду весной и осенью?</span>
+                  </h4>
+                  <p className="text-[10px] sm:text-xs text-slate-500 leading-relaxed">
+                    В слякоть обычные джинсы быстро промокают. Отдавайте предпочтение мембранным полукомбинезонам. Обувь — на толстой подошве или Gore-Tex, чтобы изолировать ноги от холодной земли.
+                  </p>
+                </div>
               </div>
             </div>
           )}
@@ -822,10 +831,15 @@ export default function App() {
                   <span className="text-3xl sm:text-4xl leading-none">{selectedItem.emoji}</span>
                   <div>
                     <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-wider bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-md border border-indigo-100">
-                      {selectedItem.category === 'base' ? 'Слой 1. Влагоотвод' :
-                       selectedItem.category === 'middle' ? 'Слой 2. Термоизоляция' :
-                       selectedItem.category === 'outer' ? 'Слой 3. Ветро-влагозащита' :
-                       selectedItem.category === 'shoes' ? 'Обувь' : 'Аксессуары'}
+                      {({
+                        underwear: 'Слой 1 · Нательное бельё',
+                        lower: 'Слой 2 · Нижний слой',
+                        upper: 'Слой 3 · Верхний слой',
+                        outer: 'Слой 4 · Верхняя одежда',
+                        headwear: 'Головной убор',
+                        shoes: 'Обувь',
+                        accessory: 'Аксессуары',
+                      } as Record<string, string>)[selectedItem.category]}
                     </span>
                     <h3 className="text-sm font-extrabold text-slate-800 mt-1.5">{selectedItem.name}</h3>
                   </div>
@@ -853,8 +867,10 @@ export default function App() {
 
       {/* FOOTER */}
       <footer className="mt-16 border-t border-indigo-50 pt-8 text-center space-y-3 max-w-7xl mx-auto px-4">
+
+       <p className="text-xs text-slate-400"> Created by Disa.  </p>
         <p className="text-xs text-slate-400">
-          Разработано с любовью и заботой о здоровье детей во всем мире ❤️
+          Разработано с любовью и заботой о здоровье детей во всем мире ❤️ 
         </p>
         <p className="text-[10px] text-slate-300">
           Все данные о погоде предоставляются бесплатно в режиме реального времени через Open-Meteo API. 

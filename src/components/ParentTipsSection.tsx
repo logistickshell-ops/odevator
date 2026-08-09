@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { ShieldCheck, Lightbulb, ChevronLeft, ChevronRight, Clock, Baby, Package, CheckSquare, Square, RotateCcw } from 'lucide-react';
-import { Tip } from '../tips';
+import { Tip } from '../tips'; // ИМПОРТ ИЗ tips.ts — НЕ МЕНЯЕМ!
 
 interface ParentTipsSectionProps {
   tips: Tip[];
@@ -11,28 +11,23 @@ export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({ tips }) =>
   const [checkedItems, setCheckedItems] = useState<{ [key: string]: boolean }>({});
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [currentTipIndex, setCurrentTipIndex] = useState(0);
-  
-  const AUTO_CHANGE_INTERVAL = 15000; // 15 секунд
 
-  // Фильтрация по категориям
+  const AUTO_CHANGE_INTERVAL = 15000;
+
   const filteredTips = useMemo(() => {
     if (selectedCategory === 'all') return tips;
     return tips.filter(tip => tip.category === selectedCategory);
   }, [tips, selectedCategory]);
 
-  // Сброс индекса при изменении фильтра или обновлении списка
   useEffect(() => {
     setCurrentTipIndex(0);
   }, [selectedCategory, tips.length]);
 
-  // Автоматическая смена совета каждые 15 секунд
   useEffect(() => {
     if (filteredTips.length <= 1) return;
-
     const interval = setInterval(() => {
       setCurrentTipIndex(prev => (prev + 1) % filteredTips.length);
     }, AUTO_CHANGE_INTERVAL);
-
     return () => clearInterval(interval);
   }, [filteredTips.length]);
 
@@ -52,11 +47,11 @@ export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({ tips }) =>
     { id: 'all', label: 'Все', icon: '📋', count: tips.length },
     { id: 'health', label: 'Здоровье', icon: '❤️', count: tips.filter(t => t.category === 'health').length },
     { id: 'weather', label: 'Погода', icon: '🌤️', count: tips.filter(t => t.category === 'weather').length },
-    { id: 'clothing', label: 'Одежда', icon: '', count: tips.filter(t => t.category === 'clothing').length },
-    { id: 'general', label: 'Общее', icon: '', count: tips.filter(t => t.category === 'general').length },
+    { id: 'clothing', label: 'Одежда', icon: '👕', count: tips.filter(t => t.category === 'clothing').length },
+    { id: 'general', label: 'Общее', icon: '📝', count: tips.filter(t => t.category === 'general').length },
   ];
 
-  const getCategoryColor = (category: string) => {
+  const getCategoryColor = (category: string | undefined) => {
     switch (category) {
       case 'health': return 'bg-rose-50 border-rose-200 text-rose-900';
       case 'weather': return 'bg-blue-50 border-blue-200 text-blue-900';
@@ -65,7 +60,7 @@ export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({ tips }) =>
     }
   };
 
-  const getCategoryBadge = (category: string) => {
+  const getCategoryBadge = (category: string | undefined) => {
     switch (category) {
       case 'health': return '❤️ Здоровье';
       case 'weather': return '🌤️ Погода';
@@ -80,31 +75,31 @@ export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({ tips }) =>
       { id: 'b2', text: 'Одежда выбрана по температуре и активности' },
       { id: 'b3', text: 'Слои готовы (можно легко снять/надеть на улице)' },
       { id: 'b4', text: 'Обувь удобная, сухая и по сезону' },
-      { id: 'b5', text: 'Головной убор надет правильно (закрывает уши/от солнца)' },
+      { id: 'b5', text: 'Головной убор надет правильно' },
       { id: 'b6', text: 'Руки защищены (варежки/перчатки по погоде)' },
       { id: 'b7', text: 'Сменка собрана в рюкзак (при необходимости)' },
       { id: 'b8', text: 'Вода взята (обязательно при жаре > +25°C)' },
       { id: 'b9', text: 'Солнцезащитный крем нанесен (при активном солнце)' },
-      { id: 'b10', text: 'Дождевик или зонт приготовлен (при вероятности дождя)' },
+      { id: 'b10', text: 'Дождевик или зонт приготовлен' },
       { id: 'b11', text: 'Термос с теплым напитком взят (при морозе)' },
     ],
     during: [
-      { id: 'd1', text: 'Ребёнку комфортно? (не капризничает от жары/холода)' },
-      { id: 'd2', text: 'Шея и спина проверены тыльной стороной ладони (тепло/не потеет)' },
+      { id: 'd1', text: 'Ребёнку комфортно? (не капризничает)' },
+      { id: 'd2', text: 'Шея и спина проверены тыльной стороной ладони' },
       { id: 'd3', text: 'Ручки тёплые и розовые' },
-      { id: 'd4', text: 'Ножки в тепле (проверка по возвращению или при смене обуви)' },
-      { id: 'd5', text: 'Голова и уши надежно закрыты / защищены от солнца' },
+      { id: 'd4', text: 'Ножки в тепле' },
+      { id: 'd5', text: 'Голова и уши надежно закрыты' },
       { id: 'd6', text: 'Одежда не намокла от снега или луж' },
       { id: 'd7', text: 'Ребёнок пьёт воду каждые 15-20 минут (в жару)' },
-      { id: 'd8', text: 'Есть укрытие от внезапного дождя или сильного ветра' },
+      { id: 'd8', text: 'Есть укрытие от внезапного дождя или ветра' },
     ],
     after: [
-      { id: 'a1', text: 'Оценка общего состояния ребёнка (не замерз ли, не перегрелся)' },
+      { id: 'a1', text: 'Оценка общего состояния ребёнка' },
       { id: 'a2', text: 'Переодеть в сухое (если вспотел или промок)' },
-      { id: 'a3', text: 'Обувь поставить на просушку (вынуть стельки)' },
+      { id: 'a3', text: 'Обувь поставить на просушку' },
       { id: 'a4', text: 'Варежки и шапку высушить к следующей прогулке' },
-      { id: 'a5', text: 'Оценить, была ли выбранная одежда адекватна погоде' },
-      { id: 'a6', text: 'Запомнить или записать выводы для завтрашней прогулки' },
+      { id: 'a5', text: 'Оценить, была ли одежда адекватна погоде' },
+      { id: 'a6', text: 'Запомнить выводы для завтрашней прогулки' },
     ]
   };
 
@@ -112,14 +107,11 @@ export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({ tips }) =>
 
   return (
     <div className="space-y-6">
-      {/* Блок с подсказками */}
       <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-100 shadow-sm">
         <div className="flex items-center justify-between gap-3 mb-4">
           <div className="flex items-center gap-2">
             <Lightbulb className="text-amber-500 shrink-0" size={22} />
-            <h3 className="text-base sm:text-xl font-black text-slate-800">
-              Умные подсказки родителям
-            </h3>
+            <h3 className="text-base sm:text-xl font-black text-slate-800">Умные подсказки родителям</h3>
           </div>
           <div className="flex items-center gap-1 text-xs text-slate-400 font-medium bg-slate-50 px-2 py-1 rounded-lg">
             <RotateCcw size={12} />
@@ -128,7 +120,6 @@ export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({ tips }) =>
           </div>
         </div>
 
-        {/* Фильтры категорий */}
         <div className="flex flex-wrap gap-2 mb-4">
           {categories.map((cat) => (
             <button
@@ -144,21 +135,18 @@ export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({ tips }) =>
               <span className="hidden sm:inline">{cat.label}</span>
               <span className={`px-1.5 py-0.5 rounded-full text-[9px] ${
                 selectedCategory === cat.id ? 'bg-white/20' : 'bg-slate-200'
-              }`}>
-                {cat.count}
-              </span>
+              }`}>{cat.count}</span>
             </button>
           ))}
         </div>
 
-        {/* Карточка текущего совета */}
         {currentTip && (
+          {/* ИСПРАВЛЕНО: category может быть undefined — передаём безопасно */}
           <div className={`p-4 sm:p-6 rounded-xl sm:rounded-2xl border-2 transition-all ${getCategoryColor(currentTip.category)}`}>
             <div className="flex items-start gap-3 sm:gap-4">
               <span className="text-3xl sm:text-4xl leading-none shrink-0 mt-1">
                 {currentTip.icon}
               </span>
-              
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-2 flex-wrap mb-2">
                   <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-white/80 border border-black/10 text-slate-700">
@@ -168,7 +156,6 @@ export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({ tips }) =>
                     {currentTipIndex + 1} / {filteredTips.length}
                   </span>
                 </div>
-                
                 <h4 className="font-extrabold text-sm sm:text-base leading-tight mb-2 text-slate-800">
                   {currentTip.title}
                 </h4>
@@ -178,37 +165,24 @@ export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({ tips }) =>
               </div>
             </div>
 
-            {/* Навигация по советам */}
             <div className="flex items-center justify-between gap-2 mt-4 pt-4 border-t border-black/5">
-              <button
-                onClick={handlePrevious}
+              <button onClick={handlePrevious}
                 className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/60 hover:bg-white transition-colors text-slate-700 font-bold text-xs sm:text-sm disabled:opacity-30 disabled:cursor-not-allowed"
-                title="Предыдущий совет"
-              >
+                title="Предыдущий совет">
                 <ChevronLeft size={16} />
                 <span className="hidden sm:inline">Назад</span>
               </button>
-              
               <div className="flex items-center gap-1">
                 {filteredTips.map((_, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setCurrentTipIndex(idx)}
+                  <button key={idx} onClick={() => setCurrentTipIndex(idx)}
                     className={`w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full transition-all ${
-                      idx === currentTipIndex
-                        ? 'bg-indigo-600 scale-125'
-                        : 'bg-slate-300 hover:bg-slate-400'
-                    }`}
-                    aria-label={`Совет ${idx + 1}`}
-                  />
+                      idx === currentTipIndex ? 'bg-indigo-600 scale-125' : 'bg-slate-300 hover:bg-slate-400'
+                    }`} aria-label={`Совет ${idx + 1}`} />
                 ))}
               </div>
-              
-              <button
-                onClick={handleNext}
+              <button onClick={handleNext}
                 className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/60 hover:bg-white transition-colors text-slate-700 font-bold text-xs sm:text-sm disabled:opacity-30 disabled:cursor-not-allowed"
-                title="Следующий совет"
-              >
+                title="Следующий совет">
                 <span className="hidden sm:inline">Вперед</span>
                 <ChevronRight size={16} />
               </button>
@@ -222,7 +196,6 @@ export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({ tips }) =>
         </div>
       </div>
 
-      {/* Чек-листы безопасности */}
       <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-100 shadow-sm space-y-4">
         <div>
           <h3 className="text-base sm:text-xl font-black text-slate-800 flex items-center gap-2">
@@ -235,30 +208,24 @@ export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({ tips }) =>
         </div>
 
         <div className="flex bg-slate-100 p-1 sm:p-1.5 rounded-xl sm:rounded-2xl border border-slate-200/60">
-          <button 
-            onClick={() => setActiveChecklist('before')}
+          <button onClick={() => setActiveChecklist('before')}
             className={`flex-1 py-2 sm:py-2.5 px-2 sm:px-4 rounded-lg sm:rounded-xl font-extrabold text-[10px] sm:text-xs transition-all flex items-center justify-center gap-1 sm:gap-1.5 ${
               activeChecklist === 'before' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-600 hover:text-slate-800'
-            }`}
-          >
+            }`}>
             <Clock size={14} className="shrink-0" />
             <span className="truncate">Перед выходом</span>
           </button>
-          <button 
-            onClick={() => setActiveChecklist('during')}
+          <button onClick={() => setActiveChecklist('during')}
             className={`flex-1 py-2 sm:py-2.5 px-2 sm:px-4 rounded-lg sm:rounded-xl font-extrabold text-[10px] sm:text-xs transition-all flex items-center justify-center gap-1 sm:gap-1.5 ${
               activeChecklist === 'during' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-600 hover:text-slate-800'
-            }`}
-          >
+            }`}>
             <Baby size={14} className="shrink-0" />
             <span className="truncate">На улице</span>
           </button>
-          <button 
-            onClick={() => setActiveChecklist('after')}
+          <button onClick={() => setActiveChecklist('after')}
             className={`flex-1 py-2 sm:py-2.5 px-2 sm:px-4 rounded-lg sm:rounded-xl font-extrabold text-[10px] sm:text-xs transition-all flex items-center justify-center gap-1 sm:gap-1.5 ${
               activeChecklist === 'after' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-600 hover:text-slate-800'
-            }`}
-          >
+            }`}>
             <Package size={14} className="shrink-0" />
             <span className="truncate">После прогулки</span>
           </button>
@@ -266,15 +233,12 @@ export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({ tips }) =>
 
         <div className="space-y-2 pt-2">
           {checklists[activeChecklist].map((item) => (
-            <button 
-              key={item.id} 
-              onClick={() => toggleCheck(item.id)}
+            <button key={item.id} onClick={() => toggleCheck(item.id)}
               className={`w-full text-left p-3 sm:p-4 rounded-xl sm:rounded-2xl border-2 transition-all flex items-start gap-3 active:scale-[0.99] ${
                 checkedItems[item.id]
                   ? 'bg-emerald-50/50 border-emerald-200 text-slate-500'
                   : 'bg-slate-50/50 border-slate-100 hover:border-slate-200 text-slate-700'
-              }`}
-            >
+              }`}>
               <div className={`mt-0.5 shrink-0 transition-colors ${checkedItems[item.id] ? 'text-emerald-600' : 'text-slate-300'}`}>
                 {checkedItems[item.id] ? <CheckSquare size={18} /> : <Square size={18} />}
               </div>

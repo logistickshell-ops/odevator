@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { ChildFigure } from './components/ChildFigure';
 import { ParentTipsSection } from './components/ParentTipsSection';
 import { WeatherData } from './types';
 import { Baby, RefreshCw, HelpCircle } from 'lucide-react';
@@ -151,7 +150,11 @@ function App() {
           {activeTab === 'clothing' && (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
               <div className="lg:col-span-2 space-y-4 sm:space-y-6">
-                <ChildFigure weather={weather} timeOfDay={timeOfDay} />
+                {/* Заглушка - реальный функционал будет в симуляторе */}
+                <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-100 shadow-sm">
+                  <h2 className="text-xl sm:text-2xl font-black text-slate-800 mb-4">Подбор одежды</h2>
+                  <p className="text-slate-500">Перейдите на вкладку "Симулятор" для подбора одежды по погоде</p>
+                </div>
               </div>
               <div className="space-y-4 sm:space-y-6">
               </div>

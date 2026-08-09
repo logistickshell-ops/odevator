@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { RecommendedOutfit, ClothingItem, ChildGender, LayerVisibility } from '../types';
 import { Info, Eye, EyeOff, Layers, Shirt, Footprints, Hat, Scarf, Pants, Underwear } from 'lucide-react';
 import { ChildFigure } from './ChildFigure';
@@ -22,14 +22,14 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
     lower: true,
     upper: true,
     outer: true,
-    shoes: true,
+    shoes: true, // <-- ГАРАНТИРОВАННО ВКЛЮЧЕНО ПО УМОЛЧАНИЮ
     headwear: true,
     accessory: true,
   });
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  // Безопасные проверки наличия предметов в каждом слое
+  // Безопасные проверки
   const hasOuter = (outfit.layers?.outerwear?.length ?? 0) > 0;
   const hasUpper = (outfit.layers?.upper_layer?.length ?? 0) > 0;
   const hasLower = (outfit.layers?.lower_layer?.length ?? 0) > 0;
@@ -37,6 +37,16 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
   const hasShoes = (outfit.layers?.shoes?.length ?? 0) > 0;
   const hasHeadwear = (outfit.layers?.headwear?.length ?? 0) > 0;
   const hasAccessories = (outfit.layers?.accessories?.length ?? 0) > 0;
+
+  // 🔍 РЕЖИМ ДЕТЕКТИВА: смотрим в консоль браузера (F12)
+  useEffect(() => {
+    console.log('🔍 АВТАР DEBUG:', {
+      hasShoes,
+      shoesItems: outfit.layers?.shoes,
+      layerVisibilityShoes: layerVisibility.shoes,
+      allLayers: outfit.layers ? 'OK' : 'UNDEFINED'
+    });
+  }, [outfit.layers, layerVisibility.shoes]);
 
   const handleToggleLayer = (layer: keyof LayerVisibility) => {
     setLayerVisibility(prev => ({ ...prev, [layer]: !prev[layer] }));
@@ -48,14 +58,14 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
   };
 
   const climateLabel = (() => {
-    if (effectiveTemp <= -15) return { text: 'Мороз', emoji: '', color: 'bg-blue-600' };
+    if (effectiveTemp <= -15) return { text: 'Мороз', emoji: '🥶', color: 'bg-blue-600' };
     if (effectiveTemp <= -5) return { text: 'Зима', emoji: '❄️', color: 'bg-blue-500' };
     if (effectiveTemp <= 0) return { text: 'Около нуля', emoji: '🌨️', color: 'bg-cyan-500' };
     if (effectiveTemp <= 5) return { text: 'Прохладно', emoji: '🌥️', color: 'bg-cyan-400' };
-    if (effectiveTemp <= 10) return { text: 'Свежо', emoji: '', color: 'bg-teal-400' };
+    if (effectiveTemp <= 10) return { text: 'Свежо', emoji: '🍃', color: 'bg-teal-400' };
     if (effectiveTemp <= 15) return { text: 'Умеренно', emoji: '🌤️', color: 'bg-amber-400' };
     if (effectiveTemp <= 20) return { text: 'Тепло', emoji: '☀️', color: 'bg-orange-400' };
-    return { text: 'Жарко', emoji: '', color: 'bg-red-500' };
+    return { text: 'Жарко', emoji: '🔥', color: 'bg-red-500' };
   })();
 
   const bgGradient = (() => {
@@ -69,14 +79,12 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
     return 'from-yellow-200 via-amber-100 to-orange-50';
   })();
 
-  // Рендер карточки слоя с ПРАВИЛЬНЫМИ иконками
   const renderLayerCard = (
     title: string,
     icon: React.ReactNode,
     items: ClothingItem[],
     isActive: boolean,
-    layerNum: number,
-    layerKey?: string
+    layerNum: number
   ) => {
     if (!items || items.length === 0) return null;
     
@@ -102,7 +110,7 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
                 }`}>
                 <div className="flex items-start gap-2 sm:gap-3">
                   <span className="text-2xl sm:text-3xl select-none leading-none shrink-0 mt-0.5 p-1 sm:p-1.5 bg-slate-50 rounded-lg sm:rounded-xl border border-slate-100">
-                    {item.emoji}
+                    {item.emoji || '❓'}
                   </span>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5">
@@ -126,7 +134,6 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
     );
   };
 
-  // Получаем предметы по слоям
   const getItemsByLayer = (layer: string): ClothingItem[] => {
     if (outfit.layers) {
       return (outfit.layers as any)[layer] || [];
@@ -136,11 +143,9 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
 
   return (
     <div className="flex flex-col lg:grid lg:grid-cols-12 gap-4 sm:gap-8 items-start">
-      {/* ===== AVATAR PANEL ===== */}
       <div className="w-full lg:col-span-5 space-y-3 sm:space-y-4">
         <div className={`bg-gradient-to-b ${bgGradient} rounded-2xl sm:rounded-3xl p-3 sm:p-5 border-3 sm:border-4 border-white shadow-lg sm:shadow-xl relative flex flex-col items-center overflow-hidden`}>
           
-          {/* Temp badge */}
           <div className="absolute top-2 sm:top-3 left-2 sm:left-3 z-10">
             <div className="bg-white/90 backdrop-blur px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl sm:rounded-2xl text-[10px] sm:text-xs font-extrabold text-slate-700 border border-white/80 shadow-sm flex items-center gap-1.5 sm:gap-2">
               <span>{climateLabel.emoji}</span>
@@ -151,15 +156,13 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
             </div>
           </div>
 
-          {/* Reset layers button */}
           <div className="absolute top-2 sm:top-3 right-2 sm:right-3 z-10">
             <button onClick={() => setLayerVisibility({ underwear: true, lower: true, upper: true, outer: true, shoes: true, headwear: true, accessory: true })}
-              className="bg-white/90 backdrop-blur p-2 rounded-xl text-slate-500 active:text-indigo-600 active:bg-white transition border border-white/80 shadow-sm">
+              className="bg-white/90 backdrop-blur p-2 rounded-xl text-slate-500 active:text-indigo-600 active:bg-white transition border border-white/80 shadow-sm" title="Включить все слои">
               <Layers size={14} />
             </button>
           </div>
 
-          {/* SVG child */}
           <div className="w-full max-w-[230px] sm:max-w-[280px] aspect-[11/20] pt-6 sm:pt-8 pb-1 sm:pb-2">
             <ChildFigure 
               gender={gender} 
@@ -171,59 +174,45 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
             />
           </div>
 
-          {/* Gender + season label */}
           <div className="mb-1 sm:mb-2 flex items-center gap-1.5 sm:gap-2">
             <span className={`text-xs sm:text-sm font-extrabold ${gender === 'girl' ? 'text-pink-600' : 'text-blue-600'}`}>
               {gender === 'girl' ? '👧 Девочка' : '👦 Мальчик'}
             </span>
             <span className="text-[10px] sm:text-xs text-slate-400">•</span>
             <span className="text-[10px] sm:text-xs font-bold text-slate-500">
-              {effectiveTemp <= 0 ? '❄️ Зима' : effectiveTemp <= 10 ? ' Демисезон' : '☀️ Лето'}
+              {effectiveTemp <= 0 ? '❄️ Зима' : effectiveTemp <= 10 ? '🍂 Демисезон' : '☀️ Лето'}
             </span>
           </div>
         </div>
 
-        {/* Layer Toggles */}
         <LayerToggles visibility={layerVisibility} onToggle={handleToggleLayer} />
       </div>
 
-      {/* ===== CLOTHING CHECKLIST — ПОЛНЫЙ СПИСОК ВСЕХ 7 СЛОЕВ ===== */}
       <div className="w-full lg:col-span-7 space-y-3 sm:space-y-5">
         <div className="hidden sm:block">
           <h3 className="text-xl font-extrabold text-slate-800 flex items-center gap-2">
             <Layers size={22} className="text-indigo-500" />
             <span>Полный гардероб на прогулку</span>
           </h3>
-          <p className="text-sm text-slate-500 mt-1">Собираем ребенка слой за слоем — от нательного белья до аксессуаров.</p>
+          <p className="text-sm text-slate-500 mt-1">Собираем ребенка слой за слоем.</p>
         </div>
         <div className="sm:hidden text-center">
           <h3 className="text-sm font-extrabold text-slate-800">📋 Чек-лист гардероба</h3>
         </div>
 
         <div className="space-y-2 sm:space-y-4">
-          {/* Слой 1: Нательное белье */}
-          {renderLayerCard('Нательное белье', <Underwear size={13} />, getItemsByLayer('underwear'), layerVisibility.underwear && hasUnderwear, 1, 'underwear')}
+          {renderLayerCard('Нательное белье', <Underwear size={13} className="text-white" />, getItemsByLayer('underwear'), layerVisibility.underwear && hasUnderwear, 1)}
+          {renderLayerCard('Нижний слой', <Pants size={13} className="text-white" />, getItemsByLayer('lower_layer'), layerVisibility.lower && hasLower, 2)}
+          {renderLayerCard('Верхний слой', <Shirt size={13} className="text-white" />, getItemsByLayer('upper_layer'), layerVisibility.upper && hasUpper, 2)}
+          {renderLayerCard('Верхняя одежда', <Shirt size={13} className="text-white" />, getItemsByLayer('outerwear'), layerVisibility.outer && hasOuter, 3)}
+          {renderLayerCard('Головной убор', <Hat size={13} className="text-white" />, getItemsByLayer('headwear'), layerVisibility.headwear && hasHeadwear, 0)}
           
-          {/* Слой 2: Нижний слой (штаны/юбка/шорты) */}
-          {renderLayerCard('Нижний слой', <Pants size={13} />, getItemsByLayer('lower_layer'), layerVisibility.lower && hasLower, 2, 'lower_layer')}
+          {/* ИСПРАВЛЕНИЕ: Явная передача иконки Footprints */}
+          {renderLayerCard('Обувь', <Footprints size={16} className="text-white" />, getItemsByLayer('shoes'), layerVisibility.shoes && hasShoes, 0)}
           
-          {/* Слой 3: Верхний слой (худи/свитер) */}
-          {renderLayerCard('Верхний слой', <Shirt size={13} />, getItemsByLayer('upper_layer'), layerVisibility.upper && hasUpper, 2, 'upper_layer')}
-          
-          {/* Слой 4: Верхняя одежда */}
-          {renderLayerCard('Верхняя одежда', <Shirt size={13} />, getItemsByLayer('outerwear'), layerVisibility.outer && hasOuter, 3, 'outerwear')}
-          
-          {/* Слой 5: Головной убор */}
-          {renderLayerCard('Головной убор', <Hat size={13} />, getItemsByLayer('headwear'), layerVisibility.headwear && hasHeadwear, 0, 'headwear')}
-          
-          {/* Слой 6: Обувь */}
-          {renderLayerCard('Обувь', <Footprints size={13} />, getItemsByLayer('shoes'), layerVisibility.shoes && hasShoes, 0, 'shoes')}
-          
-          {/* Слой 7: Аксессуары */}
-          {renderLayerCard('Аксессуары', <Scarf size={13} />, getItemsByLayer('accessories'), layerVisibility.accessory && hasAccessories, 0, 'accessories')}
+          {renderLayerCard('Аксессуары', <Scarf size={13} className="text-white" />, getItemsByLayer('accessories'), layerVisibility.accessory && hasAccessories, 0)}
         </div>
 
-        {/* Advice */}
         {outfit.specialAdvice && outfit.specialAdvice.length > 0 && (
           <div className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-amber-50/80 border border-amber-200/70 space-y-1.5 sm:space-y-2">
             <h4 className="font-extrabold text-amber-900 text-[11px] sm:text-sm flex items-center gap-1.5 sm:gap-2">
@@ -232,7 +221,7 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
             <ul className="space-y-1">
               {outfit.specialAdvice.map((advice: string, i: number) => (
                 <li key={i} className="text-[10px] sm:text-xs text-amber-800 leading-relaxed flex items-start gap-1.5 sm:gap-2">
-                  <span className="mt-0.5 shrink-0 text-amber-500"></span>
+                  <span className="mt-0.5 shrink-0 text-amber-500">▸</span>
                   <span>{advice}</span>
                 </li>
               ))}

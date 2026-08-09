@@ -5,35 +5,35 @@ import { viteSingleFile } from 'vite-plugin-singlefile';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+// Vite 6 совместим с __dirname через fileURLToPath
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// https://vite.dev/config/
 export default defineConfig({
-  base: './',
-  
   plugins: [
+    // React 18 плагин для Vite 6
     react(),
+    // Tailwind CSS v4 beta - новый плагин, больше не нужен postcss.config.js
     tailwindcss(),
-    viteSingleFile({ 
-      removeViteModuleLoader: true,
-      useRecommendedBuildConfig: true 
-    }),
+    // Собирает весь проект в один HTML файл
+    viteSingleFile(),
   ],
-  
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),
     },
   },
-  
+  // React 18 + Vite 6 - оптимальные настройки
+  esbuild: {
+    jsx: 'automatic',
+  },
   build: {
-    target: 'esnext',
-    assetsInlineLimit: 100000000,
-    cssCodeSplit: false,
+    // Для singlefile плагина
     rollupOptions: {
       output: {
+        // Инлайним все ассеты в HTML
         inlineDynamicImports: true,
-        format: 'iife',
       },
     },
   },

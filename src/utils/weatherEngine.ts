@@ -130,7 +130,7 @@ export function generateOutfit(
   
   // 2. СИЛЬНЫЙ МОРОЗ: -20°C ... -10°C
   else if (effTemp > -20 && effTemp <= -10) {
-    items.underwear.push({ id: 'base_thermal_synthetic', name: 'Термобелье (синтетика/смесь)', layer: 'underwear', description: 'Функциональное термобелье для активного отвода влаги.', emoji: '' });
+    items.underwear.push({ id: 'base_thermal_synthetic', name: 'Термобелье (синтетика/смесь)', layer: 'underwear', description: 'Функциональное термобелье для активного отвода влаги.', emoji: '👕' });
     items.upper_layer.push({ id: 'mid_sweater_wool', name: 'Шерстяной свитер или флис', layer: 'upper_layer', description: 'Теплый средний слой для сохранения тепла.', emoji: '🧶' });
     items.lower_layer.push({ id: 'lower_thermal_pants', name: 'Термоштаны или кальсоны', layer: 'lower_layer', description: 'Утепленный низ под основную одежду.', emoji: '👖' });
     items.outerwear.push({ id: 'outer_winter_250g', name: gender === 'girl' ? 'Зимний пуховик / полукомбинезон (250г)' : 'Мембранный комбинезон (250г)', layer: 'outerwear', description: 'Сверхтеплый зимний комплект.', emoji: '🧥' });
@@ -142,11 +142,11 @@ export function generateOutfit(
   // 3. ХОЛОД: -10°C ... -5°C
   else if (effTemp > -10 && effTemp <= -5) {
     items.underwear.push({ id: 'base_long_sleeve_cotton', name: 'Хлопковый лонгслив', layer: 'underwear', description: 'Плотная кофточка с длинным рукавом.', emoji: '👕' });
-    items.upper_layer.push({ id: 'mid_fleece_jacket', name: 'Флисовая кофта', layer: 'upper_layer', description: 'Легкий утепляющий слой.', emoji: '' });
+    items.upper_layer.push({ id: 'mid_fleece_jacket', name: 'Флисовая кофта', layer: 'upper_layer', description: 'Легкий утепляющий слой.', emoji: '🧥' });
     items.lower_layer.push({ id: 'lower_tights_warm', name: 'Махровые колготки / брюки', layer: 'lower_layer', description: 'Утепленный низ.', emoji: '👖' });
-    items.outerwear.push({ id: 'outer_demi_heavy', name: gender === 'girl' ? 'Демисезонный комбинезон (180г)' : 'Куртка + полукомбинезон (180г)', layer: 'outerwear', description: 'Утепленная демисезонная одежда.', emoji: '' });
-    items.shoes.push({ id: 'shoes_demi_boots', name: 'Осенне-зимние ботинки', layer: 'shoes', description: 'Ботинки на байке или мембране.', emoji: '' });
-    items.headwear.push({ id: 'acc_hat_warm', name: 'Теплая вязаная шапка', layer: 'headwear', description: 'Шапка, плотно закрывающая уши.', emoji: '' });
+    items.outerwear.push({ id: 'outer_demi_heavy', name: gender === 'girl' ? 'Демисезонный комбинезон (180г)' : 'Куртка + полукомбинезон (180г)', layer: 'outerwear', description: 'Утепленная демисезонная одежда.', emoji: '🧥' });
+    items.shoes.push({ id: 'shoes_demi_boots', name: 'Осенне-зимние ботинки', layer: 'shoes', description: 'Ботинки на байке или мембране.', emoji: '🥾' }); // ИСПРАВЛЕНО: добавлен emoji
+    items.headwear.push({ id: 'acc_hat_warm', name: 'Теплая вязаная шапка', layer: 'headwear', description: 'Шапка, плотно закрывающая уши.', emoji: '👤' }); // ИСПРАВЛЕНО: добавлен emoji
     items.accessories.push({ id: 'acc_gloves_thick', name: 'Плотные перчатки / варежки', layer: 'accessories', description: 'Защита рук от холода.', emoji: '🧤' });
   }
 
@@ -154,10 +154,10 @@ export function generateOutfit(
   else if (effTemp > -5 && effTemp <= 0) {
     items.underwear.push({ id: 'base_body_long', name: 'Боди с длинным рукавом', layer: 'underwear', description: 'Базовый хлопковый слой.', emoji: '👶' });
     items.upper_layer.push({ id: 'mid_sweatshirt', name: 'Свитшот или кардиган', layer: 'upper_layer', description: 'Трикотажный свитшот с начесом.', emoji: '🧥' });
-    items.lower_layer.push({ id: 'lower_jeans_warm', name: 'Джинсы / плотные брюки', layer: 'lower_layer', description: 'Верхний низ для прохладной погоды.', emoji: '' });
+    items.lower_layer.push({ id: 'lower_jeans_warm', name: 'Джинсы / плотные брюки', layer: 'lower_layer', description: 'Верхний низ для прохладной погоды.', emoji: '👖' }); // ИСПРАВЛЕНО: добавлен emoji
     items.outerwear.push({ id: 'outer_demi_medium', name: gender === 'girl' ? 'Демисезонное пальто / куртка (140г)' : 'Демисезонная куртка (140г)', layer: 'outerwear', description: 'Куртка из мембраны с легким утеплителем.', emoji: '🧥' });
     items.shoes.push({ id: 'shoes_demi_heavy', name: 'Демисезонные ботинки', layer: 'shoes', description: 'Высокие ботинки с водоотталкивающей пропиткой.', emoji: '🥾' });
-    items.headwear.push({ id: 'acc_hat_demi', name: 'Вязаная шапка', layer: 'headwear', description: 'Двухслойная трикотажная шапочка.', emoji: '' });
+    items.headwear.push({ id: 'acc_hat_demi', name: 'Вязаная шапка', layer: 'headwear', description: 'Двухслойная трикотажная шапочка.', emoji: '👤' }); // ИСПРАВЛЕНО: добавлен emoji
     items.accessories.push({ id: 'acc_gloves_soft', name: 'Мягкие перчатки', layer: 'accessories', description: 'Трикотажные перчатки.', emoji: '🧤' });
     
     if (isRainy || isSnowy) specialAdvice.push('При околонулевой температуре слякоть быстро промачивает ткань — мембрана обязательна.');
@@ -180,7 +180,7 @@ export function generateOutfit(
       items.upper_layer.push({ id: 'mid_sweatshirt_light', name: 'Толстовка или бомбер', layer: 'upper_layer', description: 'Трикотажный свитшот.', emoji: '🧥' });
     }
     items.lower_layer.push({ id: 'lower_jeans_regular', name: 'Джинсы / плотные брюки', layer: 'lower_layer', description: 'Стандартный низ.', emoji: '👖' });
-    items.outerwear.push({ id: 'outer_windbreaker', name: gender === 'girl' ? 'Ветровка / плащ' : 'Ветровка / легкая куртка', layer: 'outerwear', description: 'Легкая куртка без утеплителя.', emoji: '' });
+    items.outerwear.push({ id: 'outer_windbreaker', name: gender === 'girl' ? 'Ветровка / плащ' : 'Ветровка / легкая куртка', layer: 'outerwear', description: 'Легкая куртка без утеплителя.', emoji: '🧥' }); // ИСПРАВЛЕНО: добавлен emoji
     items.shoes.push({ id: 'shoes_sneakers', name: 'Кроссовки или кеды', layer: 'shoes', description: 'Удобная обувь на плотной подошве.', emoji: '👟' });
     if (effTemp < 12 || isWindy) {
       items.headwear.push({ id: 'acc_headband', name: 'Тонкая шапочка / повязка', layer: 'headwear', description: 'Защита ушей от ветра.', emoji: '👤' });
@@ -201,11 +201,17 @@ export function generateOutfit(
   // 8. ЖАРКО: > +20°C
   else {
     items.underwear.push({ id: 'base_summer_outfit', name: gender === 'girl' ? 'Легкое платье / топ' : 'Майка / футболка', layer: 'underwear', description: 'Натуральный лен или 100% хлопок.', emoji: '👗' });
-    items.lower_layer.push({ id: 'lower_shorts', name: 'Шорты / юбка', layer: 'lower_layer', description: 'Открытый низ.', emoji: '' });
-    items.shoes.push({ id: isRainy ? 'shoes_water_sandals' : 'shoes_sandals', name: isRainy ? 'Резиновые сандалии' : 'Открытые сандалии', layer: 'shoes', description: 'Легкая моющаяся обувь.', emoji: '' });
+    items.lower_layer.push({ id: 'lower_shorts', name: 'Шорты / юбка', layer: 'lower_layer', description: 'Открытый низ.', emoji: '🩳' }); // ИСПРАВЛЕНО: добавлен emoji
+    items.shoes.push({ 
+      id: isRainy ? 'shoes_water_sandals' : 'shoes_sandals', 
+      name: isRainy ? 'Резиновые сандалии' : 'Открытые сандалии', 
+      layer: 'shoes', 
+      description: 'Легкая моющаяся обувь.', 
+      emoji: isRainy ? '👢' : '👡' // ИСПРАВЛЕНО: добавлены emoji
+    });
     
     if (isRainy) {
-      items.outerwear.push({ id: 'outer_rain_poncho', name: 'Легкий дождевик-пончо', layer: 'outerwear', description: 'Тонкий непромокаемый плащ.', emoji: '' });
+      items.outerwear.push({ id: 'outer_rain_poncho', name: 'Легкий дождевик-пончо', layer: 'outerwear', description: 'Тонкий непромокаемый плащ.', emoji: '🧥' }); // ИСПРАВЛЕНО: добавлен emoji
       items.accessories.push({ id: 'acc_umbrella_hot', name: 'Зонт', layer: 'accessories', description: 'Защита от теплого дождя.', emoji: '☂️' });
     } else {
       items.headwear.push({ id: 'acc_sun_protection', name: 'Бейсболка / панама', layer: 'headwear', description: 'Обязательный головной убор.', emoji: '👒' });
@@ -224,7 +230,7 @@ export function generateOutfit(
       name: 'Резиновые сапоги',
       layer: 'shoes',
       description: effTemp < 5 ? 'Утепленные резиновые сапоги со вкладышем.' : 'Резиновые сапоги для защиты от луж.',
-      emoji: '',
+      emoji: '👢', // ИСПРАВЛЕНО: добавлен emoji
       tips: 'Надевайте их на плотный носок.'
     }];
     
@@ -269,7 +275,7 @@ export function generateOutfit(
   if (effTemp < 5) {
     parentTips.push({ id: 'tip_c_cold', category: 'essentials', title: 'С собой в холод (🎒)', text: 'Запасные варежки, шарф, запасной слой, тёплый напиток.', priority: 'warning', icon: '🎒' });
   } else if (effTemp > 25) {
-    parentTips.push({ id: 'tip_c_hot', category: 'essentials', title: 'С собой в жару ()', text: 'Бутылка воды (500мл+), SPF 30+, запасная панама.', priority: 'warning', icon: '💧' });
+    parentTips.push({ id: 'tip_c_hot', category: 'essentials', title: 'С собой в жару (🎒)', text: 'Бутылка воды (500мл+), SPF 30+, запасная панама.', priority: 'warning', icon: '💧' });
   } else {
     parentTips.push({ id: 'tip_c_mild', category: 'essentials', title: 'С собой в демисезон (🎒)', text: 'Лёгкая куртка в рюкзаке, компактный зонт.', priority: 'info', icon: '🎒' });
   }
@@ -282,11 +288,11 @@ export function generateOutfit(
   if (effTemp > 28) {
     parentTips.push({ id: 'tip_d_hot_alert', category: 'alerts', title: '⚠️ ОПАСНОСТЬ ПЕРЕГРЕВА', text: 'Критическая жара! Признаки: горячая кожа, вялость. Срочно в тень!', priority: 'danger', icon: '⚠️' });
   } else if (effTemp < -15) {
-    parentTips.push({ id: 'tip_d_cold_alert', category: 'alerts', title: '️ ОПАСНОСТЬ ПЕРЕОХЛАЖДЕНИЯ', text: 'Сильный мороз! Признаки: бледность, дрожь. Срочно в тепло!', priority: 'danger', icon: '️' });
+    parentTips.push({ id: 'tip_d_cold_alert', category: 'alerts', title: '❄️ ОПАСНОСТЬ ПЕРЕОХЛАЖДЕНИЯ', text: 'Сильный мороз! Признаки: бледность, дрожь. Срочно в тепло!', priority: 'danger', icon: '❄️' });
   }
 
   if (isWindy) {
-    parentTips.push({ id: 'tip_d_wind', category: 'alerts', title: '💨 ПРЕДУПРЕЖДЕНИЕ: Сильный ветер', text: 'Ветер выдувает тепло. Найти укрытие, защитить шею и лицо.', priority: 'warning', icon: '' });
+    parentTips.push({ id: 'tip_d_wind', category: 'alerts', title: '💨 ПРЕДУПРЕЖДЕНИЕ: Сильный ветер', text: 'Ветер выдувает тепло. Найти укрытие, защитить шею и лицо.', priority: 'warning', icon: '💨' });
   }
 
   // Возрастные советы
@@ -303,7 +309,7 @@ export function generateOutfit(
   }
 
   // Практический совет
-  parentTips.push({ id: 'tip_f_practical', category: 'practical', title: 'Практический совет (💡)', text: '"Капустный" принцип работает всегда! Мембрана дышит. Обувь: запас +1см к ноге.', priority: 'info', icon: '' });
+  parentTips.push({ id: 'tip_f_practical', category: 'practical', title: 'Практический совет (💡)', text: '"Капустный" принцип работает всегда! Мембрана дышит. Обувь: запас +1см к ноге.', priority: 'info', icon: '💡' });
 
   // Сортировка советов по приоритету
   parentTips.sort((a, b) => {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ShieldCheck, Lightbulb, RefreshCw, ChevronLeft, ChevronRight, Clock, Baby, Package, CheckSquare, Square } from 'lucide-react';
 import { Tip } from '../tips';
 
@@ -16,19 +16,18 @@ export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({ tips }) =>
     setCheckedItems(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const getRandomIndex = (currentIdx: number): number => {
-    if (tips.length <= 1) return 0;
-    let newIdx;
-    do {
-      newIdx = Math.floor(Math.random() * tips.length);
-    } while (newIdx === currentIdx);
-    return newIdx;
-  };
-
-  const rotateTip = () => {
+  // Используем useCallback для стабильной ссылки на функцию
+  const rotateTip = useCallback(() => {
     if (tips.length === 0) return;
-    setCurrentTipIndex(prev => getRandomIndex(prev));
-  };
+    setCurrentTipIndex(prev => {
+      if (tips.length <= 1) return 0;
+      let newIdx;
+      do {
+        newIdx = Math.floor(Math.random() * tips.length);
+      } while (newIdx === prev);
+      return newIdx;
+    });
+  }, [tips]);
 
   const nextTip = () => {
     if (tips.length === 0) return;
@@ -47,16 +46,20 @@ export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({ tips }) =>
     }
   }, [tips]);
 
-  // Автосмена (исправлено!)
+  // Автосмена - теперь все работает!
   useEffect(() => {
     if (!isAutoRotate || tips.length <= 1) return;
     
+    console.log('🔄 Автосмена включена, меняем каждые 15 секунд');
     const interval = setInterval(() => {
-      rotateTip(); // Используем функцию rotateTip
+      rotateTip();
     }, 15000);
 
-    return () => clearInterval(interval);
-  }, [isAutoRotate, tips]); // ← УБРАЛ currentTipIndex из зависимостей!
+    return () => {
+      console.log('⏹️ Автосмена остановлена');
+      clearInterval(interval);
+    };
+  }, [isAutoRotate, rotateTip]); // ← rotateTip теперь стабилен из-за useCallback
 
   if (tips.length === 0) {
     return (

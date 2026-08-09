@@ -9,12 +9,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export default defineConfig({
-  // КРИТИЧНО ДЛЯ RENDER: явный относительный базовый путь
   base: './',
   
   plugins: [
     react(),
-    // Tailwind v4 beta — плагин должен быть в plugins, без дополнительных настроек
     tailwindcss(),
     viteSingleFile({ 
       removeViteModuleLoader: true,
@@ -22,9 +20,6 @@ export default defineConfig({
     }),
   ],
   
-  // ⚠️ УДАЛЁН БЛОК optimizeDeps — он конфликтовал с Tailwind v4 beta
-  // ⚠️ Раньше здесь было: optimizeDeps: { include: ['react', 'react-dom'] }
-
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),
@@ -33,12 +28,12 @@ export default defineConfig({
   
   build: {
     target: 'esnext',
-    assetsInlineLimit: 100000000, // Инлайн всё агрессивно
-    cssCodeSplit: false,          // Запрещаем разделение CSS
+    assetsInlineLimit: 100000000,
+    cssCodeSplit: false,
     rollupOptions: {
       output: {
         inlineDynamicImports: true,
-        format: 'iife',           // Максимальная совместимость для singlefile
+        format: 'iife',
       },
     },
   },

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { RecommendedOutfit, ClothingItem, ChildGender, LayerVisibility } from '../types';
 import { Info, Eye, EyeOff, Layers, Shirt, Footprints } from 'lucide-react';
 import { ChildFigure } from './ChildFigure';
+import { LayerToggles } from './LayerToggles';
 
 interface AvatarVisualizerProps {
   gender: ChildGender;
@@ -16,38 +17,45 @@ interface AvatarVisualizerProps {
 export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
   gender, outfit, effectiveTemp, isRainy = false, isSnowy = false, isWindy = false, onItemSelect
 }) => {
-  const [showOuter, setShowOuter] = useState(true);
-  const [showMiddle, setShowMiddle] = useState(true);
+  // Состояние видимости для каждого из 7 слоев
+  const [layerVisibility, setLayerVisibility] = useState<LayerVisibility>({
+    underwear: true,
+    lower: true,
+    upper: true,
+    outer: true,
+    shoes: true,
+    headwear: true,
+    accessory: true,
+  });
+
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  const hasBase = outfit.base.length > 0;
-  const hasMiddle = outfit.middle.length > 0;
-  const hasOuter = outfit.outer.length > 0;
+  // Вспомогательные проверки наличия предметов в слоях
+  const hasOuter = outfit.outer.length > 0 || outfit.layers?.outerwear.length > 0;
+  const hasUpper = outfit.middle.length > 0 || outfit.layers?.upper_layer.length > 0;
+  const hasLower = outfit.lower_layer?.length > 0 || outfit.base.some(i => i.layer === 'lower_layer');
+  const hasUnderwear = outfit.underwear.length > 0 || outfit.base.some(i => i.layer === 'underwear');
   const hasShoes = outfit.shoes.length > 0;
+  const hasHeadwear = outfit.headwear?.length > 0 || outfit.accessories.some(i => i.layer === 'headwear');
+  const hasAccessories = outfit.accessories.length > 0;
 
-  // Формируем объект видимости для нового ChildFigure
-  const layerVisibility: LayerVisibility = {
-    underwear: true,      // Базовый слой всегда виден как основа
-    lower: true,          // Низ всегда надет
-    upper: showMiddle,    // Средний слой управляется кнопкой "Кофта"
-    outer: showOuter,     // Верхняя одежда управляется кнопкой "Куртка"
-    shoes: true,          // Обувь всегда есть
-    headwear: true,       // Головной убор выбирается автоматически по погоде внутри SVG
-    accessory: true,      // Аксессуары (варежки, шарф) тоже по погоде
+  // Обработчик переключения слоя
+  const handleToggleLayer = (layer: keyof LayerVisibility) => {
+    setLayerVisibility(prev => ({ ...prev, [layer]: !prev[layer] }));
   };
 
   const handleItemClick = (item: ClothingItem) => {
-    setSelectedCategory(item.category);
+    setSelectedCategory(item.layer);
     if (onItemSelect) onItemSelect(item);
   };
 
   const climateLabel = (() => {
-    if (effectiveTemp <= -15) return { text: 'Мороз', emoji: '🥶', color: 'bg-blue-600' };
+    if (effectiveTemp <= -15) return { text: 'Мороз', emoji: '', color: 'bg-blue-600' };
     if (effectiveTemp <= -5) return { text: 'Зима', emoji: '❄️', color: 'bg-blue-500' };
-    if (effectiveTemp <= 0) return { text: 'Около нуля', emoji: '🌨️', color: 'bg-cyan-500' };
+    if (effectiveTemp <= 0) return { text: 'Около нуля', emoji: '️', color: 'bg-cyan-500' };
     if (effectiveTemp <= 5) return { text: 'Прохладно', emoji: '🌥️', color: 'bg-cyan-400' };
     if (effectiveTemp <= 10) return { text: 'Свежо', emoji: '🍃', color: 'bg-teal-400' };
-    if (effectiveTemp <= 15) return { text: 'Умеренно', emoji: '🌤️', color: 'bg-amber-400' };
+    if (effectiveTemp <= 15) return { text: 'Умеренно', emoji: '️', color: 'bg-amber-400' };
     if (effectiveTemp <= 20) return { text: 'Тепло', emoji: '☀️', color: 'bg-orange-400' };
     return { text: 'Жарко', emoji: '🔥', color: 'bg-red-500' };
   })();
@@ -63,14 +71,13 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
     return 'from-yellow-200 via-amber-100 to-orange-50';
   })();
 
+  // Функция рендера карточки предмета одежды
   const renderLayerCard = (
     title: string,
     icon: React.ReactNode,
     items: ClothingItem[],
     isActive: boolean,
-    layerNum: number,
-    onToggle?: () => void,
-    toggleState?: boolean
+    layerNum: number
   ) => {
     if (items.length === 0) return null;
     const layerColor = layerNum === 3 ? 'bg-rose-500' : layerNum === 2 ? 'bg-violet-500' : layerNum === 1 ? 'bg-sky-500' : 'bg-amber-500';
@@ -79,27 +86,15 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
       <div className={`p-3 sm:p-4 rounded-xl sm:rounded-2xl border-2 transition-all duration-300 ${
         isActive ? 'bg-white border-indigo-200/80 shadow-sm' : 'bg-slate-50/50 border-slate-100 opacity-60'
       }`}>
-        <div className="flex items-center justify-between mb-2 sm:mb-3">
-          <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
-            <span className={`flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg sm:rounded-xl text-white font-extrabold text-[10px] sm:text-xs shrink-0 ${layerColor}`}>
-              {icon}
-            </span>
-            <h4 className="font-bold text-slate-800 text-[11px] sm:text-sm leading-tight truncate">{title}</h4>
-          </div>
-          {onToggle && (
-            <button onClick={onToggle} className={`flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-[11px] font-bold px-2.5 sm:px-3 py-1.5 rounded-lg sm:rounded-xl border transition-all shrink-0 ml-2 ${
-              toggleState
-                ? 'bg-indigo-600 text-white border-indigo-700 shadow-sm active:bg-indigo-700'
-                : 'bg-slate-100 text-slate-500 border-slate-200 active:bg-slate-200'
-            }`}>
-              {toggleState ? <EyeOff size={11} /> : <Eye size={11} />}
-              <span className="hidden xs:inline">{toggleState ? 'Снять' : 'Надеть'}</span>
-            </button>
-          )}
+        <div className="flex items-center gap-2 sm:gap-2.5 min-w-0 mb-2 sm:mb-3">
+          <span className={`flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg sm:rounded-xl text-white font-extrabold text-[10px] sm:text-xs shrink-0 ${layerColor}`}>
+            {icon}
+          </span>
+          <h4 className="font-bold text-slate-800 text-[11px] sm:text-sm leading-tight truncate">{title}</h4>
         </div>
         <div className="space-y-1.5 sm:space-y-2.5">
           {items.map((item) => {
-            const isHl = selectedCategory === item.category;
+            const isHl = selectedCategory === item.layer;
             return (
               <div key={item.id} onClick={() => handleItemClick(item)}
                 className={`group cursor-pointer p-2.5 sm:p-3.5 rounded-lg sm:rounded-xl border-2 transition-all duration-200 active:scale-[0.98] ${
@@ -131,6 +126,21 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
     );
   };
 
+  // Получаем предметы по новым слоям с fallback на старые массивы
+  const getItemsByLayer = (layer: string) => {
+    if (outfit.layers) return outfit.layers[layer as keyof typeof outfit.layers] || [];
+    // Fallback для обратной совместимости
+    switch(layer) {
+      case 'outerwear': return outfit.outer;
+      case 'upper_layer': return outfit.middle;
+      case 'lower_layer': return outfit.base.filter(i => i.layer === 'lower_layer');
+      case 'underwear': return outfit.underwear || outfit.base.filter(i => i.layer === 'underwear');
+      case 'shoes': return outfit.shoes;
+      case 'accessories': return outfit.accessories;
+      default: return [];
+    }
+  };
+
   return (
     <div className="flex flex-col lg:grid lg:grid-cols-12 gap-4 sm:gap-8 items-start">
 
@@ -149,15 +159,15 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
             </div>
           </div>
 
-          {/* Reset */}
+          {/* Reset layers button */}
           <div className="absolute top-2 sm:top-3 right-2 sm:right-3 z-10">
-            <button onClick={() => { setShowOuter(true); setShowMiddle(true); }}
+            <button onClick={() => setLayerVisibility({ underwear: true, lower: true, upper: true, outer: true, shoes: true, headwear: true, accessory: true })}
               className="bg-white/90 backdrop-blur p-2 rounded-xl text-slate-500 active:text-indigo-600 active:bg-white transition border border-white/80 shadow-sm">
               <Layers size={14} />
             </button>
           </div>
 
-          {/* SVG child — ИСПРАВЛЕННЫЙ ВЫЗОВ */}
+          {/* SVG child — НОВЫЙ ВЫЗОВ С ОБЪЕКТОМ ВИДИМОСТИ */}
           <div className="w-full max-w-[230px] sm:max-w-[280px] aspect-[11/20] pt-6 sm:pt-8 pb-1 sm:pb-2">
             <ChildFigure 
               gender={gender} 
@@ -172,7 +182,7 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
           {/* Gender + season label */}
           <div className="mb-1 sm:mb-2 flex items-center gap-1.5 sm:gap-2">
             <span className={`text-xs sm:text-sm font-extrabold ${gender === 'girl' ? 'text-pink-600' : 'text-blue-600'}`}>
-              {gender === 'girl' ? '👧 Девочка' : '👦 Мальчик'}
+              {gender === 'girl' ? ' Девочка' : '👦 Мальчик'}
             </span>
             <span className="text-[10px] sm:text-xs text-slate-400">•</span>
             <span className="text-[10px] sm:text-xs font-bold text-slate-500">
@@ -181,43 +191,8 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
           </div>
         </div>
 
-        {/* Layer control panel */}
-        <div className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-slate-100 shadow-sm space-y-2 sm:space-y-3">
-          <div className="flex items-center gap-2">
-            <span className="text-sm sm:text-base">🧅</span>
-            <div className="min-w-0">
-              <h4 className="text-[11px] sm:text-sm font-extrabold text-slate-700">Луковый разбор</h4>
-              <p className="text-[9px] sm:text-[10px] text-slate-400 truncate">Снимайте слои чтобы увидеть что под курткой</p>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            <button disabled={!hasOuter} onClick={() => setShowOuter(!showOuter)}
-              className={`flex items-center justify-center gap-1 sm:gap-2 py-2 sm:py-2.5 px-2 sm:px-3 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-extrabold border-2 transition-all active:scale-95 ${
-                !hasOuter ? 'bg-slate-50 text-slate-300 border-slate-100 cursor-not-allowed' :
-                showOuter ? 'bg-rose-500 text-white border-rose-600 shadow-md active:bg-rose-600' :
-                'bg-white text-rose-500 border-rose-200 active:bg-rose-50'
-              }`}>
-              {showOuter ? <EyeOff size={12} /> : <Eye size={12} />}
-              <span>Куртка {showOuter ? '✓' : '✗'}</span>
-            </button>
-            <button disabled={!hasMiddle} onClick={() => setShowMiddle(!showMiddle)}
-              className={`flex items-center justify-center gap-1 sm:gap-2 py-2 sm:py-2.5 px-2 sm:px-3 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-extrabold border-2 transition-all active:scale-95 ${
-                !hasMiddle ? 'bg-slate-50 text-slate-300 border-slate-100 cursor-not-allowed' :
-                showMiddle ? 'bg-violet-500 text-white border-violet-600 shadow-md active:bg-violet-600' :
-                'bg-white text-violet-500 border-violet-200 active:bg-violet-50'
-              }`}>
-              {showMiddle ? <EyeOff size={12} /> : <Eye size={12} />}
-              <span>Кофта {showMiddle ? '✓' : '✗'}</span>
-            </button>
-          </div>
-          {/* Layer indicators */}
-          <div className="flex items-center gap-1 pt-0.5">
-            <span className="text-[9px] font-bold text-slate-400 mr-0.5">Слои:</span>
-            {hasOuter && <span className={`px-1.5 sm:px-2 py-0.5 rounded text-[9px] sm:text-[10px] font-bold transition-all ${showOuter ? 'bg-rose-100 text-rose-700' : 'bg-slate-100 text-slate-400 line-through'}`}>Внеш</span>}
-            {hasMiddle && <span className={`px-1.5 sm:px-2 py-0.5 rounded text-[9px] sm:text-[10px] font-bold transition-all ${showMiddle ? 'bg-violet-100 text-violet-700' : 'bg-slate-100 text-slate-400 line-through'}`}>Сред</span>}
-            {hasBase && <span className="px-1.5 sm:px-2 py-0.5 rounded text-[9px] sm:text-[10px] font-bold bg-sky-100 text-sky-700">Нател</span>}
-          </div>
-        </div>
+        {/* НОВЫЙ КОМПОНЕНТ УПРАВЛЕНИЯ СЛОЯМИ */}
+        <LayerToggles visibility={layerVisibility} onToggle={handleToggleLayer} />
       </div>
 
       {/* ===== CLOTHING CHECKLIST ===== */}
@@ -234,11 +209,13 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
         </div>
 
         <div className="space-y-2 sm:space-y-4">
-          {renderLayerCard('Верхняя одежда', <Shirt size={13} />, outfit.outer, showOuter && hasOuter, 3, hasOuter ? () => setShowOuter(!showOuter) : undefined, showOuter)}
-          {renderLayerCard('Утепляющий слой', <Layers size={13} />, outfit.middle, showMiddle && hasMiddle, 2, hasMiddle ? () => setShowMiddle(!showMiddle) : undefined, showMiddle)}
-          {renderLayerCard('Нательное бельё', <Shirt size={13} />, outfit.base, hasBase, 1)}
-          {renderLayerCard('Обувь', <Footprints size={13} />, outfit.shoes, hasShoes, 0)}
-          {renderLayerCard('Аксессуары', <span className="text-xs">🧤</span>, outfit.accessories, outfit.accessories.length > 0, 0)}
+          {renderLayerCard('Верхняя одежда', <Shirt size={13} />, getItemsByLayer('outerwear'), layerVisibility.outer && hasOuter, 3)}
+          {renderLayerCard('Верхний слой', <Layers size={13} />, getItemsByLayer('upper_layer'), layerVisibility.upper && hasUpper, 2)}
+          {renderLayerCard('Нижний слой', <Shirt size={13} />, getItemsByLayer('lower_layer'), layerVisibility.lower && hasLower, 1)}
+          {renderLayerCard('Нательное белье', <Shirt size={13} />, getItemsByLayer('underwear'), layerVisibility.underwear && hasUnderwear, 1)}
+          {renderLayerCard('Головной убор', <span className="text-xs"></span>, getItemsByLayer('headwear'), layerVisibility.headwear && hasHeadwear, 0)}
+          {renderLayerCard('Обувь', <Footprints size={13} />, getItemsByLayer('shoes'), layerVisibility.shoes && hasShoes, 0)}
+          {renderLayerCard('Аксессуары', <span className="text-xs">🧣</span>, getItemsByLayer('accessories'), layerVisibility.accessory && hasAccessories, 0)}
         </div>
 
         {/* Advice */}

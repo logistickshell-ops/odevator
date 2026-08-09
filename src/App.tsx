@@ -1,5 +1,5 @@
 import { Tip } from './tips';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react'; // добавлен useRef
 import { 
   DayForecast, 
   WeatherPeriodType, 
@@ -163,6 +163,17 @@ export default function App() {
 
   // Selected Item Tip
   const [selectedItem, setSelectedItem] = useState<ClothingItem | null>(null);
+
+  // --- ИСПРАВЛЕНИЕ: утечка памяти с setTimeout при onBlur ---
+  const blurTimerRef = useRef<number | undefined>(undefined);
+  useEffect(() => {
+    return () => {
+      if (blurTimerRef.current !== undefined) {
+        clearTimeout(blurTimerRef.current);
+      }
+    };
+  }, []);
+  // --------------------------------------------------------
 
   // Fetch weather forecast from Open-Meteo API with mock fallback
   const fetchWeather = useCallback(async (city: CityData) => {
@@ -417,7 +428,11 @@ export default function App() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setIsSearchFocused(true)}
-                onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
+                onBlur={() => {
+                  // Исправлено: утечка таймера предотвращается
+                  if (blurTimerRef.current) clearTimeout(blurTimerRef.current);
+                  blurTimerRef.current = window.setTimeout(() => setIsSearchFocused(false), 200);
+                }}
                 className="w-full pl-9 sm:pl-10 pr-9 sm:pr-10 py-2 sm:py-2.5 bg-white/90 border-2 border-slate-100 rounded-2xl text-[11px] sm:text-xs font-bold text-slate-700 placeholder-slate-400 focus:outline-none focus:border-indigo-500/80 shadow-sm transition duration-300"
               />
               {isSearching ? (

@@ -1,12 +1,6 @@
 import { useState, useEffect } from 'react';
-import { WeatherDisplay } from './components/WeatherDisplay';
 import { ChildFigure } from './components/ChildFigure';
 import { ParentTipsSection } from './components/ParentTipsSection';
-import { ClothingRecommendations } from './components/ClothingRecommendations';
-import { AccessoriesRecommendations } from './components/AccessoriesRecommendations';
-import { Simulator } from './components/Simulator';
-import { FAQ } from './components/FAQ';
-import { Disclaimer } from './components/Disclaimer';
 import { WeatherData } from './types';
 import { Baby, RefreshCw, HelpCircle } from 'lucide-react';
 import { tipsPool } from './tips';
@@ -157,12 +151,9 @@ function App() {
           {activeTab === 'clothing' && (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
               <div className="lg:col-span-2 space-y-4 sm:space-y-6">
-                <WeatherDisplay weather={weather} loading={loading} error={error} />
-                <ClothingRecommendations weather={weather} timeOfDay={timeOfDay} />
+                <ChildFigure weather={weather} timeOfDay={timeOfDay} />
               </div>
               <div className="space-y-4 sm:space-y-6">
-                <ChildFigure weather={weather} timeOfDay={timeOfDay} />
-                <AccessoriesRecommendations weather={weather} />
               </div>
             </div>
           )}
@@ -184,19 +175,27 @@ function App() {
           
           {activeTab === 'simulator' && (
             <div className="max-w-4xl mx-auto">
-              <Simulator />
+              <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-100 shadow-sm">
+                <h2 className="text-xl sm:text-2xl font-black text-slate-800 mb-4">Симулятор</h2>
+                <p className="text-slate-500">Здесь будет симулятор</p>
+              </div>
             </div>
           )}
           
           {activeTab === 'faq' && (
             <div className="max-w-4xl mx-auto">
-              <FAQ />
+              <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-100 shadow-sm">
+                <h2 className="text-xl sm:text-2xl font-black text-slate-800 mb-4">FAQ</h2>
+                <p className="text-slate-500">Здесь будут часто задаваемые вопросы</p>
+              </div>
             </div>
           )}
         </div>
         
-        {/* Disclaimer */}
-        <Disclaimer />
+        {/* Disclaimer placeholder */}
+        <div className="mt-6 text-center text-xs text-slate-400">
+          <p>© 2024 Одеваем детей идеально по погоде</p>
+        </div>
       </div>
     </div>
   );

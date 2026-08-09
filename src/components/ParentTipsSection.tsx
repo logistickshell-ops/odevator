@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { ShieldCheck, Lightbulb, RefreshCw, ChevronLeft, ChevronRight, Clock, Baby, Package, CheckSquare, Square } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { ShieldCheck, Lightbulb, ChevronLeft, ChevronRight, Clock, Baby, Package, CheckSquare, Square, Filter, RotateCcw } from 'lucide-react';
 import { Tip } from '../tips';
 
 interface ParentTipsSectionProps {
@@ -7,72 +7,55 @@ interface ParentTipsSectionProps {
 }
 
 export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({ tips }) => {
-  const [currentTipIndex, setCurrentTipIndex] = useState<number>(0);
-  const [isAutoRotate, setIsAutoRotate] = useState<boolean>(true);
   const [activeChecklist, setActiveChecklist] = useState<'before' | 'during' | 'after'>('before');
   const [checkedItems, setCheckedItems] = useState<{ [key: string]: boolean }>({});
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [currentTipIndex, setCurrentTipIndex] = useState(0);
+  const AUTO_CHANGE_INTERVAL = 15000; // 15 секунд
 
   const toggleCheck = (id: string) => {
     setCheckedItems(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
-  // Используем useCallback для стабильной ссылки на функцию
-  const rotateTip = useCallback(() => {
-    if (tips.length === 0) return;
-    setCurrentTipIndex(prev => {
-      if (tips.length <= 1) return 0;
-      let newIdx;
-      do {
-        newIdx = Math.floor(Math.random() * tips.length);
-      } while (newIdx === prev);
-      return newIdx;
-    });
-  }, [tips]);
+  // Фильтрация по категориям
+  const filteredTips = useMemo(() => {
+    if (selectedCategory === 'all') return tips;
+    return tips.filter(tip => tip.category === selectedCategory);
+  }, [tips, selectedCategory]);
 
-  const nextTip = () => {
-    if (tips.length === 0) return;
-    setCurrentTipIndex(prev => (prev + 1) % tips.length);
-  };
-
-  const prevTip = () => {
-    if (tips.length === 0) return;
-    setCurrentTipIndex(prev => (prev - 1 + tips.length) % tips.length);
-  };
-
-  // Инициализация случайным советом
+  // Сброс индекса при изменении фильтра
   useEffect(() => {
-    if (tips.length > 0) {
-      setCurrentTipIndex(Math.floor(Math.random() * tips.length));
-    }
-  }, [tips]);
+    setCurrentTipIndex(0);
+  }, [selectedCategory]);
 
-  // Автосмена - теперь все работает!
+  // Автоматическая смена совета каждые 15 секунд
   useEffect(() => {
-    if (!isAutoRotate || tips.length <= 1) return;
-    
-    console.log('🔄 Автосмена включена, меняем каждые 15 секунд');
+    if (filteredTips.length <= 1) return;
+
     const interval = setInterval(() => {
-      rotateTip();
-    }, 15000);
+      setCurrentTipIndex(prev => (prev + 1) % filteredTips.length);
+    }, AUTO_CHANGE_INTERVAL);
 
-    return () => {
-      console.log('⏹️ Автосмена остановлена');
-      clearInterval(interval);
-    };
-  }, [isAutoRotate, rotateTip]); // ← rotateTip теперь стабилен из-за useCallback
+    return () => clearInterval(interval);
+  }, [filteredTips.length]);
 
-  if (tips.length === 0) {
-    return (
-      <div className="space-y-6">
-        <div className="bg-white rounded-2xl sm:rounded-3xl p-6 border border-slate-100 shadow-sm text-center">
-          <Lightbulb className="text-slate-300 mx-auto mb-2" size={32} />
-          <p className="text-slate-500 text-sm">Скоро здесь появятся полезные советы</p>
-        </div>
-      </div>
-    );
-  }
+  const currentTip = filteredTips[currentTipIndex];
 
-  const currentTip = tips[currentTipIndex];
+  const handlePrevious = () => {
+    setCurrentTipIndex(prev => (prev - 1 + filteredTips.length) % filteredTips.length);
+  };
+
+  const handleNext = () => {
+    setCurrentTipIndex(prev => (prev + 1) % filteredTips.length);
+  };
+
+  const categories = [
+    { id: 'all', label: 'Все', icon: '📋', count: tips.length },
+    { id: 'health', label: 'Здоровье', icon: '❤️', count: tips.filter(t => t.category === 'health').length },
+    { id: 'weather', label: 'Погода', icon: '🌤️', count: tips.filter(t => t.category === 'weather').length },
+    { id: 'clothing', label: 'Одежда', icon: '👕', count: tips.filter(t => t.category === 'clothing').length },
+    { id: 'general', label: 'Общее', icon: '📝', count: tips.filter(t => t.category === 'general').length },
+  ];
 
   const getCategoryColor = (category: string) => {
     if (category === 'health') return 'bg-rose-50 border-rose-200 text-rose-900';
@@ -124,7 +107,7 @@ export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({ tips }) =>
 
   return (
     <div className="space-y-6">
-      {/* Динамический совет */}
+      {/* Заголовок с фильтрами */}
       <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-100 shadow-sm">
         <div className="flex items-center justify-between gap-3 mb-4">
           <div className="flex items-center gap-2">
@@ -133,76 +116,105 @@ export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({ tips }) =>
               Умные подсказки родителям
             </h3>
           </div>
-          
-          <div className="flex items-center gap-1 sm:gap-2">
-            <button
-              onClick={() => setIsAutoRotate(!isAutoRotate)}
-              className={`p-1.5 sm:p-2 rounded-lg transition-all text-[10px] sm:text-xs font-bold ${
-                isAutoRotate 
-                  ? 'bg-indigo-100 text-indigo-600 hover:bg-indigo-200' 
-                  : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
-              }`}
-              title={isAutoRotate ? 'Выключить автосмену' : 'Включить автосмену'}
-            >
-              {isAutoRotate ? '🔄 Авто' : '⏸️ Стоп'}
-            </button>
-
-            <button
-              onClick={rotateTip}
-              className="p-1.5 sm:p-2 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-all"
-              title="Случайный совет"
-            >
-              <RefreshCw size={16} className="sm:w-[18px] sm:h-[18px]" />
-            </button>
+          <div className="flex items-center gap-1 text-xs text-slate-400 font-medium bg-slate-50 px-2 py-1 rounded-lg">
+            <RotateCcw size={12} />
+            <span className="hidden sm:inline">Авто каждые 15 сек</span>
+            <span className="sm:hidden">15 сек</span>
           </div>
         </div>
 
-        <div className={`p-4 sm:p-5 rounded-xl sm:rounded-2xl border-2 transition-all ${getCategoryColor(currentTip.category)}`}>
-          <div className="flex items-start gap-3 sm:gap-4">
-            <span className="text-3xl sm:text-4xl leading-none shrink-0 mt-0.5">
-              {currentTip.icon}
-            </span>
-            
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center justify-between gap-2 flex-wrap mb-1.5">
-                <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-white/80 border border-black/10 text-slate-700">
-                  {getCategoryBadge(currentTip.category)}
-                </span>
-                <span className="text-[9px] sm:text-[10px] text-slate-400 font-medium">
-                  {currentTipIndex + 1} / {tips.length}
-                </span>
+        {/* Фильтры по категориям */}
+        <div className="flex flex-wrap gap-2 mb-4">
+          {categories.map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => setSelectedCategory(cat.id)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                selectedCategory === cat.id
+                  ? 'bg-indigo-600 text-white shadow-md'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              <span>{cat.icon}</span>
+              <span className="hidden sm:inline">{cat.label}</span>
+              <span className={`px-1.5 py-0.5 rounded-full text-[9px] ${
+                selectedCategory === cat.id ? 'bg-white/20' : 'bg-slate-200'
+              }`}>
+                {cat.count}
+              </span>
+            </button>
+          ))}
+        </div>
+
+        {/* Один совет с навигацией */}
+        {currentTip && (
+          <div className={`p-4 sm:p-6 rounded-xl sm:rounded-2xl border-2 transition-all ${getCategoryColor(currentTip.category)}`}>
+            <div className="flex items-start gap-3 sm:gap-4">
+              <span className="text-3xl sm:text-4xl leading-none shrink-0 mt-1">
+                {currentTip.icon}
+              </span>
+              
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-2 flex-wrap mb-2">
+                  <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-white/80 border border-black/10 text-slate-700">
+                    {getCategoryBadge(currentTip.category)}
+                  </span>
+                  <span className="text-xs sm:text-sm font-bold text-slate-500">
+                    {currentTipIndex + 1} / {filteredTips.length}
+                  </span>
+                </div>
+                
+                <h4 className="font-extrabold text-sm sm:text-base leading-tight mb-2 text-slate-800">
+                  {currentTip.title}
+                </h4>
+                <p className="text-sm sm:text-base leading-relaxed text-slate-700">
+                  {currentTip.text}
+                </p>
+              </div>
+            </div>
+
+            {/* Навигация */}
+            <div className="flex items-center justify-between gap-2 mt-4 pt-4 border-t border-black/5">
+              <button
+                onClick={handlePrevious}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/60 hover:bg-white transition-colors text-slate-700 font-bold text-xs sm:text-sm disabled:opacity-30 disabled:cursor-not-allowed"
+                title="Предыдущий совет"
+              >
+                <ChevronLeft size={16} />
+                <span className="hidden sm:inline">Назад</span>
+              </button>
+              
+              <div className="flex items-center gap-1">
+                {filteredTips.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setCurrentTipIndex(idx)}
+                    className={`w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full transition-all ${
+                      idx === currentTipIndex
+                        ? 'bg-indigo-600 scale-125'
+                        : 'bg-slate-300 hover:bg-slate-400'
+                    }`}
+                    title={`Совет ${idx + 1}`}
+                  />
+                ))}
               </div>
               
-              <h4 className="font-extrabold text-sm sm:text-base leading-tight mb-1.5 text-slate-800">
-                {currentTip.title}
-              </h4>
-              <p className="text-xs sm:text-sm leading-relaxed text-slate-700">
-                {currentTip.text}
-              </p>
+              <button
+                onClick={handleNext}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/60 hover:bg-white transition-colors text-slate-700 font-bold text-xs sm:text-sm disabled:opacity-30 disabled:cursor-not-allowed"
+                title="Следующий совет"
+              >
+                <span className="hidden sm:inline">Вперед</span>
+                <ChevronRight size={16} />
+              </button>
             </div>
           </div>
-        </div>
+        )}
 
-        <div className="flex items-center justify-between mt-4">
-          <button
-            onClick={prevTip}
-            className="p-2 rounded-lg hover:bg-slate-100 transition-colors text-slate-500 hover:text-slate-700"
-            title="Предыдущий совет"
-          >
-            <ChevronLeft size={18} className="sm:w-[20px] sm:h-[20px]" />
-          </button>
-          
-          <span className="text-[10px] sm:text-xs text-slate-400 font-medium">
-            {isAutoRotate ? '🔄 Автосмена каждые 15 сек' : '⏸️ Ручной режим'}
-          </span>
-          
-          <button
-            onClick={nextTip}
-            className="p-2 rounded-lg hover:bg-slate-100 transition-colors text-slate-500 hover:text-slate-700"
-            title="Следующий совет"
-          >
-            <ChevronRight size={18} className="sm:w-[20px] sm:h-[20px]" />
-          </button>
+        {/* Инфо о количестве */}
+        <div className="text-center mt-4 text-xs text-slate-400 font-medium">
+          Показан совет {currentTipIndex + 1} из {filteredTips.length}
+          {selectedCategory !== 'all' && ` (категория: ${categories.find(c => c.id === selectedCategory)?.label})`}
         </div>
       </div>
 

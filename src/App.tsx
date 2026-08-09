@@ -451,13 +451,13 @@ export default function App() {
           </div>
         </div>
         <nav className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 border-t border-slate-100/70">
-          <div className="grid grid-cols-5 gap-1 py-1 sm:flex sm:items-center sm:justify-start sm:gap-6">
-            <button
-              onClick={() => setActiveTab('clothing')}
-              className={`py-2 px-1 font-extrabold text-[9px] xs:text-[11px] sm:text-sm border-b-2 transition flex flex-col xs:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-1.5 whitespace-nowrap ${
-                activeTab === 'clothing' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-600'
-              }`}
-            >
+         <div className="flex items-center justify-between gap-1 py-1 sm:justify-start sm:gap-6">
+  <button
+    onClick={() => setActiveTab('clothing')}
+    className={`py-2 px-1 font-extrabold text-[9px] xs:text-[11px] sm:text-sm border-b-2 transition flex flex-col xs:flex-row items-center justify-center gap-1 sm:gap-1.5 whitespace-nowrap flex-1 sm:flex-none ${
+      activeTab === 'clothing' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-600'
+    }`}
+  >
               <span>👕</span>
               <span>Одежда</span>
             </button>

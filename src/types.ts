@@ -41,19 +41,14 @@ export type AgeGroup = '0-3m' | '3-12m' | '1-3y' | '3-7y' | '7-12y';
 export type ParentTipCategory = 'safety' | 'time' | 'essentials' | 'alerts' | 'age' | 'practical' | 'health' | 'weather' | 'clothing' | 'general';
 export type ParentTipPriority = 'danger' | 'warning' | 'info';
 
-// УНИВЕРСАЛЬНЫЙ TIP - совместим и с ParentTip, и с компонентом ParentTipsSection
-export interface Tip {
-  id: string;
+// ИСПРАВЛЕНО: id теперь string | number для совместимости с Tip из tips.ts
+export interface ParentTip {
+  id: string | number;
   category: ParentTipCategory;
   title: string;
   text: string;
-  priority?: ParentTipPriority;
-  icon: string;
-}
-
-// ParentTip теперь расширяет Tip для полной совместимости
-export interface ParentTip extends Tip {
   priority: ParentTipPriority;
+  icon: string;
 }
 
 export interface ClothingItem {
@@ -75,10 +70,10 @@ export interface RecommendedOutfit {
   shoes: ClothingItem[];
   accessories: ClothingItem[];
   specialAdvice: string[];
-  parentTips: Tip[]; // ИСПРАВЛЕНО: ParentTip[] -> Tip[]
+  parentTips: ParentTip[];
 }
 
-// НОВЫЙ ТИП для ChildFigure
+// НОВЫЙ ЭКСПОРТ: нужен для ChildFigure
 export interface LayerVisibility {
   showOuter: boolean;
   showMiddle: boolean;

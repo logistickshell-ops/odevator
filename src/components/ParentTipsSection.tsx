@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { ShieldCheck, Lightbulb, ChevronLeft, ChevronRight, Clock, Baby, Package, CheckSquare, Square, RotateCcw } from 'lucide-react';
-import { Tip } from '../tips'; // ИМПОРТ ИЗ tips.ts — НЕ МЕНЯЕМ!
+import { Tip } from '../tips';
 
 interface ParentTipsSectionProps {
   tips: Tip[];
@@ -166,7 +166,7 @@ export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({ tips }) =>
 
             <div className="flex items-center justify-between gap-2 mt-4 pt-4 border-t border-black/5">
               <button onClick={handlePrevious}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/60 hover:bg-white transition-colors text-slate-700 font-bold text-xs sm:text-sm disabled:opacity-30 disabled:cursor-not-allowed"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/60 hover:bg-white transition-colors text-slate-700 font-bold text-xs sm:text-sm"
                 title="Предыдущий совет">
                 <ChevronLeft size={16} />
                 <span className="hidden sm:inline">Назад</span>
@@ -180,7 +180,7 @@ export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({ tips }) =>
                 ))}
               </div>
               <button onClick={handleNext}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/60 hover:bg-white transition-colors text-slate-700 font-bold text-xs sm:text-sm disabled:opacity-30 disabled:cursor-not-allowed"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/60 hover:bg-white transition-colors text-slate-700 font-bold text-xs sm:text-sm"
                 title="Следующий совет">
                 <span className="hidden sm:inline">Вперед</span>
                 <ChevronRight size={16} />

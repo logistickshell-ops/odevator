@@ -71,3 +71,14 @@ export interface RecommendedOutfit {
   specialAdvice: string[];
   parentTips: ParentTip[];
 }
+
+// Новый интерфейс для управления видимостью слоёв в ChildFigure
+export interface LayerVisibility {
+  underwear: boolean;   // базовый слой (бельё)
+  lower: boolean;       // нижний слой (штаны/юбка/шорты)
+  upper: boolean;       // средний слой (худи/свитер)
+  outer: boolean;       // верхняя одежда (куртка)
+  shoes: boolean;       // обувь
+  headwear: boolean;    // головной убор
+  accessory: boolean;   // аксессуары (варежки, шарф, зонт, очки)
+}

@@ -17,7 +17,6 @@ interface AvatarVisualizerProps {
 export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
   gender, outfit, effectiveTemp, isRainy = false, isSnowy = false, isWindy = false, onItemSelect
 }) => {
-  // Состояние видимости для каждого из 7 слоев
   const [layerVisibility, setLayerVisibility] = useState<LayerVisibility>({
     underwear: true,
     lower: true,
@@ -30,32 +29,31 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  // Вспомогательные проверки наличия предметов в слоях
-  const hasOuter = outfit.outer.length > 0 || outfit.layers?.outerwear.length > 0;
-  const hasUpper = outfit.middle.length > 0 || outfit.layers?.upper_layer.length > 0;
-  const hasLower = outfit.lower_layer?.length > 0 || outfit.base.some(i => i.layer === 'lower_layer');
-  const hasUnderwear = outfit.underwear.length > 0 || outfit.base.some(i => i.layer === 'underwear');
-  const hasShoes = outfit.shoes.length > 0;
-  const hasHeadwear = outfit.headwear?.length > 0 || outfit.accessories.some(i => i.layer === 'headwear');
-  const hasAccessories = outfit.accessories.length > 0;
+  // БЕЗОПАСНЫЕ проверки (используем ?. и ?? чтобы избежать undefined.length)
+  const hasOuter = (outfit.outer?.length ?? 0) > 0 || (outfit.layers?.outerwear?.length ?? 0) > 0;
+  const hasUpper = (outfit.middle?.length ?? 0) > 0 || (outfit.layers?.upper_layer?.length ?? 0) > 0;
+  const hasLower = (outfit.layers?.lower_layer?.length ?? 0) > 0;
+  const hasUnderwear = (outfit.layers?.underwear?.length ?? 0) > 0 || (outfit.base?.length ?? 0) > 0;
+  const hasShoes = (outfit.shoes?.length ?? 0) > 0;
+  const hasHeadwear = (outfit.layers?.headwear?.length ?? 0) > 0;
+  const hasAccessories = (outfit.accessories?.length ?? 0) > 0;
 
-  // Обработчик переключения слоя
   const handleToggleLayer = (layer: keyof LayerVisibility) => {
     setLayerVisibility(prev => ({ ...prev, [layer]: !prev[layer] }));
   };
 
   const handleItemClick = (item: ClothingItem) => {
-    setSelectedCategory(item.layer);
+    setSelectedCategory(item.layer || 'unknown');
     if (onItemSelect) onItemSelect(item);
   };
 
   const climateLabel = (() => {
-    if (effectiveTemp <= -15) return { text: 'Мороз', emoji: '', color: 'bg-blue-600' };
+    if (effectiveTemp <= -15) return { text: 'Мороз', emoji: '🥶', color: 'bg-blue-600' };
     if (effectiveTemp <= -5) return { text: 'Зима', emoji: '❄️', color: 'bg-blue-500' };
-    if (effectiveTemp <= 0) return { text: 'Около нуля', emoji: '️', color: 'bg-cyan-500' };
+    if (effectiveTemp <= 0) return { text: 'Около нуля', emoji: '🌨️', color: 'bg-cyan-500' };
     if (effectiveTemp <= 5) return { text: 'Прохладно', emoji: '🌥️', color: 'bg-cyan-400' };
     if (effectiveTemp <= 10) return { text: 'Свежо', emoji: '🍃', color: 'bg-teal-400' };
-    if (effectiveTemp <= 15) return { text: 'Умеренно', emoji: '️', color: 'bg-amber-400' };
+    if (effectiveTemp <= 15) return { text: 'Умеренно', emoji: '🌤️', color: 'bg-amber-400' };
     if (effectiveTemp <= 20) return { text: 'Тепло', emoji: '☀️', color: 'bg-orange-400' };
     return { text: 'Жарко', emoji: '🔥', color: 'bg-red-500' };
   })();
@@ -71,15 +69,16 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
     return 'from-yellow-200 via-amber-100 to-orange-50';
   })();
 
-  // Функция рендера карточки предмета одежды
   const renderLayerCard = (
     title: string,
     icon: React.ReactNode,
-    items: ClothingItem[],
+    items: any[], // Используем any[] для гибкости fallback
     isActive: boolean,
     layerNum: number
   ) => {
-    if (items.length === 0) return null;
+    // Безопасная проверка длины
+    if (!items || items.length === 0) return null;
+    
     const layerColor = layerNum === 3 ? 'bg-rose-500' : layerNum === 2 ? 'bg-violet-500' : layerNum === 1 ? 'bg-sky-500' : 'bg-amber-500';
 
     return (
@@ -93,16 +92,17 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
           <h4 className="font-bold text-slate-800 text-[11px] sm:text-sm leading-tight truncate">{title}</h4>
         </div>
         <div className="space-y-1.5 sm:space-y-2.5">
-          {items.map((item) => {
-            const isHl = selectedCategory === item.layer;
+          {items.map((item: any, idx: number) => {
+            const itemLayer = item.layer || 'unknown';
+            const isHl = selectedCategory === itemLayer;
             return (
-              <div key={item.id} onClick={() => handleItemClick(item)}
+              <div key={item.id || idx} onClick={() => handleItemClick(item)}
                 className={`group cursor-pointer p-2.5 sm:p-3.5 rounded-lg sm:rounded-xl border-2 transition-all duration-200 active:scale-[0.98] ${
                   isHl ? 'border-indigo-400 bg-indigo-50/40 shadow-sm' : 'border-slate-100 bg-white hover:border-slate-200'
                 }`}>
                 <div className="flex items-start gap-2 sm:gap-3">
                   <span className="text-2xl sm:text-3xl select-none leading-none shrink-0 mt-0.5 p-1 sm:p-1.5 bg-slate-50 rounded-lg sm:rounded-xl border border-slate-100">
-                    {item.emoji}
+                    {item.emoji || '👕'}
                   </span>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5">
@@ -126,28 +126,32 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
     );
   };
 
-  // Получаем предметы по новым слоям с fallback на старые массивы
-  const getItemsByLayer = (layer: string) => {
-    if (outfit.layers) return outfit.layers[layer as keyof typeof outfit.layers] || [];
-    // Fallback для обратной совместимости
+  // Безопасная функция получения предметов по слою
+  const getItemsByLayer = (layer: string): any[] => {
+    if (outfit.layers) {
+      const layerItems = (outfit.layers as any)[layer];
+      if (Array.isArray(layerItems)) return layerItems;
+    }
+    
+    // Fallback для обратной совместимости со старой структурой
     switch(layer) {
-      case 'outerwear': return outfit.outer;
-      case 'upper_layer': return outfit.middle;
-      case 'lower_layer': return outfit.base.filter(i => i.layer === 'lower_layer');
-      case 'underwear': return outfit.underwear || outfit.base.filter(i => i.layer === 'underwear');
-      case 'shoes': return outfit.shoes;
-      case 'accessories': return outfit.accessories;
+      case 'outerwear': return outfit.outer || [];
+      case 'upper_layer': return outfit.middle || [];
+      case 'lower_layer': return []; // В старой структуре низ был смешан с base
+      case 'underwear': return outfit.base || [];
+      case 'shoes': return outfit.shoes || [];
+      case 'headwear': return [];
+      case 'accessories': return outfit.accessories || [];
       default: return [];
     }
   };
 
   return (
     <div className="flex flex-col lg:grid lg:grid-cols-12 gap-4 sm:gap-8 items-start">
-
       {/* ===== AVATAR PANEL ===== */}
       <div className="w-full lg:col-span-5 space-y-3 sm:space-y-4">
         <div className={`bg-gradient-to-b ${bgGradient} rounded-2xl sm:rounded-3xl p-3 sm:p-5 border-3 sm:border-4 border-white shadow-lg sm:shadow-xl relative flex flex-col items-center overflow-hidden`}>
-
+          
           {/* Temp badge */}
           <div className="absolute top-2 sm:top-3 left-2 sm:left-3 z-10">
             <div className="bg-white/90 backdrop-blur px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl sm:rounded-2xl text-[10px] sm:text-xs font-extrabold text-slate-700 border border-white/80 shadow-sm flex items-center gap-1.5 sm:gap-2">
@@ -167,7 +171,7 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
             </button>
           </div>
 
-          {/* SVG child — НОВЫЙ ВЫЗОВ С ОБЪЕКТОМ ВИДИМОСТИ */}
+          {/* SVG child */}
           <div className="w-full max-w-[230px] sm:max-w-[280px] aspect-[11/20] pt-6 sm:pt-8 pb-1 sm:pb-2">
             <ChildFigure 
               gender={gender} 
@@ -182,7 +186,7 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
           {/* Gender + season label */}
           <div className="mb-1 sm:mb-2 flex items-center gap-1.5 sm:gap-2">
             <span className={`text-xs sm:text-sm font-extrabold ${gender === 'girl' ? 'text-pink-600' : 'text-blue-600'}`}>
-              {gender === 'girl' ? ' Девочка' : '👦 Мальчик'}
+              {gender === 'girl' ? '👧 Девочка' : '👦 Мальчик'}
             </span>
             <span className="text-[10px] sm:text-xs text-slate-400">•</span>
             <span className="text-[10px] sm:text-xs font-bold text-slate-500">
@@ -211,21 +215,20 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
         <div className="space-y-2 sm:space-y-4">
           {renderLayerCard('Верхняя одежда', <Shirt size={13} />, getItemsByLayer('outerwear'), layerVisibility.outer && hasOuter, 3)}
           {renderLayerCard('Верхний слой', <Layers size={13} />, getItemsByLayer('upper_layer'), layerVisibility.upper && hasUpper, 2)}
-          {renderLayerCard('Нижний слой', <Shirt size={13} />, getItemsByLayer('lower_layer'), layerVisibility.lower && hasLower, 1)}
           {renderLayerCard('Нательное белье', <Shirt size={13} />, getItemsByLayer('underwear'), layerVisibility.underwear && hasUnderwear, 1)}
-          {renderLayerCard('Головной убор', <span className="text-xs"></span>, getItemsByLayer('headwear'), layerVisibility.headwear && hasHeadwear, 0)}
+          {renderLayerCard('Головной убор', <span className="text-xs">🎩</span>, getItemsByLayer('headwear'), layerVisibility.headwear && hasHeadwear, 0)}
           {renderLayerCard('Обувь', <Footprints size={13} />, getItemsByLayer('shoes'), layerVisibility.shoes && hasShoes, 0)}
           {renderLayerCard('Аксессуары', <span className="text-xs">🧣</span>, getItemsByLayer('accessories'), layerVisibility.accessory && hasAccessories, 0)}
         </div>
 
         {/* Advice */}
-        {outfit.specialAdvice.length > 0 && (
+        {outfit.specialAdvice && outfit.specialAdvice.length > 0 && (
           <div className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-amber-50/80 border border-amber-200/70 space-y-1.5 sm:space-y-2">
             <h4 className="font-extrabold text-amber-900 text-[11px] sm:text-sm flex items-center gap-1.5 sm:gap-2">
               <span className="text-sm sm:text-base">⚠️</span> Важные рекомендации
             </h4>
             <ul className="space-y-1">
-              {outfit.specialAdvice.map((advice, i) => (
+              {outfit.specialAdvice.map((advice: string, i: number) => (
                 <li key={i} className="text-[10px] sm:text-xs text-amber-800 leading-relaxed flex items-start gap-1.5 sm:gap-2">
                   <span className="mt-0.5 shrink-0 text-amber-500">▸</span>
                   <span>{advice}</span>
@@ -234,7 +237,6 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
             </ul>
           </div>
         )}
-
       </div>
     </div>
   );

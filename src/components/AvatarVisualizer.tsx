@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { RecommendedOutfit, ClothingItem, ChildGender } from '../types';
+import { RecommendedOutfit, ClothingItem, ChildGender, LayerVisibility } from '../types';
 import { Info, Eye, EyeOff, Layers, Shirt, Footprints } from 'lucide-react';
 import { ChildFigure } from './ChildFigure';
 
@@ -24,6 +24,17 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
   const hasMiddle = outfit.middle.length > 0;
   const hasOuter = outfit.outer.length > 0;
   const hasShoes = outfit.shoes.length > 0;
+
+  // Формируем объект видимости для нового ChildFigure
+  const layerVisibility: LayerVisibility = {
+    underwear: true,      // Базовый слой всегда виден как основа
+    lower: true,          // Низ всегда надет
+    upper: showMiddle,    // Средний слой управляется кнопкой "Кофта"
+    outer: showOuter,     // Верхняя одежда управляется кнопкой "Куртка"
+    shoes: true,          // Обувь всегда есть
+    headwear: true,       // Головной убор выбирается автоматически по погоде внутри SVG
+    accessory: true,      // Аксессуары (варежки, шарф) тоже по погоде
+  };
 
   const handleItemClick = (item: ClothingItem) => {
     setSelectedCategory(item.category);
@@ -146,9 +157,16 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
             </button>
           </div>
 
-          {/* SVG child */}
+          {/* SVG child — ИСПРАВЛЕННЫЙ ВЫЗОВ */}
           <div className="w-full max-w-[230px] sm:max-w-[280px] aspect-[11/20] pt-6 sm:pt-8 pb-1 sm:pb-2">
-            <ChildFigure gender={gender} effectiveTemp={effectiveTemp} isRainy={isRainy} isSnowy={isSnowy} isWindy={isWindy} showOuter={showOuter} showMiddle={showMiddle} />
+            <ChildFigure 
+              gender={gender} 
+              effectiveTemp={effectiveTemp} 
+              isRainy={isRainy} 
+              isSnowy={isSnowy} 
+              isWindy={isWindy} 
+              show={layerVisibility} 
+            />
           </div>
 
           {/* Gender + season label */}

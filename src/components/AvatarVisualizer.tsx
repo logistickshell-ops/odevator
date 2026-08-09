@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { RecommendedOutfit, ClothingItem, ChildGender, LayerVisibility } from '../types';
-import { Info, Eye, EyeOff, Layers, Shirt, Footprints } from 'lucide-react';
+import { Info, Eye, EyeOff, Layers, Shirt, Footprints, Hat, Scarf, Pants, Underwear } from 'lucide-react';
 import { ChildFigure } from './ChildFigure';
 import { LayerToggles } from './LayerToggles';
 
@@ -29,33 +29,33 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  // БЕЗОПАСНЫЕ проверки (используем ?. и ?? чтобы избежать undefined.length)
-  const hasOuter = (outfit.outer?.length ?? 0) > 0 || (outfit.layers?.outerwear?.length ?? 0) > 0;
-  const hasUpper = (outfit.middle?.length ?? 0) > 0 || (outfit.layers?.upper_layer?.length ?? 0) > 0;
+  // Безопасные проверки наличия предметов в каждом слое
+  const hasOuter = (outfit.layers?.outerwear?.length ?? 0) > 0;
+  const hasUpper = (outfit.layers?.upper_layer?.length ?? 0) > 0;
   const hasLower = (outfit.layers?.lower_layer?.length ?? 0) > 0;
-  const hasUnderwear = (outfit.layers?.underwear?.length ?? 0) > 0 || (outfit.base?.length ?? 0) > 0;
-  const hasShoes = (outfit.shoes?.length ?? 0) > 0;
+  const hasUnderwear = (outfit.layers?.underwear?.length ?? 0) > 0;
+  const hasShoes = (outfit.layers?.shoes?.length ?? 0) > 0;
   const hasHeadwear = (outfit.layers?.headwear?.length ?? 0) > 0;
-  const hasAccessories = (outfit.accessories?.length ?? 0) > 0;
+  const hasAccessories = (outfit.layers?.accessories?.length ?? 0) > 0;
 
   const handleToggleLayer = (layer: keyof LayerVisibility) => {
     setLayerVisibility(prev => ({ ...prev, [layer]: !prev[layer] }));
   };
 
   const handleItemClick = (item: ClothingItem) => {
-    setSelectedCategory(item.layer || 'unknown');
+    setSelectedCategory(item.layer);
     if (onItemSelect) onItemSelect(item);
   };
 
   const climateLabel = (() => {
-    if (effectiveTemp <= -15) return { text: 'Мороз', emoji: '🥶', color: 'bg-blue-600' };
+    if (effectiveTemp <= -15) return { text: 'Мороз', emoji: '', color: 'bg-blue-600' };
     if (effectiveTemp <= -5) return { text: 'Зима', emoji: '❄️', color: 'bg-blue-500' };
     if (effectiveTemp <= 0) return { text: 'Около нуля', emoji: '🌨️', color: 'bg-cyan-500' };
     if (effectiveTemp <= 5) return { text: 'Прохладно', emoji: '🌥️', color: 'bg-cyan-400' };
-    if (effectiveTemp <= 10) return { text: 'Свежо', emoji: '🍃', color: 'bg-teal-400' };
+    if (effectiveTemp <= 10) return { text: 'Свежо', emoji: '', color: 'bg-teal-400' };
     if (effectiveTemp <= 15) return { text: 'Умеренно', emoji: '🌤️', color: 'bg-amber-400' };
     if (effectiveTemp <= 20) return { text: 'Тепло', emoji: '☀️', color: 'bg-orange-400' };
-    return { text: 'Жарко', emoji: '🔥', color: 'bg-red-500' };
+    return { text: 'Жарко', emoji: '', color: 'bg-red-500' };
   })();
 
   const bgGradient = (() => {
@@ -69,14 +69,15 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
     return 'from-yellow-200 via-amber-100 to-orange-50';
   })();
 
+  // Рендер карточки слоя с ПРАВИЛЬНЫМИ иконками
   const renderLayerCard = (
     title: string,
     icon: React.ReactNode,
-    items: any[], // Используем any[] для гибкости fallback
+    items: ClothingItem[],
     isActive: boolean,
-    layerNum: number
+    layerNum: number,
+    layerKey?: string
   ) => {
-    // Безопасная проверка длины
     if (!items || items.length === 0) return null;
     
     const layerColor = layerNum === 3 ? 'bg-rose-500' : layerNum === 2 ? 'bg-violet-500' : layerNum === 1 ? 'bg-sky-500' : 'bg-amber-500';
@@ -92,17 +93,16 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
           <h4 className="font-bold text-slate-800 text-[11px] sm:text-sm leading-tight truncate">{title}</h4>
         </div>
         <div className="space-y-1.5 sm:space-y-2.5">
-          {items.map((item: any, idx: number) => {
-            const itemLayer = item.layer || 'unknown';
-            const isHl = selectedCategory === itemLayer;
+          {items.map((item) => {
+            const isHl = selectedCategory === item.layer;
             return (
-              <div key={item.id || idx} onClick={() => handleItemClick(item)}
+              <div key={item.id} onClick={() => handleItemClick(item)}
                 className={`group cursor-pointer p-2.5 sm:p-3.5 rounded-lg sm:rounded-xl border-2 transition-all duration-200 active:scale-[0.98] ${
                   isHl ? 'border-indigo-400 bg-indigo-50/40 shadow-sm' : 'border-slate-100 bg-white hover:border-slate-200'
                 }`}>
                 <div className="flex items-start gap-2 sm:gap-3">
                   <span className="text-2xl sm:text-3xl select-none leading-none shrink-0 mt-0.5 p-1 sm:p-1.5 bg-slate-50 rounded-lg sm:rounded-xl border border-slate-100">
-                    {item.emoji || '👕'}
+                    {item.emoji}
                   </span>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5">
@@ -126,24 +126,12 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
     );
   };
 
-  // Безопасная функция получения предметов по слою
-  const getItemsByLayer = (layer: string): any[] => {
+  // Получаем предметы по слоям
+  const getItemsByLayer = (layer: string): ClothingItem[] => {
     if (outfit.layers) {
-      const layerItems = (outfit.layers as any)[layer];
-      if (Array.isArray(layerItems)) return layerItems;
+      return (outfit.layers as any)[layer] || [];
     }
-    
-    // Fallback для обратной совместимости со старой структурой
-    switch(layer) {
-      case 'outerwear': return outfit.outer || [];
-      case 'upper_layer': return outfit.middle || [];
-      case 'lower_layer': return []; // В старой структуре низ был смешан с base
-      case 'underwear': return outfit.base || [];
-      case 'shoes': return outfit.shoes || [];
-      case 'headwear': return [];
-      case 'accessories': return outfit.accessories || [];
-      default: return [];
-    }
+    return [];
   };
 
   return (
@@ -190,16 +178,16 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
             </span>
             <span className="text-[10px] sm:text-xs text-slate-400">•</span>
             <span className="text-[10px] sm:text-xs font-bold text-slate-500">
-              {effectiveTemp <= 0 ? '❄️ Зима' : effectiveTemp <= 10 ? '🍂 Демисезон' : '☀️ Лето'}
+              {effectiveTemp <= 0 ? '❄️ Зима' : effectiveTemp <= 10 ? ' Демисезон' : '☀️ Лето'}
             </span>
           </div>
         </div>
 
-        {/* НОВЫЙ КОМПОНЕНТ УПРАВЛЕНИЯ СЛОЯМИ */}
+        {/* Layer Toggles */}
         <LayerToggles visibility={layerVisibility} onToggle={handleToggleLayer} />
       </div>
 
-      {/* ===== CLOTHING CHECKLIST ===== */}
+      {/* ===== CLOTHING CHECKLIST — ПОЛНЫЙ СПИСОК ВСЕХ 7 СЛОЕВ ===== */}
       <div className="w-full lg:col-span-7 space-y-3 sm:space-y-5">
         <div className="hidden sm:block">
           <h3 className="text-xl font-extrabold text-slate-800 flex items-center gap-2">
@@ -213,12 +201,26 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
         </div>
 
         <div className="space-y-2 sm:space-y-4">
-          {renderLayerCard('Верхняя одежда', <Shirt size={13} />, getItemsByLayer('outerwear'), layerVisibility.outer && hasOuter, 3)}
-          {renderLayerCard('Верхний слой', <Layers size={13} />, getItemsByLayer('upper_layer'), layerVisibility.upper && hasUpper, 2)}
-          {renderLayerCard('Нательное белье', <Shirt size={13} />, getItemsByLayer('underwear'), layerVisibility.underwear && hasUnderwear, 1)}
-          {renderLayerCard('Головной убор', <span className="text-xs">🎩</span>, getItemsByLayer('headwear'), layerVisibility.headwear && hasHeadwear, 0)}
-          {renderLayerCard('Обувь', <Footprints size={13} />, getItemsByLayer('shoes'), layerVisibility.shoes && hasShoes, 0)}
-          {renderLayerCard('Аксессуары', <span className="text-xs">🧣</span>, getItemsByLayer('accessories'), layerVisibility.accessory && hasAccessories, 0)}
+          {/* Слой 1: Нательное белье */}
+          {renderLayerCard('Нательное белье', <Underwear size={13} />, getItemsByLayer('underwear'), layerVisibility.underwear && hasUnderwear, 1, 'underwear')}
+          
+          {/* Слой 2: Нижний слой (штаны/юбка/шорты) */}
+          {renderLayerCard('Нижний слой', <Pants size={13} />, getItemsByLayer('lower_layer'), layerVisibility.lower && hasLower, 2, 'lower_layer')}
+          
+          {/* Слой 3: Верхний слой (худи/свитер) */}
+          {renderLayerCard('Верхний слой', <Shirt size={13} />, getItemsByLayer('upper_layer'), layerVisibility.upper && hasUpper, 2, 'upper_layer')}
+          
+          {/* Слой 4: Верхняя одежда */}
+          {renderLayerCard('Верхняя одежда', <Shirt size={13} />, getItemsByLayer('outerwear'), layerVisibility.outer && hasOuter, 3, 'outerwear')}
+          
+          {/* Слой 5: Головной убор */}
+          {renderLayerCard('Головной убор', <Hat size={13} />, getItemsByLayer('headwear'), layerVisibility.headwear && hasHeadwear, 0, 'headwear')}
+          
+          {/* Слой 6: Обувь */}
+          {renderLayerCard('Обувь', <Footprints size={13} />, getItemsByLayer('shoes'), layerVisibility.shoes && hasShoes, 0, 'shoes')}
+          
+          {/* Слой 7: Аксессуары */}
+          {renderLayerCard('Аксессуары', <Scarf size={13} />, getItemsByLayer('accessories'), layerVisibility.accessory && hasAccessories, 0, 'accessories')}
         </div>
 
         {/* Advice */}
@@ -230,7 +232,7 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
             <ul className="space-y-1">
               {outfit.specialAdvice.map((advice: string, i: number) => (
                 <li key={i} className="text-[10px] sm:text-xs text-amber-800 leading-relaxed flex items-start gap-1.5 sm:gap-2">
-                  <span className="mt-0.5 shrink-0 text-amber-500">▸</span>
+                  <span className="mt-0.5 shrink-0 text-amber-500"></span>
                   <span>{advice}</span>
                 </li>
               ))}

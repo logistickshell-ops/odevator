@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, Lightbulb, RefreshCw, ChevronLeft, ChevronRight, Clock, Baby, Package, CheckSquare, Square } from 'lucide-react';
+import { ShieldCheck, Lightbulb, ChevronLeft, ChevronRight, Clock, Baby, Package, CheckSquare, Square } from 'lucide-react';
 import { Tip } from '../tips';
 
 interface ParentTipsSectionProps {
@@ -15,7 +15,7 @@ export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({ tips }) =>
   // ===== ОТЛАДКА =====
   console.log('🔄 Рендер ParentTipsSection, получено советов:', tips.length);
   if (tips.length > 0) {
-    console.log('📌 Первый совет:', tips[0].title);
+    console.log(' Первый совет:', tips[0].title);
   }
 
   const toggleCheck = (id: string) => {
@@ -61,7 +61,7 @@ export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({ tips }) =>
 
   // ===== АВТОСМЕНА (каждые 3 секунды для теста) =====
   useEffect(() => {
-    console.log(`⏰ Автосмена: ${isAutoRotate ? 'ВКЛ' : 'ВЫКЛ'}, советов: ${tips.length}`);
+    console.log(` Автосмена: ${isAutoRotate ? 'ВКЛ' : 'ВЫКЛ'}, советов: ${tips.length}`);
     if (!isAutoRotate || tips.length <= 1) {
       console.log('⏸️ Автосмена приостановлена (выключена или мало советов)');
       return;
@@ -76,7 +76,7 @@ export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({ tips }) =>
       console.log('⏹️ Интервал очищен');
       clearInterval(interval);
     };
-  }, [isAutoRotate, tips.length]); // Зависимости только isAutoRotate и длина массива
+  }, [isAutoRotate, tips.length]);
 
   // ===== ЕСЛИ НЕТ СОВЕТОВ =====
   if (tips.length === 0) {
@@ -105,7 +105,7 @@ export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({ tips }) =>
   const getCategoryBadge = (category: string) => {
     if (category === 'health') return '❤️ Здоровье';
     if (category === 'weather') return '🌤️ Погода';
-    if (category === 'clothing') return '👕 Одежда';
+    if (category === 'clothing') return ' Одежда';
     return '📝 Общее';
   };
 
@@ -157,27 +157,10 @@ export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({ tips }) =>
               Умные подсказки родителям
             </h3>
           </div>
-          
-          <div className="flex items-center gap-1 sm:gap-2">
-            <button
-              onClick={() => setIsAutoRotate(!isAutoRotate)}
-              className={`p-1.5 sm:p-2 rounded-lg transition-all text-[10px] sm:text-xs font-bold ${
-                isAutoRotate 
-                  ? 'bg-indigo-100 text-indigo-600 hover:bg-indigo-200' 
-                  : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
-              }`}
-              title={isAutoRotate ? 'Выключить автосмену' : 'Включить автосмену'}
-            >
-              {isAutoRotate ? '🔄 Авто' : '⏸️ Стоп'}
-            </button>
-
-            <button
-              onClick={randomTip}
-              className="p-1.5 sm:p-2 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-all"
-              title="Случайный совет"
-            >
-              <RefreshCw size={16} className="sm:w-[18px] sm:h-[18px]" />
-            </button>
+          <div className="flex items-center gap-1 text-xs text-slate-400 font-medium bg-slate-50 px-2 py-1 rounded-lg">
+            <Clock size={12} />
+            <span className="hidden sm:inline">Авто каждые 3 сек (тест)</span>
+            <span className="sm:hidden">3 сек</span>
           </div>
         </div>
 
@@ -198,10 +181,10 @@ export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({ tips }) =>
                 </span>
               </div>
               
-              <h4 className="font-extrabold text-sm sm:text-base leading-tight mb-1.5 text-slate-800">
+              <h4 className="font-extrabold text-sm sm:text-base leading-tight mb-2 text-slate-800">
                 {currentTip.title}
               </h4>
-              <p className="text-xs sm:text-sm leading-relaxed text-slate-700">
+              <p className="text-sm sm:text-base leading-relaxed text-slate-700">
                 {currentTip.text}
               </p>
             </div>
@@ -219,7 +202,7 @@ export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({ tips }) =>
           </button>
           
           <span className="text-[10px] sm:text-xs text-slate-400 font-medium">
-            {isAutoRotate ? '🔄 Автосмена каждые 3 сек (тест)' : '⏸️ Ручной режим'}
+            {isAutoRotate ? '🔄 Автосмена' : '️ Ручной режим'}
           </span>
           
           <button
@@ -232,7 +215,7 @@ export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({ tips }) =>
         </div>
       </div>
 
-      {/* Чек-листы (без изменений) */}
+      {/* Чек-листы */}
       <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-100 shadow-sm space-y-4">
         <div>
           <h3 className="text-base sm:text-xl font-black text-slate-800 flex items-center gap-2">

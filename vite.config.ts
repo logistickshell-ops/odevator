@@ -5,36 +5,43 @@ import { viteSingleFile } from 'vite-plugin-singlefile';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-// Vite 6 совместим с __dirname через fileURLToPath
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// https://vite.dev/config/
 export default defineConfig({
+  // КРИТИЧНО ДЛЯ RENDER: явный относительный базовый путь
+  base: './',
+  
   plugins: [
-    // React 18 плагин для Vite 6
     react(),
-    // Tailwind CSS v4 beta - новый плагин, больше не нужен postcss.config.js
+    // Tailwind v4 beta требует явного указания, но мы страхуемся
     tailwindcss(),
-    // Собирает весь проект в один HTML файл
-    viteSingleFile(),
+    viteSingleFile({ 
+      removeViteModuleLoader: true,
+      useRecommendedBuildConfig: true 
+    }),
   ],
+  
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),
     },
   },
-  // React 18 + Vite 6 - оптимальные настройки
-  esbuild: {
-    jsx: 'automatic',
-  },
+  
   build: {
-    // Для singlefile плагина
+    target: 'esnext',
+    assetsInlineLimit: 100000000, // Инлайн всё агрессивно
+    cssCodeSplit: false,          // Запрещаем разделение CSS
     rollupOptions: {
       output: {
-        // Инлайним все ассеты в HTML
         inlineDynamicImports: true,
+        format: 'iife',           // Максимальная совместимость для singlefile
       },
     },
+  },
+  
+  // Предотвращение проблем с бета-зависимостями в CI
+  optimizeDeps: {
+    include: ['react', 'react-dom'],
   },
 });

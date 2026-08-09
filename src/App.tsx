@@ -9,7 +9,7 @@ import { FAQ } from './components/FAQ';
 import { Disclaimer } from './components/Disclaimer';
 import { WeatherData } from './types';
 import { Baby, RefreshCw, HelpCircle } from 'lucide-react';
-import { tipsPool } from './tips'; // Импортируем пул советов
+import { tipsPool } from './tips';
 
 function App() {
   const [weather, setWeather] = useState<WeatherData | null>(null);
@@ -73,7 +73,6 @@ function App() {
     }
   };
 
-  // Передаем ВЕСЬ ПУЛ советов, а не один
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/20 to-indigo-50/30">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
@@ -170,7 +169,7 @@ function App() {
           
           {activeTab === 'tips' && (
             <div className="max-w-4xl mx-auto">
-              <ParentTipsSection tips={tipsPool} /> {/* ← ЗДЕСЬ БЫЛО tips={[tip]} - ИСПРАВИЛ! */}
+              <ParentTipsSection tips={tipsPool} /> {/* ← ИСПРАВЛЕНО! Передаем ВЕСЬ массив */}
             </div>
           )}
           

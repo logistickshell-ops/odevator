@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChildGender } from '../types';
+import { ChildGender, LayerVisibility } from '../types';
 
 interface ChildFigureProps {
   gender: ChildGender;
@@ -7,462 +7,283 @@ interface ChildFigureProps {
   isRainy: boolean;
   isSnowy: boolean;
   isWindy: boolean;
-  showOuter: boolean;
-  showMiddle: boolean;
+  show: LayerVisibility;
 }
 
-type WeatherZone = 'arctic' | 'winter' | 'freeze' | 'chilly' | 'cool' | 'mild' | 'warm' | 'hot';
+type Zone = 'arctic' | 'winter' | 'freeze' | 'chilly' | 'cool' | 'mild' | 'warm' | 'hot';
 
-const zoneFromTemp = (temp: number): WeatherZone => {
-  if (temp <= -15) return 'arctic';
-  if (temp <= -5) return 'winter';
-  if (temp <= 0) return 'freeze';
-  if (temp <= 5) return 'chilly';
-  if (temp <= 10) return 'cool';
-  if (temp <= 15) return 'mild';
-  if (temp <= 20) return 'warm';
-  return 'hot';
-};
+const zoneFromTemp = (t: number): Zone =>
+  t <= -15 ? 'arctic' : t <= -5 ? 'winter' : t <= 0 ? 'freeze' : t <= 5 ? 'chilly' :
+  t <= 10 ? 'cool' : t <= 15 ? 'mild' : t <= 20 ? 'warm' : 'hot';
 
 export const ChildFigure: React.FC<ChildFigureProps> = ({
-  gender, effectiveTemp, isRainy, isSnowy, isWindy, showOuter, showMiddle,
+  gender, effectiveTemp, isRainy, isSnowy, isWindy, show,
 }) => {
   const girl = gender === 'girl';
   const zone = zoneFromTemp(effectiveTemp);
   const cold = ['arctic', 'winter', 'freeze'].includes(zone);
-  const cool = ['arctic', 'winter', 'freeze', 'chilly', 'cool'].includes(zone);
+  const coolish = cold || ['chilly', 'cool'].includes(zone);
   const hot = zone === 'hot';
-  const warm = zone === 'warm' || hot;
-  
-  const rainShell = isRainy && !['arctic', 'winter', 'freeze', 'chilly', 'cool'].includes(zone);
-  const needsOuter = ['arctic', 'winter', 'freeze', 'chilly', 'cool', 'mild'].includes(zone) || rainShell;
-  const needsMiddle = ['arctic', 'winter', 'freeze', 'chilly', 'cool', 'mild', 'warm'].includes(zone) && !rainShell;
-  
-  const drawOuter = needsOuter && (showOuter || rainShell);
-  const drawMiddle = needsMiddle && showMiddle;
-  
-  const drawSkirt = girl && (warm || zone === 'mild');
-  const drawShorts = !girl && hot;
-  const showBaseLongSleeve = !warm;
-  const drawBoots = cool || isSnowy || (isRainy && !hot);
-  const drawSandals = hot && !isRainy;
+  const shortSleeve = hot || zone === 'warm'; // Исправлено: добавлена отсутствующая переменная
 
-  // Modern, beautiful color palettes
-  const C = (() => {
-    if (zone === 'arctic') return {
-      top: girl ? '#FFAFCC' : '#BAE6FD',
-      mid: girl ? '#C084FC' : '#60A5FA', 
-      outer: girl ? '#E11D48' : '#1E3A8A', outerDetail: girl ? '#BE123C' : '#172554',
-      bottom: girl ? '#FBCFE8' : '#7DD3FC',
-      shoes: '#44403C', shoesDetail: '#292524', hat: girl ? '#E11D48' : '#1E3A8A', scarf: '#FBBF24',
-    };
-    if (zone === 'winter') return {
-      top: girl ? '#FCE7F3' : '#E0F2FE',
-      mid: girl ? '#E9D5FF' : '#93C5FD',
-      outer: girl ? '#F43F5E' : '#2563EB', outerDetail: girl ? '#E11D48' : '#1D4ED8',
-      bottom: girl ? '#F9A8D4' : '#BFDBFE',
-      shoes: '#57534E', shoesDetail: '#44403C', hat: girl ? '#F43F5E' : '#2563EB', scarf: '#F59E0B',
-    };
-    if (zone === 'freeze') return {
-      top: girl ? '#FEF2F2' : '#F0FDF4',
-      mid: girl ? '#FDBA74' : '#6EE7B7',
-      outer: girl ? '#D946EF' : '#0EA5E9', outerDetail: girl ? '#C084FC' : '#0284C7',
-      bottom: girl ? '#E9D5FF' : '#A7F3D0',
-      shoes: '#78350F', shoesDetail: '#451A03', hat: girl ? '#D946EF' : '#0EA5E9', scarf: '#FB923C',
-    };
-    if (zone === 'chilly') return {
-      top: girl ? '#FFF1F2' : '#F0FDFA',
-      mid: girl ? '#FDA4AF' : '#5EEAD4',
-      outer: girl ? '#FB7185' : '#14B8A6', outerDetail: girl ? '#F43F5E' : '#0D9488',
-      bottom: '#64748B', shoes: '#292524', shoesDetail: '#1C1917', hat: girl ? '#FB7185' : '#14B8A6', scarf: '#F59E0B',
-    };
-    if (zone === 'cool') return {
-      top: girl ? '#FDF2F8' : '#F0FDF4',
-      mid: girl ? '#F9A8D4' : '#86EFAC',
-      outer: girl ? '#FBBF24' : '#10B981', outerDetail: girl ? '#F59E0B' : '#059669',
-      bottom: '#475569', shoes: '#475569', shoesDetail: '#334155', hat: girl ? '#FBBF24' : '#10B981', scarf: '',
-    };
-    if (zone === 'mild') return {
-      top: girl ? '#FFF7ED' : '#F0FDF4',
-      mid: girl ? '#FDE68A' : '#A7F3D0',
-      outer: girl ? '#FCD34D' : '#34D399', outerDetail: girl ? '#F59E0B' : '#10B981',
-      bottom: girl ? '#C084FC' : '#64748B', shoes: '#94A3B8', shoesDetail: '#64748B', hat: '', scarf: '',
-    };
-    if (zone === 'warm') return {
-      top: girl ? '#FBCFE8' : '#FEF08A',
-      mid: girl ? '#F9A8D4' : '#FDE047',
-      outer: '', outerDetail: '',
-      bottom: girl ? '#F472B6' : '#7DD3FC',
-      shoes: '#F59E0B', shoesDetail: '#D97706', hat: '', scarf: '',
-    };
-    return { // hot
-      top: girl ? '#FDE047' : '#BAE6FD',
-      mid: '', outer: '', outerDetail: '',
-      bottom: girl ? '#FCD34D' : '#38BDF8',
-      shoes: '#FBBF24', shoesDetail: '#F59E0B', hat: '#FDE047', scarf: '',
-    };
-  })();
+  // Анатомические пропорции (Обычный ребенок)
+  const CX = 120; // Центр
+  const CY_HEAD = 68;
+  const R_HEAD = 26;
+  const CY_NECK = 96;
+  const CY_SHOULDER = 108;
+  const CY_ELBOW = 158;
+  const CY_WRIST = 218;
+  const CY_WAIST = 178;
+  const CY_HIP = 204;
+  const CY_KNEE = 260;
+  const CY_ANKLE = 324;
 
-  const shellMain = rainShell ? '#38BDF8' : C.outer;
-  const shellDetail = rainShell ? '#0284C7' : C.outerDetail;
+  // Цвета и палитры
+  const ink = '#3B3148';
+  const skin = { l: '#FFEADF', d: '#F4CDBA' };
+  const hair = girl 
+    ? { l: '#8B5A2B', d: '#5C3A1B' } 
+    : { l: '#5A4A3A', d: '#362B20' };
 
-  const skin = '#FDE0C4';
-  const skinShadow = '#E6C2A1';
-  const blush = '#FFB7B2';
-  const hair = girl ? '#9E5C41' : '#6B4C3A';
-  const ink = '#4A3B32';
+  const P = girl
+    ? {
+        top: { l: '#FFD1E0', d: '#FFA5C3' },
+        bottom: { l: '#E6D0F5', d: '#CAA1E0' },
+        outer: { l: '#FFB8C6', d: '#E57992' },
+        shoes: { l: '#FFFFFF', d: '#E8E8F0' },
+        shoesD: { l: '#FFA5C3', d: '#E57992' },
+        hat: { l: '#FCEA9F', d: '#F2C74D' },
+        scarf: { l: '#8EE8D8', d: '#4BC4B0' },
+        mitt: { l: '#FFA5C3', d: '#E57992' },
+        under: { l: '#FFFFFF', d: '#DCDCE5' },
+      }
+    : {
+        top: { l: '#C2E0FF', d: '#82B5EB' },
+        bottom: { l: '#7A8BA0', d: '#516175' },
+        outer: { l: '#73A5FF', d: '#4A76D4' },
+        shoes: { l: '#FFFFFF', d: '#DCE0E5' },
+        shoesD: { l: '#82B5EB', d: '#4A76D4' },
+        hat: { l: '#7AD8D0', d: '#36A89F' },
+        scarf: { l: '#FFA5C3', d: '#E57992' },
+        mitt: { l: '#82B5EB', d: '#4A76D4' },
+        under: { l: '#FFFFFF', d: '#DCDCE5' },
+      };
 
-  // Layout Constants for perfect symmetrical alignment
-  const CX = 120; // Center X
-  const Y_HEAD = 75;
-  const Y_SHOULDER = 120;
-  const Y_WAIST = 190;
-  const Y_ANKLE = 330;
-  
-  // Bezier curve definitions for limbs (L = Left, R = Right)
-  const armL = `M ${CX - 25} ${Y_SHOULDER + 10} Q ${CX - 55} ${Y_SHOULDER + 40} ${CX - 50} ${Y_SHOULDER + 90}`;
-  const armR = `M ${CX + 25} ${Y_SHOULDER + 10} Q ${CX + 55} ${Y_SHOULDER + 40} ${CX + 50} ${Y_SHOULDER + 90}`;
-  const legL = `M ${CX - 15} ${Y_WAIST + 10} L ${CX - 20} ${Y_ANKLE}`;
-  const legR = `M ${CX + 15} ${Y_WAIST + 10} L ${CX + 20} ${Y_ANKLE}`;
+  const uid = girl ? 'g' : 'b';
+  const gid = (n: string) => `${uid}-${n}`;
 
   return (
-    <svg viewBox="0 0 240 400" className="h-full w-full select-none" role="img" aria-label="Иллюстрация ребенка по погоде">
+    <svg viewBox="0 0 240 400" className="h-full w-full select-none" role="img" aria-label="Реалистичная фигура ребенка">
       <defs>
-        <filter id="soft-shadow" x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="4" stdDeviation="4" floodColor="#0F172A" floodOpacity="0.12" />
+        <filter id={`${uid}-soft`} x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="3" stdDeviation="3" floodColor={ink} floodOpacity="0.10" />
         </filter>
-        <filter id="inner-shadow">
-          <feDropShadow dx="0" dy="2" stdDeviation="2" floodColor="#000" floodOpacity="0.1" />
-        </filter>
+        <radialGradient id={gid('blush')} cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor={cold ? '#FF8A8A' : '#FFB5B5'} stopOpacity="0.7" />
+          <stop offset="100%" stopColor="#FFB5B5" stopOpacity="0" />
+        </radialGradient>
+
+        {Object.entries({ ...P, skin, hair }).map(([k, v]) => (
+          <linearGradient key={k} id={gid(k)} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={(v as any).l} />
+            <stop offset="100%" stopColor={(v as any).d} />
+          </linearGradient>
+        ))}
       </defs>
 
-      {/* --- BACKGROUND WEATHER EFFECTS --- */}
-      <g className="animate-breathe" style={{ animationDuration: '4s' }}>
-        <ellipse cx={CX} cy="370" rx="70" ry="10" fill="#CBD5E1" opacity="0.3" />
-        {isSnowy && <ellipse cx={CX} cy="365" rx="100" ry="15" fill="#FFFFFF" opacity="0.6" />}
-      </g>
-      
-      {hot && !isRainy && (
-        <g className="animate-float" style={{ animationDuration: '6s' }} opacity="0.4">
-          <circle cx="200" cy="40" r="18" fill="#FBBF24" />
-          {[0, 45, 90, 135, 180, 225, 270, 315].map((a) => {
-            const r = (a * Math.PI) / 180;
-            return <line key={a} x1={200 + 24 * Math.cos(r)} y1={40 + 24 * Math.sin(r)} x2={200 + 32 * Math.cos(r)} y2={40 + 32 * Math.sin(r)} stroke="#F59E0B" strokeWidth="2.5" strokeLinecap="round" />;
-          })}
-        </g>
-      )}
-
-      {isWindy && !isRainy && (
-        <g opacity="0.3" stroke="#94A3B8" strokeWidth="2.5" strokeLinecap="round" fill="none">
-          <path d="M -10 140 Q 50 120 120 150 T 250 130" className="animate-wind-1" />
-          <path d="M 20 250 Q 80 270 150 240 T 260 260" className="animate-wind-2" />
-        </g>
-      )}
-
-      {isRainy && (
-        <g opacity="0.4" stroke="#38BDF8" strokeWidth="2" strokeLinecap="round">
-          {[20, 60, 100, 140, 180, 220].map((x, i) => (
-            <line key={x} x1={x} y1="-10" x2={x - 15} y2="410">
-              <animate attributeName="stroke-dasharray" values="0, 400; 400, 0" dur={`${0.6 + i * 0.1}s`} repeatCount="indefinite" />
-            </line>
-          ))}
-        </g>
-      )}
-
+      {/* Окружение */}
+      <ellipse cx={CX} cy={CY_WAIST} rx="100" ry="110" fill={girl ? '#FFF0F5' : '#F0F5FF'} opacity="0.3" />
+      <ellipse cx={CX} cy={CY_ANKLE + 20} rx="70" ry="14" fill={ink} opacity="0.10" />
       {isSnowy && (
-        <g fill="#FFFFFF" opacity="0.8">
-          {[30, 70, 110, 150, 190, 220].map((x, i) => (
-            <circle key={x} cx={x} cy="-10" r={i % 2 === 0 ? 3 : 2}>
-              <animate attributeName="cy" from="-10" to="410" dur={`${3 + i * 0.5}s`} repeatCount="indefinite" />
-              <animate attributeName="cx" values={`${x}; ${x - 10}; ${x}`} dur={`${2 + i % 3}s`} repeatCount="indefinite" />
-            </circle>
+        <g fill="#FFFFFF" opacity="0.8" className="animate-float" style={{ animationDuration: '3s' }}>
+          {[20, 60, 100, 140, 180, 220].map((x, i) => (
+            <circle key={x} cx={x} cy={40 + i * 40} r={i % 2 ? 2 : 3.5} />
+          ))}
+        </g>
+      )}
+      {isRainy && (
+        <g stroke="#90CAF9" strokeWidth="2.5" strokeLinecap="round" opacity="0.6">
+          {[30, 80, 130, 180, 215].map((x, i) => (
+            <line key={x} x1={x} y1={20 + i * 30} x2={x - 6} y2={45 + i * 30} />
           ))}
         </g>
       )}
 
-      {/* --- CHARACTER --- */}
       <g className="animate-breathe">
-        {/* HAIR (BACK) */}
-        {girl && (
-          <g fill={hair}>
-            <path d={`M ${CX} ${Y_HEAD} Q ${CX - 50} ${Y_HEAD + 20} ${CX - 45} ${Y_HEAD + 80} Q ${CX - 20} ${Y_HEAD + 90} ${CX} ${Y_HEAD + 50}`} />
-            <path d={`M ${CX} ${Y_HEAD} Q ${CX + 50} ${Y_HEAD + 20} ${CX + 45} ${Y_HEAD + 80} Q ${CX + 20} ${Y_HEAD + 90} ${CX} ${Y_HEAD + 50}`} />
+        
+        {/* СЛОЙ 1: КОЖА */}
+        <ellipse cx={CX} cy={(CY_SHOULDER + CY_HIP) / 2 + 6} rx="24" ry="46" fill={`url(#${gid('skin')})`} stroke={ink} strokeWidth="2" />
+        <g stroke={`url(#${gid('skin')})`} strokeWidth="14" strokeLinecap="round" strokeLinejoin="round" fill="none" filter={`url(#${uid}-soft)`}>
+          <path d={`M ${CX - 22} ${CY_SHOULDER + 8} L ${CX - 32} ${CY_ELBOW} L ${CX - 28} ${CY_WRIST}`} />
+          <path d={`M ${CX + 22} ${CY_SHOULDER + 8} L ${CX + 32} ${CY_ELBOW} L ${CX + 28} ${CY_WRIST}`} />
+        </g>
+        <g stroke={`url(#${gid('skin')})`} strokeWidth="16" strokeLinecap="round" strokeLinejoin="round" fill="none" filter={`url(#${uid}-soft)`}>
+          <path d={`M ${CX - 14} ${CY_HIP + 6} L ${CX - 16} ${CY_KNEE} L ${CX - 16} ${CY_ANKLE}`} />
+          <path d={`M ${CX + 14} ${CY_HIP + 6} L ${CX + 16} ${CY_KNEE} L ${CX + 16} ${CY_ANKLE}`} />
+        </g>
+
+        {/* СЛОЙ 2: БЕЛЬЕ */}
+        {show.underwear && (
+          <g filter={`url(#${uid}-soft)`} stroke={ink} strokeWidth="2" fill={`url(#${gid('under')})`}>
+            <path d={`M ${CX - 16} ${CY_HIP - 4} L ${CX - 16} ${CY_HIP + 14} Q ${CX} ${CY_HIP + 20} ${CX + 16} ${CY_HIP + 14} L ${CX + 16} ${CY_HIP - 4} Z`} />
+            <path d={`M ${CX - 18} ${CY_SHOULDER - 6} L ${CX - 18} ${CY_WAIST} L ${CX + 18} ${CY_WAIST} L ${CX + 18} ${CY_SHOULDER - 6} Z`} />
+            <path d={`M ${CX - 10} ${CY_SHOULDER - 6} Q ${CX} ${CY_SHOULDER + 10} ${CX + 10} ${CY_SHOULDER - 6}`} fill={`url(#${gid('skin')})`} stroke="none" />
           </g>
         )}
 
-        {/* LEGS (SKIN) */}
-        <path d={legL} stroke={skin} strokeWidth="18" strokeLinecap="round" />
-        <path d={legR} stroke={skin} strokeWidth="18" strokeLinecap="round" />
+        {/* СЛОЙ 3: НИЖНЯЯ ОДЕЖДА */}
+        {show.lower && (
+          <g filter={`url(#${uid}-soft)`} stroke={ink} strokeWidth="2" strokeLinejoin="round">
+            {girl ? (
+              <path d={`M ${CX - 18} ${CY_WAIST} L ${CX - 24} ${CY_HIP + 28} Q ${CX} ${CY_HIP + 38} ${CX + 24} ${CY_HIP + 28} L ${CX + 18} ${CY_WAIST} Z`} fill={`url(#${gid('bottom')})`} />
+            ) : (hot || zone === 'warm') ? (
+              <path d={`M ${CX - 18} ${CY_HIP} L ${CX - 18} ${CY_KNEE - 20} L ${CX + 18} ${CY_KNEE - 20} L ${CX + 18} ${CY_HIP} Z`} fill={`url(#${gid('bottom')})`} />
+            ) : (
+              <path d={`M ${CX - 18} ${CY_HIP} L ${CX - 18} ${CY_ANKLE + 10} L ${CX - 12} ${CY_ANKLE + 10} L ${CX - 12} ${CY_KNEE} L ${CX + 12} ${CY_KNEE} L ${CX + 12} ${CY_ANKLE + 10} L ${CX + 18} ${CY_ANKLE + 10} L ${CX + 18} ${CY_HIP} Z`} fill={`url(#${gid('bottom')})`} />
+            )}
+          </g>
+        )}
 
-        {/* BOTTOMS */}
-        {drawSkirt ? (
-          <path d={`M ${CX - 22} ${Y_WAIST - 10} L ${CX + 22} ${Y_WAIST - 10} L ${CX + 45} ${Y_WAIST + 60} Q ${CX} ${Y_WAIST + 75} ${CX - 45} ${Y_WAIST + 60} Z`} fill={C.bottom} filter="url(#soft-shadow)" />
-        ) : drawShorts ? (
-          <g filter="url(#soft-shadow)">
-            <rect x={CX - 24} y={Y_WAIST - 10} width="48" height="30" rx="10" fill={C.bottom} />
-            <path d={`M ${CX - 15} ${Y_WAIST + 10} L ${CX - 20} ${Y_WAIST + 50}`} stroke={C.bottom} strokeWidth="26" strokeLinecap="round" />
-            <path d={`M ${CX + 15} ${Y_WAIST + 10} L ${CX + 20} ${Y_WAIST + 50}`} stroke={C.bottom} strokeWidth="26" strokeLinecap="round" />
+        {/* СЛОЙ 4: ВЕРХНЯЯ ОДЕЖДА (Без разрывов) */}
+        {show.lower && (
+          <g filter={`url(#${uid}-soft)`} stroke={ink} strokeWidth="2" strokeLinejoin="round">
+            {shortSleeve ? (
+              <path d={`M ${CX - 24} ${CY_SHOULDER} Q ${CX - 34} ${CY_SHOULDER + 10} ${CX - 28} ${CY_ELBOW} Q ${CX - 22} ${CY_ELBOW} ${CX - 20} ${CY_WAIST} L ${CX + 20} ${CY_WAIST} Q ${CX + 22} ${CY_ELBOW} ${CX + 28} ${CY_ELBOW} Q ${CX + 34} ${CY_SHOULDER + 10} ${CX + 24} ${CY_SHOULDER} Z`} fill={`url(#${gid('top')})`} />
+            ) : (
+              <path d={`M ${CX - 25} ${CY_SHOULDER} Q ${CX - 40} ${CY_ELBOW - 10} ${CX - 34} ${CY_WRIST} Q ${CX - 26} ${CY_WRIST} ${CX - 22} ${CY_ELBOW} Q ${CX - 20} ${CY_WAIST} ${CX - 20} ${CY_WAIST} L ${CX + 20} ${CY_WAIST} Q ${CX + 20} ${CY_ELBOW} ${CX + 22} ${CY_ELBOW} Q ${CX + 26} ${CY_WRIST} ${CX + 34} ${CY_WRIST} Q ${CX + 40} ${CY_ELBOW - 10} ${CX + 25} ${CY_SHOULDER} Z`} fill={`url(#${gid('top')})`} />
+            )}
+          </g>
+        )}
+
+        {/* Худи / Пальто */}
+        {show.upper && coolish && (
+          <path d={`M ${CX - 27} ${CY_SHOULDER - 4} Q ${CX - 44} ${CY_ELBOW - 10} ${CX - 36} ${CY_WRIST} Q ${CX - 28} ${CY_WRIST} ${CX - 24} ${CY_ELBOW} Q ${CX - 22} ${CY_WAIST} ${CX - 22} ${CY_WAIST} L ${CX + 22} ${CY_WAIST} Q ${CX + 24} ${CY_ELBOW} ${CX + 28} ${CY_WRIST} Q ${CX + 44} ${CY_ELBOW - 10} ${CX + 27} ${CY_SHOULDER - 4} Z`} 
+            fill={`url(#${gid('upper')})`} stroke={ink} strokeWidth="2" strokeLinejoin="round" filter={`url(#${uid}-soft)`} />
+        )}
+        {show.outer && (
+          <path d={`M ${CX - 30} ${CY_SHOULDER - 6} Q ${CX - 48} ${CY_ELBOW - 12} ${CX - 40} ${CY_WRIST + 4} Q ${CX - 32} ${CY_WRIST + 4} ${CX - 26} ${CY_ELBOW} Q ${CX - 24} ${CY_HIP + 12} ${CX - 22} ${CY_HIP + 12} L ${CX + 22} ${CY_HIP + 12} Q ${CX + 24} ${CY_ELBOW} ${CX + 26} ${CY_ELBOW} Q ${CX + 32} ${CY_WRIST + 4} ${CX + 40} ${CY_WRIST + 4} Q ${CX + 48} ${CY_ELBOW - 12} ${CX + 30} ${CY_SHOULDER - 6} Z`} 
+            fill={`url(#${gid('outer')})`} stroke={ink} strokeWidth="2" strokeLinejoin="round" filter={`url(#${uid}-soft)`} />
+        )}
+
+        {/* Кисти и Варежки */}
+        {cold && show.accessory ? (
+          <g fill={`url(#${gid('mitt')})`} stroke={ink} strokeWidth="2" filter={`url(#${uid}-soft)`}>
+            <circle cx={CX - 30} cy={CY_WRIST + 10} r="12" />
+            <circle cx={CX + 30} cy={CY_WRIST + 10} r="12" />
           </g>
         ) : (
-          <g filter="url(#soft-shadow)">
-            <rect x={CX - 24} y={Y_WAIST - 10} width="48" height="30" rx="10" fill={C.bottom} />
-            <path d={legL} stroke={C.bottom} strokeWidth="26" strokeLinecap="round" />
-            <path d={legR} stroke={C.bottom} strokeWidth="26" strokeLinecap="round" />
-            {/* Knee wrinkles */}
-            <path d={`M ${CX - 26} ${Y_ANKLE - 50} Q ${CX - 20} ${Y_ANKLE - 45} ${CX - 14} ${Y_ANKLE - 50}`} fill="none" stroke="#FFFFFF" strokeWidth="2" opacity="0.3" strokeLinecap="round" />
-            <path d={`M ${CX + 14} ${Y_ANKLE - 50} Q ${CX + 20} ${Y_ANKLE - 45} ${CX + 26} ${Y_ANKLE - 50}`} fill="none" stroke="#FFFFFF" strokeWidth="2" opacity="0.3" strokeLinecap="round" />
+          <g fill={`url(#${gid('skin')})`} stroke={ink} strokeWidth="2">
+            <circle cx={CX - 28} cy={CY_WRIST + 10} r="8" />
+            <circle cx={CX + 28} cy={CY_WRIST + 10} r="8" />
           </g>
         )}
 
-        {/* SHOES */}
-        <g filter="url(#soft-shadow)">
-          {drawBoots ? (
-            <>
-              {/* Left Boot */}
-              <rect x={CX - 32} y={Y_ANKLE - 10} width="26" height="35" rx="12" fill={C.shoes} />
-              <rect x={CX - 34} y={Y_ANKLE + 20} width="30" height="8" rx="3" fill={C.shoesDetail} />
-              {cold && <ellipse cx={CX - 19} cy={Y_ANKLE - 10} rx="15" ry="6" fill="#FFFFFF" opacity="0.9" />}
-              {/* Right Boot */}
-              <rect x={CX + 6} y={Y_ANKLE - 10} width="26" height="35" rx="12" fill={C.shoes} />
-              <rect x={CX + 4} y={Y_ANKLE + 20} width="30" height="8" rx="3" fill={C.shoesDetail} />
-              {cold && <ellipse cx={CX + 19} cy={Y_ANKLE - 10} rx="15" ry="6" fill="#FFFFFF" opacity="0.9" />}
-            </>
-          ) : drawSandals ? (
-            <>
-              {/* Left Sandal */}
-              <path d={`M ${CX - 30} ${Y_ANKLE + 20} L ${CX - 10} ${Y_ANKLE + 20}`} stroke={C.shoes} strokeWidth="8" strokeLinecap="round" />
-              <path d={`M ${CX - 25} ${Y_ANKLE + 10} L ${CX - 15} ${Y_ANKLE + 20}`} stroke={C.shoes} strokeWidth="4" strokeLinecap="round" />
-              {/* Right Sandal */}
-              <path d={`M ${CX + 10} ${Y_ANKLE + 20} L ${CX + 30} ${Y_ANKLE + 20}`} stroke={C.shoes} strokeWidth="8" strokeLinecap="round" />
-              <path d={`M ${CX + 15} ${Y_ANKLE + 10} L ${CX + 25} ${Y_ANKLE + 20}`} stroke={C.shoes} strokeWidth="4" strokeLinecap="round" />
-            </>
-          ) : (
-            <>
-              {/* Left Sneaker */}
-              <rect x={CX - 30} y={Y_ANKLE + 5} width="24" height="20" rx="10" fill={C.shoes} />
-              <rect x={CX - 32} y={Y_ANKLE + 20} width="28" height="6" rx="3" fill="#FFFFFF" />
-              <line x1={CX - 26} y1={Y_ANKLE + 10} x2={CX - 16} y2={Y_ANKLE + 10} stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" opacity="0.8" />
-              <line x1={CX - 25} y1={Y_ANKLE + 14} x2={CX - 15} y2={Y_ANKLE + 14} stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" opacity="0.8" />
-              {/* Right Sneaker */}
-              <rect x={CX + 6} y={Y_ANKLE + 5} width="24" height="20" rx="10" fill={C.shoes} />
-              <rect x={CX + 4} y={Y_ANKLE + 20} width="28" height="6" rx="3" fill="#FFFFFF" />
-              <line x1={CX + 16} y1={Y_ANKLE + 10} x2={CX + 26} y2={Y_ANKLE + 10} stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" opacity="0.8" />
-              <line x1={CX + 15} y1={Y_ANKLE + 14} x2={CX + 25} y2={Y_ANKLE + 14} stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" opacity="0.8" />
-            </>
-          )}
-        </g>
-
-        {/* TORSO (SKIN) */}
-        <rect x={CX - 22} y={Y_SHOULDER} width="44" height="80" rx="20" fill={skin} />
-
-        {/* BASE TOP */}
-        <g filter="url(#soft-shadow)">
-          {/* Base Sleeves */}
-          {showBaseLongSleeve ? (
-            <>
-              <path d={armL} stroke={C.top} strokeWidth="22" strokeLinecap="round" fill="none" />
-              <path d={armR} stroke={C.top} strokeWidth="22" strokeLinecap="round" fill="none" />
-            </>
-          ) : (
-            <>
-              <path d={`M ${CX - 25} ${Y_SHOULDER + 10} Q ${CX - 35} ${Y_SHOULDER + 20} ${CX - 40} ${Y_SHOULDER + 35}`} stroke={C.top} strokeWidth="22" strokeLinecap="round" fill="none" />
-              <path d={`M ${CX + 25} ${Y_SHOULDER + 10} Q ${CX + 35} ${Y_SHOULDER + 20} ${CX + 40} ${Y_SHOULDER + 35}`} stroke={C.top} strokeWidth="22" strokeLinecap="round" fill="none" />
-            </>
-          )}
-          {/* Base Torso */}
-          <rect x={CX - 25} y={Y_SHOULDER - 5} width="50" height="90" rx="20" fill={C.top} />
-          {/* Neckline */}
-          <path d={`M ${CX - 12} ${Y_SHOULDER - 5} Q ${CX} ${Y_SHOULDER + 15} ${CX + 12} ${Y_SHOULDER - 5}`} fill={skin} />
-          {/* Dress details */}
-          {drawSkirt && (
-            <path d={`M ${CX - 25} ${Y_WAIST - 15} Q ${CX} ${Y_WAIST - 5} ${CX + 25} ${Y_WAIST - 15}`} fill="none" stroke="#FFFFFF" strokeWidth="3" opacity="0.5" />
-          )}
-        </g>
-
-        {/* MIDDLE LAYER (HOODIE/SWEATER) */}
-        {drawMiddle && (
-          <g filter="url(#soft-shadow)">
-            <path d={armL} stroke={C.mid} strokeWidth="28" strokeLinecap="round" fill="none" />
-            <path d={armR} stroke={C.mid} strokeWidth="28" strokeLinecap="round" fill="none" />
-            <rect x={CX - 28} y={Y_SHOULDER - 8} width="56" height="96" rx="24" fill={C.mid} />
-            {/* Neckline / Hood strings */}
-            <path d={`M ${CX - 15} ${Y_SHOULDER - 8} Q ${CX} ${Y_SHOULDER + 20} ${CX + 15} ${Y_SHOULDER - 8}`} fill={C.top} />
-            {cold && (
-              <>
-                <line x1={CX - 6} y1={Y_SHOULDER + 10} x2={CX - 6} y2={Y_SHOULDER + 30} stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" opacity="0.7" />
-                <line x1={CX + 6} y1={Y_SHOULDER + 10} x2={CX + 6} y2={Y_SHOULDER + 30} stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" opacity="0.7" />
-              </>
-            )}
-            {/* Kangaroo pocket */}
-            <path d={`M ${CX - 18} ${Y_WAIST - 10} L ${CX + 18} ${Y_WAIST - 10} L ${CX + 24} ${Y_WAIST + 15} L ${CX - 24} ${Y_WAIST + 15} Z`} fill="#FFFFFF" opacity="0.15" />
-            {/* Ribbed hem */}
-            <rect x={CX - 26} y={Y_WAIST + 18} width="52" height="6" rx="3" fill="#000000" opacity="0.1" />
+        {/* Обувь */}
+        {show.shoes && (
+          <g fill={`url(#${gid('shoes')})`} stroke={ink} strokeWidth="2" strokeLinejoin="round" filter={`url(#${uid}-soft)`}>
+            <rect x={CX - 24} y={CY_ANKLE + 2} width="16" height="24" rx="8" />
+            <rect x={CX + 8} y={CY_ANKLE + 2} width="16" height="24" rx="8" />
+            <path d={`M ${CX - 26} ${CY_ANKLE + 18} L ${CX - 6} ${CY_ANKLE + 18} L ${CX - 6} ${CY_ANKLE + 24} L ${CX - 26} ${CY_ANKLE + 24} Z`} fill={`url(#${gid('shoesD')})`} />
+            <path d={`M ${CX + 6} ${CY_ANKLE + 18} L ${CX + 26} ${CY_ANKLE + 18} L ${CX + 26} ${CY_ANKLE + 24} L ${CX + 6} ${CY_ANKLE + 24} Z`} fill={`url(#${gid('shoesD')})`} />
           </g>
         )}
 
-        {/* OUTER LAYER (JACKET) */}
-        {drawOuter && (
-          <g filter="url(#soft-shadow)">
-            <path d={armL} stroke={shellMain} strokeWidth="34" strokeLinecap="round" fill="none" />
-            <path d={armR} stroke={shellMain} strokeWidth="34" strokeLinecap="round" fill="none" />
-            <rect x={CX - 32} y={Y_SHOULDER - 10} width="64" height="106" rx="28" fill={shellMain} />
-            
-            {/* Zipper */}
-            <line x1={CX} y1={Y_SHOULDER - 10} x2={CX} y2={Y_WAIST + 26} stroke={shellDetail} strokeWidth="3" strokeLinecap="round" />
-            
-            {/* Pockets */}
-            <rect x={CX - 26} y={Y_WAIST - 5} width="16" height="18" rx="4" fill={shellDetail} opacity="0.4" />
-            <rect x={CX + 10} y={Y_WAIST - 5} width="16" height="18" rx="4" fill={shellDetail} opacity="0.4" />
+        {/* Шарф */}
+        {coolish && show.accessory && (
+          <g filter={`url(#${uid}-soft)`} stroke={ink} strokeWidth="2" fill={`url(#${gid('scarf')})`}>
+            <rect x={CX - 18} y={CY_NECK - 8} width="36" height="16" rx="6" />
+            <path d={isWindy
+              ? `M ${CX - 14} ${CY_NECK} Q ${CX - 34} ${CY_NECK + 30} ${CX - 48} ${CY_NECK + 40} L ${CX - 40} ${CY_NECK + 50} Q ${CX - 26} ${CY_NECK + 40} ${CX - 8} ${CY_NECK + 6}`
+              : `M ${CX - 12} ${CY_NECK} L ${CX - 8} ${CY_NECK + 44} L ${CX} ${CY_NECK + 40} L ${CX - 4} ${CY_NECK}`} 
+            />
+          </g>
+        )}
 
-            {/* Puffer quilting lines */}
-            {(zone === 'arctic' || zone === 'winter') && !rainShell && (
-              <g stroke={shellDetail} strokeWidth="2" opacity="0.3" fill="none" strokeLinecap="round">
-                <line x1={CX - 30} y1={Y_SHOULDER + 15} x2={CX + 30} y2={Y_SHOULDER + 15} />
-                <line x1={CX - 31} y1={Y_SHOULDER + 40} x2={CX + 31} y2={Y_SHOULDER + 40} />
-                <line x1={CX - 31} y1={Y_SHOULDER + 65} x2={CX + 31} y2={Y_SHOULDER + 65} />
-                {/* Arm quilting */}
-                <path d={`M ${CX - 50} ${Y_SHOULDER + 20} L ${CX - 30} ${Y_SHOULDER + 30}`} />
-                <path d={`M ${CX + 50} ${Y_SHOULDER + 20} L ${CX + 30} ${Y_SHOULDER + 30}`} />
-                <path d={`M ${CX - 55} ${Y_SHOULDER + 50} L ${CX - 35} ${Y_SHOULDER + 60}`} />
-                <path d={`M ${CX + 55} ${Y_SHOULDER + 50} L ${CX + 35} ${Y_SHOULDER + 60}`} />
+        {/* СЛОЙ 5: ГОЛОВА И ЛИЦО */}
+        <g filter={`url(#${uid}-soft)`}>
+          {girl && (
+            <path d={`M ${CX + 26} ${CY_HEAD - 8} Q ${CX + 50} ${CY_HEAD - 18} ${CX + 45} ${CY_HEAD + 20} Q ${CX + 40} ${CY_HEAD + 36} ${CX + 28} ${CY_HEAD + 24} Z`} fill={`url(#${gid('hair')})`} stroke={ink} strokeWidth="2" />
+          )}
+          <circle cx={CX} cy={CY_HEAD} r={R_HEAD} fill={`url(#${gid('skin')})`} stroke={ink} strokeWidth="2.5" />
+          
+          <g stroke={hair.d} strokeWidth="2.5" strokeLinecap="round" fill="none">
+            <path d={`M ${CX - 18} ${CY_HEAD - 4} Q ${CX - 13} ${CY_HEAD - 7} ${CX - 8} ${CY_HEAD - 4}`} />
+            <path d={`M ${CX + 8} ${CY_HEAD - 4} Q ${CX + 13} ${CY_HEAD - 7} ${CX + 18} ${CY_HEAD - 4}`} />
+          </g>
+
+          <g>
+            <ellipse cx={CX - 10} cy={CY_HEAD + 4} rx="5.5" ry="6.5" fill="#FFFFFF" stroke={ink} strokeWidth="1.5" />
+            <ellipse cx={CX + 10} cy={CY_HEAD + 4} rx="5.5" ry="6.5" fill="#FFFFFF" stroke={ink} strokeWidth="1.5" />
+            <circle cx={CX - 10} cy={CY_HEAD + 5} r="3.5" fill={ink} />
+            <circle cx={CX + 10} cy={CY_HEAD + 5} r="3.5" fill={ink} />
+            <circle cx={CX - 11.5} cy={CY_HEAD + 3} r="1.2" fill="#FFFFFF" />
+            <circle cx={CX + 8.5} cy={CY_HEAD + 3} r="1.2" fill="#FFFFFF" />
+            {girl && (
+              <g stroke={ink} strokeWidth="1.5" strokeLinecap="round">
+                <line x1={CX - 15} y1={CY_HEAD + 1} x2={CX - 18} y2={CY_HEAD - 1} />
+                <line x1={CX + 15} y1={CY_HEAD + 1} x2={CX + 18} y2={CY_HEAD - 1} />
               </g>
             )}
-
-            {/* Rain shell highlight */}
-            {rainShell && (
-              <path d={`M ${CX - 24} ${Y_SHOULDER} Q ${CX - 15} ${Y_SHOULDER + 20} ${CX - 24} ${Y_SHOULDER + 60}`} fill="none" stroke="#FFFFFF" strokeWidth="4" strokeLinecap="round" opacity="0.4" />
-            )}
-
-            {/* Winter Collar/Fur */}
-            {zone === 'arctic' && !rainShell && (
-              <path d={`M ${CX - 25} ${Y_SHOULDER - 10} Q ${CX} ${Y_SHOULDER + 10} ${CX + 25} ${Y_SHOULDER - 10} Q ${CX} ${Y_SHOULDER - 30} ${CX - 25} ${Y_SHOULDER - 10} Z`} fill="#FAFAF9" filter="url(#inner-shadow)" />
-            )}
           </g>
-        )}
 
-        {/* ARMS (SKIN) - drawn over clothes if short sleeves */}
-        {!showBaseLongSleeve && !drawMiddle && !drawOuter && (
-          <g>
-            <path d={`M ${CX - 40} ${Y_SHOULDER + 35} Q ${CX - 55} ${Y_SHOULDER + 45} ${CX - 50} ${Y_SHOULDER + 90}`} stroke={skin} strokeWidth="14" strokeLinecap="round" fill="none" />
-            <path d={`M ${CX + 40} ${Y_SHOULDER + 35} Q ${CX + 55} ${Y_SHOULDER + 45} ${CX + 50} ${Y_SHOULDER + 90}`} stroke={skin} strokeWidth="14" strokeLinecap="round" fill="none" />
-          </g>
-        )}
-
-        {/* HANDS & MITTENS */}
-        {cold ? (
-          <g filter="url(#soft-shadow)">
-            <circle cx={CX - 50} cy={Y_SHOULDER + 95} r="12" fill={C.hat} />
-            <circle cx={CX + 50} cy={Y_SHOULDER + 95} r="12" fill={C.hat} />
-          </g>
-        ) : (
-          <g>
-            <circle cx={CX - 50} cy={Y_SHOULDER + 95} r="8" fill={skin} />
-            <circle cx={CX + 50} cy={Y_SHOULDER + 95} r="8" fill={skin} />
-          </g>
-        )}
-
-        {/* UMBRELLA */}
-        {isRainy && (
-          <g className="animate-float" style={{ animationDuration: '4s' }} filter="url(#soft-shadow)">
-            <line x1={CX + 50} y1={Y_SHOULDER + 90} x2={CX + 50} y2={Y_HEAD - 40} stroke="#475569" strokeWidth="4" strokeLinecap="round" />
-            <path d={`M ${CX - 10} ${Y_HEAD - 20} Q ${CX + 50} ${Y_HEAD - 70} ${CX + 110} ${Y_HEAD - 20} Z`} fill="#EF4444" />
-            <path d={`M ${CX + 50} ${Y_HEAD - 60} L ${CX + 50} ${Y_HEAD - 20}`} stroke="#B91C1C" strokeWidth="2" opacity="0.5" />
-          </g>
-        )}
-
-        {/* SCARF */}
-        {cold && (
-          <g filter="url(#soft-shadow)">
-            <rect x={CX - 22} y={Y_SHOULDER - 18} width="44" height="18" rx="8" fill={C.scarf} />
-            <path d={`M ${CX - 15} ${Y_SHOULDER} L ${CX - 10} ${Y_SHOULDER + 35} L ${CX} ${Y_SHOULDER + 32} L ${CX - 5} ${Y_SHOULDER} Z`} fill={C.scarf} />
-            <line x1={CX - 10} y1={Y_SHOULDER + 35} x2={CX} y2={Y_SHOULDER + 32} stroke={C.scarf} strokeWidth="4" strokeDasharray="2,2" />
-          </g>
-        )}
-
-        {/* NECK (SKIN) */}
-        {!cold && <rect x={CX - 8} y={Y_HEAD + 25} width="16" height="20" fill={skinShadow} />}
-
-        {/* HEAD */}
-        <g>
-          {/* Base Face */}
-          <circle cx={CX} cy={Y_HEAD} r="35" fill={skin} />
+          <circle cx={CX - 20} cy={CY_HEAD + 14} r={cold ? 8 : 6} fill={`url(#${gid('blush')})`} />
+          <circle cx={CX + 20} cy={CY_HEAD + 14} r={cold ? 8 : 6} fill={`url(#${gid('blush')})`} />
+          <path d={`M ${CX - 2} ${CY_HEAD + 12} Q ${CX} ${CY_HEAD + 15} ${CX + 2} ${CY_HEAD + 12}`} fill="none" stroke={ink} strokeWidth="2" strokeLinecap="round" />
           
-          {/* Eyes */}
-          <circle cx={CX - 12} cy={Y_HEAD + 5} r="4.5" fill={ink} />
-          <circle cx={CX - 13.5} cy={Y_HEAD + 3.5} r="1.5" fill="#FFFFFF" />
-          <circle cx={CX + 12} cy={Y_HEAD + 5} r="4.5" fill={ink} />
-          <circle cx={CX + 10.5} cy={Y_HEAD + 3.5} r="1.5" fill="#FFFFFF" />
-          {girl && (
-            <g stroke={ink} strokeWidth="1.5" strokeLinecap="round">
-              <line x1={CX - 17} y1={Y_HEAD + 3} x2={CX - 19} y2={Y_HEAD} />
-              <line x1={CX + 17} y1={Y_HEAD + 3} x2={CX + 19} y2={Y_HEAD} />
-            </g>
+          {hot ? (
+            <path d={`M ${CX - 6} ${CY_HEAD + 20} Q ${CX} ${CY_HEAD + 28} ${CX + 6} ${CY_HEAD + 20} Z`} fill={ink} />
+          ) : (
+            <path d={`M ${CX - 6} ${CY_HEAD + 21} Q ${CX} ${CY_HEAD + 26} ${CX + 6} ${CY_HEAD + 21}`} fill="none" stroke={ink} strokeWidth="2.5" strokeLinecap="round" />
           )}
 
-          {/* Blush */}
-          <circle cx={CX - 20} cy={Y_HEAD + 12} r={cold ? 8 : 6} fill={cold ? '#EF4444' : blush} opacity={cold ? 0.5 : 0.6} filter="url(#inner-shadow)" />
-          <circle cx={CX + 20} cy={Y_HEAD + 12} r={cold ? 8 : 6} fill={cold ? '#EF4444' : blush} opacity={cold ? 0.5 : 0.6} filter="url(#inner-shadow)" />
-          
-          {/* Nose */}
-          <circle cx={CX} cy={Y_HEAD + 12} r="2" fill={skinShadow} />
-
-          {/* Smile */}
-          <path d={`M ${CX - 6} ${Y_HEAD + 20} Q ${CX} ${Y_HEAD + 28} ${CX + 6} ${Y_HEAD + 20}`} fill="none" stroke={ink} strokeWidth="2.5" strokeLinecap="round" />
-
-          {/* Freckles (Boy) */}
-          {!girl && (
-            <g fill={skinShadow} opacity="0.8">
-              <circle cx={CX - 18} cy={Y_HEAD + 10} r="1" />
-              <circle cx={CX - 22} cy={Y_HEAD + 14} r="1" />
-              <circle cx={CX + 18} cy={Y_HEAD + 10} r="1" />
-              <circle cx={CX + 22} cy={Y_HEAD + 14} r="1" />
-            </g>
-          )}
-
-          {/* Cold Breath */}
-          {cold && (
-            <g opacity="0.4" className="animate-float" style={{ animationDuration: '2s' }}>
-              <ellipse cx={CX + 15} cy={Y_HEAD + 25} rx="6" ry="3" fill="#FFFFFF" />
-              <ellipse cx={CX + 22} cy={Y_HEAD + 22} rx="4" ry="2" fill="#FFFFFF" />
-            </g>
-          )}
-
-          {/* Hair (Front) */}
-          <g fill={hair}>
+          {/* Волосы */}
+          <g fill={`url(#${gid('hair')})`} stroke={ink} strokeWidth="2" strokeLinejoin="round">
             {girl ? (
-              <path d={`M ${CX - 35} ${Y_HEAD - 5} Q ${CX} ${Y_HEAD - 25} ${CX + 35} ${Y_HEAD - 5} Q ${CX + 38} ${Y_HEAD - 35} ${CX} ${Y_HEAD - 38} Q ${CX - 38} ${Y_HEAD - 35} ${CX - 35} ${Y_HEAD - 5} Z`} />
+              <>
+                <path d={`M ${CX - 30} ${CY_HEAD - 6} Q ${CX - 15} ${CY_HEAD - 22} ${CX} ${CY_HEAD - 16} Q ${CX + 20} ${CY_HEAD - 26} ${CX + 30} ${CY_HEAD - 10} Q ${CX + 26} ${CY_HEAD - 34} ${CX} ${CY_HEAD - 36} Q ${CX - 26} ${CY_HEAD - 34} ${CX - 30} ${CY_HEAD - 6} Z`} />
+                <path d={`M ${CX - 24} ${CY_HEAD - 10} L ${CX - 16} ${CY_HEAD + 6} Q ${CX - 10} ${CY_HEAD + 10} ${CX - 4} ${CY_HEAD} L ${CX - 4} ${CY_HEAD - 14} Z`} />
+                <path d={`M ${CX + 24} ${CY_HEAD - 10} L ${CX + 16} ${CY_HEAD + 6} Q ${CX + 10} ${CY_HEAD + 10} ${CX + 4} ${CY_HEAD} L ${CX + 4} ${CY_HEAD - 14} Z`} />
+              </>
             ) : (
-              <path d={`M ${CX - 35} ${Y_HEAD - 10} Q ${CX - 20} ${Y_HEAD - 30} ${CX} ${Y_HEAD - 25} Q ${CX + 20} ${Y_HEAD - 35} ${CX + 35} ${Y_HEAD - 15} Q ${CX + 40} ${Y_HEAD - 40} ${CX} ${Y_HEAD - 45} Q ${CX - 40} ${Y_HEAD - 40} ${CX - 35} ${Y_HEAD - 10} Z`} />
+              <>
+                <path d={`M ${CX - 30} ${CY_HEAD - 8} Q ${CX - 15} ${CY_HEAD - 34} ${CX} ${CY_HEAD - 26} Q ${CX + 20} ${CY_HEAD - 36} ${CX + 30} ${CY_HEAD - 10} Q ${CX + 34} ${CY_HEAD - 32} ${CX} ${CY_HEAD - 40} Q ${CX - 34} ${CY_HEAD - 32} ${CX - 30} ${CY_HEAD - 8} Z`} />
+                <path d={`M ${CX - 20} ${CY_HEAD - 16} Q ${CX - 12} ${CY_HEAD - 26} ${CX - 2} ${CY_HEAD - 18} Q ${CX - 2} ${CY_HEAD - 36} ${CX - 26} ${CY_HEAD - 26} Z`} />
+                <path d={`M ${CX + 2} ${CY_HEAD - 16} Q ${CX + 12} ${CY_HEAD - 32} ${CX + 24} ${CY_HEAD - 24} Q ${CX + 12} ${CY_HEAD - 34} ${CX + 4} ${CY_HEAD - 26} Z`} />
+              </>
             )}
           </g>
 
-          {/* HAT / SUNGLASSES */}
-          {cool || (hot && !isRainy) ? (
-            <g filter="url(#soft-shadow)">
+          {/* Головные уборы */}
+          {show.headwear && (
+            <g filter={`url(#${uid}-soft)`} stroke={ink} strokeWidth="2">
               {hot ? (
                 <>
-                  {/* Sunhat */}
-                  <ellipse cx={CX} cy={Y_HEAD - 25} rx="45" ry="12" fill={C.hat} />
-                  <path d={`M ${CX - 28} ${Y_HEAD - 25} Q ${CX} ${Y_HEAD - 55} ${CX + 28} ${Y_HEAD - 25} Z`} fill={C.hat} />
-                  {/* Sunglasses */}
-                  <rect x={CX - 22} y={Y_HEAD} width="18" height="12" rx="4" fill="#0F172A" />
-                  <rect x={CX + 4} y={Y_HEAD} width="18" height="12" rx="4" fill="#0F172A" />
-                  <line x1={CX - 4} y1={Y_HEAD + 4} x2={CX + 4} y2={Y_HEAD + 4} stroke="#0F172A" strokeWidth="2" />
-                  <line x1={CX - 18} y1={Y_HEAD + 2} x2={CX - 10} y2={Y_HEAD + 8} stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" opacity="0.3" />
-                  <line x1={CX + 8} y1={Y_HEAD + 2} x2={CX + 16} y2={Y_HEAD + 8} stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" opacity="0.3" />
+                  <ellipse cx={CX} cy={CY_HEAD - 24} rx="38" ry="10" fill={`url(#${gid('hat')})`} />
+                  <path d={`M ${CX - 26} ${CY_HEAD - 24} Q ${CX} ${CY_HEAD - 54} ${CX + 26} ${CY_HEAD - 24} Z`} fill={`url(#${gid('hat')})`} />
+                </>
+              ) : cold ? (
+                <>
+                  <path d={`M ${CX - 30} ${CY_HEAD - 12} Q ${CX} ${CY_HEAD - 52} ${CX + 30} ${CY_HEAD - 12} Z`} fill={`url(#${gid('hat')})`} />
+                  <rect x={CX - 32} y={CY_HEAD - 14} width="64" height="12" rx="6" fill={`url(#${gid('hatD')})`} />
+                  {(zone === 'arctic' || zone === 'winter') && <circle cx={CX} cy={CY_HEAD - 44} r="8" fill="#FFFFFF" />}
                 </>
               ) : (
                 <>
-                  {/* Beanie */}
-                  <path d={`M ${CX - 34} ${Y_HEAD - 15} Q ${CX} ${Y_HEAD - 55} ${CX + 34} ${Y_HEAD - 15} Z`} fill={C.hat} />
-                  <rect x={CX - 36} y={Y_HEAD - 18} width="72" height="14" rx="6" fill={C.hat} />
-                  {zone === 'arctic' && (
-                    <circle cx={CX} cy={Y_HEAD - 48} r="12" fill="#FFFFFF" />
-                  )}
+                  <path d={`M ${CX - 32} ${CY_HEAD - 12} Q ${CX} ${CY_HEAD - 46} ${CX + 32} ${CY_HEAD - 12} Z`} fill={`url(#${gid('hat')})`} />
+                  <path d={`M ${CX + 4} ${CY_HEAD - 18} Q ${CX + 28} ${CY_HEAD - 22} ${CX + 38} ${CY_HEAD - 8} Q ${CX + 24} ${CY_HEAD - 4} ${CX + 4} ${CY_HEAD - 10} Z`} fill={`url(#${gid('hatD')})`} />
                 </>
               )}
             </g>
-          ) : null}
+          )}
+
+          {hot && show.accessory && (
+            <g>
+              <rect x={CX - 22} y={CY_HEAD - 2} width="18" height="12" rx="4" fill="none" stroke="#0F172A" strokeWidth="2.5" />
+              <rect x={CX + 4} y={CY_HEAD - 2} width="18" height="12" rx="4" fill="none" stroke="#0F172A" strokeWidth="2.5" />
+              <line x1={CX - 4} y1={CY_HEAD + 4} x2={CX + 4} y2={CY_HEAD + 4} stroke="#0F172A" strokeWidth="2.5" />
+            </g>
+          )}
         </g>
       </g>
     </svg>

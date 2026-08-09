@@ -37,7 +37,7 @@ export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({ tips }) =>
     }, AUTO_CHANGE_INTERVAL);
 
     return () => clearInterval(interval);
-  }, [filteredTips]);
+  }, [selectedCategory, tips.length]);
 
   const currentTip = filteredTips[currentTipIndex];
 

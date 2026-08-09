@@ -141,7 +141,6 @@ export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({ tips }) =>
         </div>
 
         {currentTip && (
-          {/* ИСПРАВЛЕНО: category может быть undefined — передаём безопасно */}
           <div className={`p-4 sm:p-6 rounded-xl sm:rounded-2xl border-2 transition-all ${getCategoryColor(currentTip.category)}`}>
             <div className="flex items-start gap-3 sm:gap-4">
               <span className="text-3xl sm:text-4xl leading-none shrink-0 mt-1">

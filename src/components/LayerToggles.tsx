@@ -1,19 +1,21 @@
 import React from 'react';
-import { ClothingLayer } from '../types';
+import { LayerVisibility } from '../types';
+
+type LayerKey = keyof LayerVisibility;
 
 interface LayerTogglesProps {
-  visibility: Record<ClothingLayer, boolean>;
-  onToggle: (layer: ClothingLayer) => void;
+  visibility: LayerVisibility;
+  onToggle: (layer: LayerKey) => void;
 }
 
-const LAYER_CONFIG: { key: ClothingLayer; label: string; icon: string }[] = [
-  { key: 'outerwear', label: 'Верхняя одежда', icon: '🧥' },
-  { key: 'upper_layer', label: 'Верхний слой', icon: '🧶' },
-  { key: 'lower_layer', label: 'Нижний слой', icon: '👖' },
+const LAYER_CONFIG: { key: LayerKey; label: string; icon: string }[] = [
+  { key: 'outer', label: 'Верхняя одежда', icon: '🧥' },
+  { key: 'upper', label: 'Верхний слой', icon: '🧶' },
+  { key: 'lower', label: 'Нижний слой', icon: '👖' },
   { key: 'underwear', label: 'Нательное белье', icon: '👕' },
-  { key: 'headwear', label: 'Головной убор', icon: '' },
-  { key: 'shoes', label: 'Обувь', icon: '' },
-  { key: 'accessories', label: 'Аксессуары', icon: '🧣' },
+  { key: 'headwear', label: 'Головной убор', icon: '🧢' },
+  { key: 'shoes', label: 'Обувь', icon: '👟' },
+  { key: 'accessory', label: 'Аксессуары', icon: '🧣' },
 ];
 
 export const LayerToggles: React.FC<LayerTogglesProps> = ({ visibility, onToggle }) => {

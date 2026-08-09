@@ -40,21 +40,23 @@ export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({ tips }) =>
     setCurrentTipIndex(prev => (prev - 1 + tips.length) % tips.length);
   };
 
+  // Инициализация случайным советом
   useEffect(() => {
     if (tips.length > 0) {
       setCurrentTipIndex(Math.floor(Math.random() * tips.length));
     }
   }, [tips]);
 
+  // Автосмена (исправлено!)
   useEffect(() => {
     if (!isAutoRotate || tips.length <= 1) return;
     
     const interval = setInterval(() => {
-      rotateTip();
+      rotateTip(); // Используем функцию rotateTip
     }, 15000);
 
     return () => clearInterval(interval);
-  }, [isAutoRotate, tips, currentTipIndex]);
+  }, [isAutoRotate, tips]); // ← УБРАЛ currentTipIndex из зависимостей!
 
   if (tips.length === 0) {
     return (

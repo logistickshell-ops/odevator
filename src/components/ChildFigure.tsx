@@ -184,10 +184,9 @@ export const ChildFigure: React.FC<ChildFigureProps> = ({
           </g>
         )}
 
-        {/* Слой 6: Обувь */}
+{/* Слой 6: Обувь */}
         {show.shoes ? (
           <g filter={`url(#${uid}-soft)`}>
-            {/* ИСПРАВЛЕНИЕ: добавлена логика для дождя (резиновые сапоги) */}
             {isRainy && !cold ? (
               <>
                 {/* Резиновые сапоги */}
@@ -198,7 +197,7 @@ export const ChildFigure: React.FC<ChildFigureProps> = ({
               </>
             ) : cold ? (
               <>
-                {/* Зимние ботинки/валенки */}
+                {/* Зимние ботинки */}
                 <rect x={CX - 33} y={Y_ANKLE - 14} width="27" height="38" rx="12" fill={`url(#${gid('shoesD')})`} />
                 <rect x={CX + 6} y={Y_ANKLE - 14} width="27" height="38" rx="12" fill={`url(#${gid('shoesD')})`} />
                 <ellipse cx={CX - 19.5} cy={Y_ANKLE - 12} rx="14" ry="6" fill="#FFFFFF" opacity="0.9" />
@@ -208,15 +207,15 @@ export const ChildFigure: React.FC<ChildFigureProps> = ({
               </>
             ) : hot ? (
               <>
-                {/* Сандалии */}
-                <path d={`M ${CX - 30} ${Y_ANKLE + 22} L ${CX - 8} ${Y_ANKLE + 22}`} stroke={`url(#${gid('shoesD')})`} strokeWidth="7" strokeLinecap="round" />
-                <path d={`M ${CX - 25} ${Y_ANKLE + 10} L ${CX - 15} ${Y_ANKLE + 20}`} stroke={`url(#${gid('shoesD')})`} strokeWidth="4" strokeLinecap="round" />
-                <path d={`M ${CX + 8} ${Y_ANKLE + 22} L ${CX + 30} ${Y_ANKLE + 22}`} stroke={`url(#${gid('shoesD')})`} strokeWidth="7" strokeLinecap="round" />
-                <path d={`M ${CX + 15} ${Y_ANKLE + 10} L ${CX + 25} ${Y_ANKLE + 20}`} stroke={`url(#${gid('shoesD')})`} strokeWidth="4" strokeLinecap="round" />
+                {/* Сандалии (ВРЕМЕННО ЯРКО-КРАСНЫЕ ДЛЯ ПРОВЕРКИ) */}
+                <path d={`M ${CX - 32} ${Y_ANKLE + 20} L ${CX - 6} ${Y_ANKLE + 20}`} stroke="#EF4444" strokeWidth="8" strokeLinecap="round" />
+                <path d={`M ${CX - 26} ${Y_ANKLE + 8} L ${CX - 14} ${Y_ANKLE + 20}`} stroke="#EF4444" strokeWidth="5" strokeLinecap="round" />
+                <path d={`M ${CX + 6} ${Y_ANKLE + 20} L ${CX + 32} ${Y_ANKLE + 20}`} stroke="#EF4444" strokeWidth="8" strokeLinecap="round" />
+                <path d={`M ${CX + 14} ${Y_ANKLE + 8} L ${CX + 26} ${Y_ANKLE + 20}`} stroke="#EF4444" strokeWidth="5" strokeLinecap="round" />
               </>
             ) : (
               <>
-                {/* Кроссовки/ботинки (демисезон) */}
+                {/* Кроссовки/ботинки */}
                 <rect x={CX - 31} y={Y_ANKLE + 4} width="25" height="20" rx="10" fill={`url(#${gid('shoes')})`} />
                 <rect x={CX + 6} y={Y_ANKLE + 4} width="25" height="20" rx="10" fill={`url(#${gid('shoes')})`} />
                 <rect x={CX - 33} y={Y_ANKLE + 20} width="29" height="7" rx="3.5" fill={`url(#${gid('shoesD')})`} />
@@ -225,9 +224,12 @@ export const ChildFigure: React.FC<ChildFigureProps> = ({
             )}
           </g>
         ) : (
-          <g fill={`url(#${gid('under')})`}>
+          /* ЕСЛИ ОБУВЬ ВЫКЛЮЧЕНА - ПОКАЗЫВАЕМ ЯРКИЕ СТУПНИ С БУКВАМИ */
+          <g fill="#FCA5A5">
             <ellipse cx={CX - 18} cy={Y_ANKLE + 14} rx="12" ry="8" />
             <ellipse cx={CX + 18} cy={Y_ANKLE + 14} rx="12" ry="8" />
+            <text x={CX - 18} y={Y_ANKLE + 18} fontSize="10" fontWeight="bold" textAnchor="middle" fill="#000">L</text>
+            <text x={CX + 18} y={Y_ANKLE + 18} fontSize="10" fontWeight="bold" textAnchor="middle" fill="#000">R</text>
           </g>
         )}
 

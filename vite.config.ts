@@ -14,7 +14,7 @@ export default defineConfig({
   
   plugins: [
     react(),
-    // Tailwind v4 beta требует явного указания, но мы страхуемся
+    // Tailwind v4 beta — плагин должен быть в plugins, без дополнительных настроек
     tailwindcss(),
     viteSingleFile({ 
       removeViteModuleLoader: true,
@@ -22,6 +22,9 @@ export default defineConfig({
     }),
   ],
   
+  // ⚠️ УДАЛЁН БЛОК optimizeDeps — он конфликтовал с Tailwind v4 beta
+  // ⚠️ Раньше здесь было: optimizeDeps: { include: ['react', 'react-dom'] }
+
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),
@@ -38,10 +41,5 @@ export default defineConfig({
         format: 'iife',           // Максимальная совместимость для singlefile
       },
     },
-  },
-  
-  // Предотвращение проблем с бета-зависимостями в CI
-  optimizeDeps: {
-    include: ['react', 'react-dom'],
   },
 });

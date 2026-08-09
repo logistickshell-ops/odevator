@@ -8,46 +8,81 @@ interface ParentTipsSectionProps {
 
 export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({ tips }) => {
   const [currentIndex, setCurrentIndex] = useState<number>(0);
-  const [isAuto, setIsAuto] = useState<boolean>(true);
+  const [isAutoRotate, setIsAutoRotate] = useState<boolean>(true);
   const [activeChecklist, setActiveChecklist] = useState<'before' | 'during' | 'after'>('before');
   const [checkedItems, setCheckedItems] = useState<{ [key: string]: boolean }>({});
 
-  // Простая функция смены на случайный
+  const toggleCheck = (id: string) => {
+    setCheckedItems(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  // Функция случайного совета
   const randomTip = () => {
     if (tips.length === 0) return;
     const randomIndex = Math.floor(Math.random() * tips.length);
     setCurrentIndex(randomIndex);
   };
 
-  // Следующий по порядку
+  // Следующий совет
   const nextTip = () => {
     if (tips.length === 0) return;
-    setCurrentIndex((prev) => (prev + 1) % tips.length);
+    setCurrentIndex(prev => (prev + 1) % tips.length);
   };
 
-  // Предыдущий по порядку
+  // Предыдущий совет
   const prevTip = () => {
     if (tips.length === 0) return;
-    setCurrentIndex((prev) => (prev - 1 + tips.length) % tips.length);
+    setCurrentIndex(prev => (prev - 1 + tips.length) % tips.length);
   };
 
-  // При загрузке - случайный
+  // Инициализация случайным советом при загрузке
   useEffect(() => {
     if (tips.length > 0) {
       randomTip();
     }
   }, [tips]);
 
-  // Автосмена
+  // АВТОСМЕНА - ИСПРАВЛЕНО!
   useEffect(() => {
-    if (!isAuto || tips.length <= 1) return;
+    if (!isAutoRotate || tips.length <= 1) return;
 
-    const timer = setInterval(() => {
-      randomTip();
+    const interval = setInterval(() => {
+      randomTip(); // ← Теперь вызывает функцию напрямую
     }, 15000);
 
-    return () => clearInterval(timer);
-  }, [isAuto, tips.length]);
+    return () => clearInterval(interval);
+  }, [isAutoRotate, tips.length]); // ← Только эти зависимости
+
+  // Если нет советов
+  if (tips.length === 0) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-white rounded-2xl sm:rounded-3xl p-6 border border-slate-100 shadow-sm text-center">
+          <Lightbulb className="text-slate-300 mx-auto mb-2" size={32} />
+          <p className="text-slate-500 text-sm">Скоро здесь появятся полезные советы</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Текущий совет
+  const currentTip = tips[currentIndex];
+
+  // Цвета для категорий
+  const getCategoryColor = (category: string) => {
+    if (category === 'health') return 'bg-rose-50 border-rose-200 text-rose-900';
+    if (category === 'weather') return 'bg-blue-50 border-blue-200 text-blue-900';
+    if (category === 'clothing') return 'bg-emerald-50 border-emerald-200 text-emerald-900';
+    return 'bg-amber-50 border-amber-200 text-amber-900';
+  };
+
+  // Бейджи для категорий
+  const getCategoryBadge = (category: string) => {
+    if (category === 'health') return '❤️ Здоровье';
+    if (category === 'weather') return '🌤️ Погода';
+    if (category === 'clothing') return '👕 Одежда';
+    return '📝 Общее';
+  };
 
   // Чек-листы
   const checklists = {
@@ -84,44 +119,11 @@ export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({ tips }) =>
     ]
   };
 
-  const toggleCheck = (id: string) => {
-    setCheckedItems(prev => ({ ...prev, [id]: !prev[id] }));
-  };
-
-  const getCategoryColor = (category: string) => {
-    if (category === 'health') return 'bg-rose-50 border-rose-200 text-rose-900';
-    if (category === 'weather') return 'bg-blue-50 border-blue-200 text-blue-900';
-    if (category === 'clothing') return 'bg-emerald-50 border-emerald-200 text-emerald-900';
-    return 'bg-amber-50 border-amber-200 text-amber-900';
-  };
-
-  const getCategoryBadge = (category: string) => {
-    if (category === 'health') return '❤️ Здоровье';
-    if (category === 'weather') return '🌤️ Погода';
-    if (category === 'clothing') return '👕 Одежда';
-    return '📝 Общее';
-  };
-
-  // Если нет советов
-  if (tips.length === 0) {
-    return (
-      <div className="space-y-6">
-        <div className="bg-white rounded-2xl sm:rounded-3xl p-6 border border-slate-100 shadow-sm text-center">
-          <Lightbulb className="text-slate-300 mx-auto mb-2" size={32} />
-          <p className="text-slate-500 text-sm">Скоро здесь появятся полезные советы</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Текущий совет
-  const currentTip = tips[currentIndex];
-
   return (
     <div className="space-y-6">
-      {/* Блок с советом */}
+      {/* Блок с динамическим советом */}
       <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-100 shadow-sm">
-        {/* Заголовок */}
+        {/* Заголовок с управлением */}
         <div className="flex items-center justify-between gap-3 mb-4">
           <div className="flex items-center gap-2">
             <Lightbulb className="text-amber-500 shrink-0" size={22} />
@@ -131,18 +133,20 @@ export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({ tips }) =>
           </div>
           
           <div className="flex items-center gap-1 sm:gap-2">
+            {/* Кнопка автосмены */}
             <button
-              onClick={() => setIsAuto(!isAuto)}
+              onClick={() => setIsAutoRotate(!isAutoRotate)}
               className={`p-1.5 sm:p-2 rounded-lg transition-all text-[10px] sm:text-xs font-bold ${
-                isAuto 
+                isAutoRotate 
                   ? 'bg-indigo-100 text-indigo-600 hover:bg-indigo-200' 
                   : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
               }`}
-              title={isAuto ? 'Выключить автосмену' : 'Включить автосмену'}
+              title={isAutoRotate ? 'Выключить автосмену' : 'Включить автосмену'}
             >
-              {isAuto ? '🔄 Авто' : '⏸️ Стоп'}
+              {isAutoRotate ? '🔄 Авто' : '⏸️ Стоп'}
             </button>
 
+            {/* Кнопка случайного совета */}
             <button
               onClick={randomTip}
               className="p-1.5 sm:p-2 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-all"
@@ -191,7 +195,7 @@ export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({ tips }) =>
           </button>
           
           <span className="text-[10px] sm:text-xs text-slate-400 font-medium">
-            {isAuto ? '🔄 Автосмена каждые 15 сек' : '⏸️ Ручной режим'}
+            {isAutoRotate ? '🔄 Автосмена каждые 15 сек' : '⏸️ Ручной режим'}
           </span>
           
           <button
@@ -216,6 +220,7 @@ export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({ tips }) =>
           </p>
         </div>
 
+        {/* Вкладки чек-листов */}
         <div className="flex bg-slate-100 p-1 sm:p-1.5 rounded-xl sm:rounded-2xl border border-slate-200/60">
           <button onClick={() => setActiveChecklist('before')}
             className={`flex-1 py-2 sm:py-2.5 px-2 sm:px-4 rounded-lg sm:rounded-xl font-extrabold text-[10px] sm:text-xs transition-all flex items-center justify-center gap-1 sm:gap-1.5 ${
@@ -240,6 +245,7 @@ export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({ tips }) =>
           </button>
         </div>
 
+        {/* Пункты чек-листа */}
         <div className="space-y-2 pt-2">
           {checklists[activeChecklist].map((item) => (
             <button key={item.id} onClick={() => toggleCheck(item.id)}

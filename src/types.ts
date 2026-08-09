@@ -3,10 +3,10 @@ export type WeatherPeriodType = 'morning' | 'day' | 'evening' | 'night';
 export interface WeatherData {
   temp: number;
   feelsLike: number;
-  windSpeed: number;
-  humidity: number;
-  precipProb: number;
-  weatherCode: number;
+  windSpeed: number; // in km/h or m/s
+  humidity: number; // in %
+  precipProb: number; // in %
+  weatherCode: number; // WMO code
   description: string;
   icon: string;
   isRainy: boolean;
@@ -15,8 +15,8 @@ export interface WeatherData {
 }
 
 export interface DayForecast {
-  date: string;
-  formattedDate: string;
+  date: string; // YYYY-MM-DD
+  formattedDate: string; // e.g., "Сегодня, 12 Октября"
   periods: {
     morning: WeatherData;
     day: WeatherData;
@@ -38,12 +38,11 @@ export type ColdSensitivity = 'sensitive' | 'normal' | 'resistant';
 export type ChildGender = 'girl' | 'boy';
 export type AgeGroup = '0-3m' | '3-12m' | '1-3y' | '3-7y' | '7-12y';
 
-export type ParentTipCategory = 'safety' | 'time' | 'essentials' | 'alerts' | 'age' | 'practical' | 'health' | 'weather' | 'clothing' | 'general';
+export type ParentTipCategory = 'safety' | 'time' | 'essentials' | 'alerts' | 'age' | 'practical';
 export type ParentTipPriority = 'danger' | 'warning' | 'info';
 
-// ИСПРАВЛЕНО: id теперь string | number для совместимости с Tip из tips.ts
 export interface ParentTip {
-  id: string | number;
+  id: string;
   category: ParentTipCategory;
   title: string;
   text: string;
@@ -58,7 +57,7 @@ export interface ClothingItem {
   description: string;
   color: string;
   emoji: string;
-  layerIndex: number;
+  layerIndex: number; // 1: base, 2: middle, 3: outer
   tips?: string;
 }
 
@@ -71,10 +70,4 @@ export interface RecommendedOutfit {
   accessories: ClothingItem[];
   specialAdvice: string[];
   parentTips: ParentTip[];
-}
-
-// НОВЫЙ ЭКСПОРТ: нужен для ChildFigure
-export interface LayerVisibility {
-  showOuter: boolean;
-  showMiddle: boolean;
 }

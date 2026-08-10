@@ -1,4 +1,3 @@
-// src/components/ChildFigure.tsx
 import React from 'react';
 import { ChildGender, LayerVisibility } from '../types';
 
@@ -38,7 +37,7 @@ export const ChildFigure: React.FC<ChildFigureProps> = ({
   const hairColor = girl ? '#9A6238' : '#5A4436';
   const ink = '#3B3148';
 
-  // БЕЗОПАСНЫЕ ПУТИ ДЛЯ КОНЕЧНОСТЕЙ (без спецсимволов)
+  // БЕЗОПАСНЫЕ ПУТИ ДЛЯ RENDER (конкатенация вместо template literals)
   const armL = "M " + (CX-26) + " " + (Y_SHOULDER+8) + " Q " + (CX-44) + " " + (Y_SHOULDER+18) + " " + (CX-48) + " " + (Y_SHOULDER+52) + " Q " + (CX-50) + " " + (Y_SHOULDER+78) + " " + (CX-50) + " " + (Y_SHOULDER+92);
   const armR = "M " + (CX+26) + " " + (Y_SHOULDER+8) + " Q " + (CX+44) + " " + (Y_SHOULDER+18) + " " + (CX+48) + " " + (Y_SHOULDER+52) + " Q " + (CX+50) + " " + (Y_SHOULDER+78) + " " + (CX+50) + " " + (Y_SHOULDER+92);
   const legL = "M " + (CX-14) + " " + (Y_WAIST+16) + " L " + (CX-18) + " " + Y_ANKLE;

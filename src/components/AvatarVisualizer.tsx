@@ -1,429 +1,246 @@
-// src/components/ChildFigure.tsx
-import React from 'react';
-import { ChildGender } from '../types'; // Убрал LayerVisibility, так как в старом коде его не было
+import React, { useState } from 'react';
+import { RecommendedOutfit, ClothingItem, ChildGender } from '../types';
+import { Info, Eye, EyeOff, Layers, Shirt, Footprints } from 'lucide-react';
+import { ChildFigure } from './ChildFigure';
 
-interface ChildFigureProps {
+interface AvatarVisualizerProps {
   gender: ChildGender;
+  outfit: RecommendedOutfit;
   effectiveTemp: number;
-  isRainy: boolean;
-  isSnowy: boolean;
-  isWindy: boolean;
-  showOuter: boolean;
-  showMiddle: boolean;
+  isRainy?: boolean;
+  isSnowy?: boolean;
+  isWindy?: boolean;
+  onItemSelect?: (item: ClothingItem) => void;
 }
 
-type Zone = 'arctic' | 'winter' | 'freeze' | 'chilly' | 'cool' | 'mild' | 'warm' | 'hot';
-
-const zoneFromTemp = (t: number): Zone =>
-  t <= -15 ? 'arctic' : t <= -5 ? 'winter' : t <= 0 ? 'freeze' : t <= 5 ? 'chilly' :
-  t <= 10 ? 'cool' : t <= 15 ? 'mild' : t <= 20 ? 'warm' : 'hot';
-
-export const ChildFigure: React.FC<ChildFigureProps> = ({
-  gender, effectiveTemp, isRainy, isSnowy, isWindy, showOuter, showMiddle,
+export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
+  gender, outfit, effectiveTemp, isRainy = false, isSnowy = false, isWindy = false, onItemSelect
 }) => {
-  const girl = gender === 'girl';
-  const zone = zoneFromTemp(effectiveTemp);
-  
-  const cold = ['arctic', 'winter', 'freeze'].includes(zone);
-  const coolish = cold || ['chilly', 'cool'].includes(zone);
-  const hot = zone === 'hot';
-  const warm = zone === 'warm' || hot;
+  const [showOuter, setShowOuter] = useState(true);
+  const [showMiddle, setShowMiddle] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  const rainShell = isRainy && !['arctic', 'winter', 'freeze', 'chilly', 'cool'].includes(zone);
+  const hasBase = outfit.base.length > 0;
+  const hasMiddle = outfit.middle.length > 0;
+  const hasOuter = outfit.outer.length > 0;
+  const hasShoes = outfit.shoes.length > 0;
 
-  const needsOuter = ['arctic', 'winter', 'freeze', 'chilly', 'cool', 'mild'].includes(zone) || rainShell;
-  const needsMiddle = ['arctic', 'winter', 'freeze', 'chilly', 'cool', 'mild', 'warm'].includes(zone) && !rainShell;
+  const handleItemClick = (item: ClothingItem) => {
+    setSelectedCategory(item.category);
+    if (onItemSelect) onItemSelect(item);
+  };
 
-  const drawOuter = needsOuter && (showOuter || rainShell);
-  const drawMiddle = needsMiddle && showMiddle;
-
-  const drawSkirt = girl && (warm || zone === 'mild');
-  const drawShorts = !girl && hot;
-
-  const showBaseLongSleeve = !warm;
-
-  const drawBoots = coolish || isSnowy || (isRainy && !hot);
-  const drawSandals = hot && !isRainy; // <--- ДОБАВЛЕНО: Логика для сандалий
-
-  // Modern, beautiful color palettes
-  const C = (() => {
-    if (zone === 'arctic') return {
-      top: girl ? '#FFAFCC' : '#BAE6FD', mid: girl ? '#C084FC' : '#60A5FA', outer: girl ? '#E11D48' : '#1E3A8A', outerDetail: girl ? '#BE123C' : '#172554', bottom: girl ? '#FBCFE8' : '#7DD3FC', shoes: '#44403C', shoesDetail: '#292524', hat: girl ? '#E11D48' : '#1E3A8A', scarf: '#FBBF24',
-    };
-    if (zone === 'winter') return {
-      top: girl ? '#FCE7F3' : '#E0F2FE', mid: girl ? '#E9D5FF' : '#93C5FD', outer: girl ? '#F43F5E' : '#2563EB', outerDetail: girl ? '#E11D48' : '#1D4ED8', bottom: girl ? '#F9A8D4' : '#BFDBFE', shoes: '#57534E', shoesDetail: '#44403C', hat: girl ? '#F43F5E' : '#2563EB', scarf: '#F59E0B',
-    };
-    if (zone === 'freeze') return {
-      top: girl ? '#FEF2F2' : '#F0FDF4', mid: girl ? '#FDBA74' : '#6EE7B7', outer: girl ? '#D946EF' : '#0EA5E9', outerDetail: girl ? '#C084FC' : '#0284C7', bottom: girl ? '#E9D5FF' : '#A7F3D0', shoes: '#78350F', shoesDetail: '#451A03', hat: girl ? '#D946EF' : '#0EA5E9', scarf: '#FB923C',
-    };
-    if (zone === 'chilly') return {
-      top: girl ? '#FFF1F2' : '#F0FDFA', mid: girl ? '#FDA4AF' : '#5EEAD4', outer: girl ? '#FB7185' : '#14B8A6', outerDetail: girl ? '#F43F5E' : '#0D9488', bottom: '#64748B', shoes: '#292524', shoesDetail: '#1C1917', hat: girl ? '#FB7185' : '#14B8A6', scarf: '#F59E0B',
-    };
-    if (zone === 'cool') return {
-      top: girl ? '#FDF2F8' : '#F0FDF4', mid: girl ? '#F9A8D4' : '#86EFAC', outer: girl ? '#FBBF24' : '#10B981', outerDetail: girl ? '#F59E0B' : '#059669', bottom: '#475569', shoes: '#475569', shoesDetail: '#334155', hat: girl ? '#FBBF24' : '#10B981', scarf: '',
-    };
-    if (zone === 'mild') return {
-      top: girl ? '#FFF7ED' : '#F0FDF4', mid: girl ? '#FDE68A' : '#A7F3D0', outer: girl ? '#FCD34D' : '#34D399', outerDetail: girl ? '#F59E0B' : '#10B981', bottom: girl ? '#C084FC' : '#64748B', shoes: '#94A3B8', shoesDetail: '#64748B', hat: '', scarf: '',
-    };
-    if (zone === 'warm') return {
-      top: girl ? '#FBCFE8' : '#FEF08A', mid: girl ? '#F9A8D4' : '#FDE047', outer: '', outerDetail: '', bottom: girl ? '#F472B6' : '#7DD3FC', shoes: '#F59E0B', shoesDetail: '#D97706', hat: '', scarf: '',
-    };
-
-    return { // hot
-      top: girl ? '#FDE047' : '#BAE6FD', mid: '', outer: '', outerDetail: '', bottom: girl ? '#FCD34D' : '#38BDF8', shoes: '#FBBF24', shoesDetail: '#F59E0B', hat: '#FDE047', scarf: '',
-    };
+  const climateLabel = (() => {
+    if (effectiveTemp <= -15) return { text: 'Мороз', emoji: '🥶', color: 'bg-blue-600' };
+    if (effectiveTemp <= -5) return { text: 'Зима', emoji: '❄️', color: 'bg-blue-500' };
+    if (effectiveTemp <= 0) return { text: 'Около нуля', emoji: '🌨️', color: 'bg-cyan-500' };
+    if (effectiveTemp <= 5) return { text: 'Прохладно', emoji: '🌥️', color: 'bg-cyan-400' };
+    if (effectiveTemp <= 10) return { text: 'Свежо', emoji: '🍃', color: 'bg-teal-400' };
+    if (effectiveTemp <= 15) return { text: 'Умеренно', emoji: '🌤️', color: 'bg-amber-400' };
+    if (effectiveTemp <= 20) return { text: 'Тепло', emoji: '☀️', color: 'bg-orange-400' };
+    return { text: 'Жарко', emoji: '🔥', color: 'bg-red-500' };
   })();
 
-  const shellMain = rainShell ? '#38BDF8' : C.outer;
-  const shellDetail = rainShell ? '#0284C7' : C.outerDetail;
+  const bgGradient = (() => {
+    if (effectiveTemp <= -15) return 'from-blue-200 via-blue-100 to-indigo-50';
+    if (effectiveTemp <= -5) return 'from-sky-200 via-blue-50 to-indigo-50';
+    if (effectiveTemp <= 0) return 'from-cyan-100 via-sky-50 to-slate-50';
+    if (effectiveTemp <= 5) return 'from-teal-100 via-cyan-50 to-sky-50';
+    if (effectiveTemp <= 10) return 'from-emerald-100 via-teal-50 to-cyan-50';
+    if (effectiveTemp <= 15) return 'from-amber-100 via-yellow-50 to-emerald-50';
+    if (effectiveTemp <= 20) return 'from-orange-100 via-amber-50 to-yellow-50';
+    return 'from-yellow-200 via-amber-100 to-orange-50';
+  })();
 
-  const skin = '#FDE0C4';
-  const skinShadow = '#E6C2A1';
-  const blush = '#FFB7B2';
-  const hair = girl ? '#9E5C41' : '#6B4C3A';
-  const ink = '#4A3B32';
+  const renderLayerCard = (
+    title: string,
+    icon: React.ReactNode,
+    items: ClothingItem[],
+    isActive: boolean,
+    layerNum: number,
+    onToggle?: () => void,
+    toggleState?: boolean
+  ) => {
+    if (items.length === 0) return null;
+    const layerColor = layerNum === 3 ? 'bg-rose-500' : layerNum === 2 ? 'bg-violet-500' : layerNum === 1 ? 'bg-sky-500' : 'bg-amber-500';
 
-  // Layout Constants for perfect symmetrical alignment
-  const CX = 120; // Center X
-  const Y_HEAD = 75;
-  const Y_SHOULDER = 120;
-  const Y_WAIST = 190;
-  const Y_ANKLE = 330;
-
-  // Bezier curve definitions for limbs (L = Left, R = Right)
-  const armL = `M ${CX-25}${Y_SHOULDER+10} Q ${CX-55}${Y_SHOULDER+40}${CX-50}${Y_SHOULDER+90}`;
-  const armR = `M ${CX+25}${Y_SHOULDER+10} Q ${CX+55}${Y_SHOULDER+40}${CX+50}${Y_SHOULDER+90}`;
-
-  const legL = `M ${CX-15}${Y_WAIST+10} L ${CX-20}${Y_ANKLE}`;
-  const legR = `M ${CX+15}${Y_WAIST+10} L ${CX+20}${Y_ANKLE}`;
+    return (
+      <div className={`p-3 sm:p-4 rounded-xl sm:rounded-2xl border-2 transition-all duration-300 ${
+        isActive ? 'bg-white border-indigo-200/80 shadow-sm' : 'bg-slate-50/50 border-slate-100 opacity-60'
+      }`}>
+        <div className="flex items-center justify-between mb-2 sm:mb-3">
+          <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+            <span className={`flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg sm:rounded-xl text-white font-extrabold text-[10px] sm:text-xs shrink-0 ${layerColor}`}>
+              {icon}
+            </span>
+            <h4 className="font-bold text-slate-800 text-[11px] sm:text-sm leading-tight truncate">{title}</h4>
+          </div>
+          {onToggle && (
+            <button onClick={onToggle} className={`flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-[11px] font-bold px-2.5 sm:px-3 py-1.5 rounded-lg sm:rounded-xl border transition-all shrink-0 ml-2 ${
+              toggleState
+                ? 'bg-indigo-600 text-white border-indigo-700 shadow-sm active:bg-indigo-700'
+                : 'bg-slate-100 text-slate-500 border-slate-200 active:bg-slate-200'
+            }`}>
+              {toggleState ? <EyeOff size={11} /> : <Eye size={11} />}
+              <span className="hidden xs:inline">{toggleState ? 'Снять' : 'Надеть'}</span>
+            </button>
+          )}
+        </div>
+        <div className="space-y-1.5 sm:space-y-2.5">
+          {items.map((item) => {
+            const isHl = selectedCategory === item.category;
+            return (
+              <div key={item.id} onClick={() => handleItemClick(item)}
+                className={`group cursor-pointer p-2.5 sm:p-3.5 rounded-lg sm:rounded-xl border-2 transition-all duration-200 active:scale-[0.98] ${
+                  isHl ? 'border-indigo-400 bg-indigo-50/40 shadow-sm' : 'border-slate-100 bg-white hover:border-slate-200'
+                }`}>
+                <div className="flex items-start gap-2 sm:gap-3">
+                  <span className="text-2xl sm:text-3xl select-none leading-none shrink-0 mt-0.5 p-1 sm:p-1.5 bg-slate-50 rounded-lg sm:rounded-xl border border-slate-100">
+                    {item.emoji}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-extrabold text-slate-800 text-[11px] sm:text-sm group-hover:text-indigo-600 transition truncate">{item.name}</span>
+                      <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-400 shrink-0" />
+                    </div>
+                    <p className="text-[10px] sm:text-[11px] text-slate-500 mt-0.5 leading-relaxed line-clamp-2">{item.description}</p>
+                    {item.tips && (
+                      <div className="mt-1.5 sm:mt-2 flex items-start gap-1 sm:gap-1.5 text-[9px] sm:text-[10px] text-amber-700 bg-amber-50 p-1.5 sm:p-2 rounded-lg border border-amber-100/70">
+                        <Info size={10} className="mt-0.5 shrink-0 text-amber-500" />
+                        <span className="leading-relaxed">{item.tips}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
 
   return (
-    <svg viewBox="0 0 240 400" className="h-full w-full select-none" role="img" aria-label="Иллюстрация ребенка по погоде">
-      <defs>
-        <filter id="soft-shadow" x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="4" stdDeviation="4" floodColor="#0F172A" floodOpacity="0.12"/>
-        </filter>
-        <filter id="inner-shadow">
-          <feDropShadow dx="0" dy="2" stdDeviation="2" floodColor="#000" floodOpacity="0.1"/>
-        </filter>
-      </defs>
+    <div className="flex flex-col lg:grid lg:grid-cols-12 gap-4 sm:gap-8 items-start">
 
-      {/* --- BACKGROUND WEATHER EFFECTS --- */}
-      <g className="animate-breathe" style={{ animationDuration: '4s' }}>
-        <ellipse cx={CX} cy="370" rx="70" ry="10" fill="#CBD5E1" opacity="0.3"/>
-        {isSnowy && <ellipse cx={CX} cy="365" rx="100" ry="15" fill="#FFFFFF" opacity="0.6"/>}
-      </g>
+      {/* ===== AVATAR PANEL ===== */}
+      <div className="w-full lg:col-span-5 space-y-3 sm:space-y-4">
+        <div className={`bg-gradient-to-b ${bgGradient} rounded-2xl sm:rounded-3xl p-3 sm:p-5 border-3 sm:border-4 border-white shadow-lg sm:shadow-xl relative flex flex-col items-center overflow-hidden`}>
 
-      {hot && !isRainy && (
-        <g className="animate-float" style={{ animationDuration: '6s' }} opacity="0.4">
-          <circle cx="200" cy="40" r="18" fill="#FBBF24"/>
-          {[0, 45, 90, 135, 180, 225, 270, 315].map((a) => {
-            const r = (a * Math.PI) / 180;
-            return <line key={a} x1={200 + 24 * Math.cos(r)} y1={40 + 24 * Math.sin(r)} x2={200 + 32 * Math.cos(r)} y2={40 + 32 * Math.sin(r)} stroke="#F59E0B" strokeWidth="2.5" strokeLinecap="round"/>;
-          })}
-        </g>
-      )}
+          {/* Temp badge */}
+          <div className="absolute top-2 sm:top-3 left-2 sm:left-3 z-10">
+            <div className="bg-white/90 backdrop-blur px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl sm:rounded-2xl text-[10px] sm:text-xs font-extrabold text-slate-700 border border-white/80 shadow-sm flex items-center gap-1.5 sm:gap-2">
+              <span>{climateLabel.emoji}</span>
+              <span className="hidden sm:inline">{climateLabel.text}</span>
+              <span className={`px-2 py-0.5 rounded-lg text-white text-[10px] sm:text-[11px] ${climateLabel.color}`}>
+                {effectiveTemp > 0 ? '+' : ''}{effectiveTemp}°
+              </span>
+            </div>
+          </div>
 
-      {isWindy && !isRainy && (
-        <g opacity="0.3" stroke="#94A3B8" strokeWidth="2.5" strokeLinecap="round" fill="none">
-          <path d="M -10 140 Q 50 120 120 150 T 250 130" className="animate-wind-1"/>
-          <path d="M 20 250 Q 80 270 150 240 T 260 260" className="animate-wind-2"/>
-        </g>
-      )}
+          {/* Reset */}
+          <div className="absolute top-2 sm:top-3 right-2 sm:right-3 z-10">
+            <button onClick={() => { setShowOuter(true); setShowMiddle(true); }}
+              className="bg-white/90 backdrop-blur p-2 rounded-xl text-slate-500 active:text-indigo-600 active:bg-white transition border border-white/80 shadow-sm">
+              <Layers size={14} />
+            </button>
+          </div>
 
-      {isRainy && (
-        <g opacity="0.4" stroke="#38BDF8" strokeWidth="2" strokeLinecap="round">
-          {[20, 60, 100, 140, 180, 220].map((x, i) => (
-            <line key={x} x1={x} y1="-10" x2={x-15} y2="410">
-              <animate attributeName="stroke-dasharray" values="0, 400; 400, 0" dur={`${0.6+i*0.1}s`} repeatCount="indefinite"/>
-            </line>
-          ))}
-        </g>
-      )}
+          {/* SVG child */}
+          <div className="w-full max-w-[230px] sm:max-w-[280px] aspect-[11/20] pt-6 sm:pt-8 pb-1 sm:pb-2">
+            <ChildFigure gender={gender} effectiveTemp={effectiveTemp} isRainy={isRainy} isSnowy={isSnowy} isWindy={isWindy} showOuter={showOuter} showMiddle={showMiddle} />
+          </div>
 
-      {isSnowy && (
-        <g fill="#FFFFFF" opacity="0.8">
-          {[30, 70, 110, 150, 190, 220].map((x, i) => (
-            <circle key={x} cx={x} cy="-10" r={i%2===0 ? 3 : 2}>
-              <animate attributeName="cy" from="-10" to="410" dur={`${3+i*0.5}s`} repeatCount="indefinite"/>
-              <animate attributeName="cx" values={`${x}; ${x-10}; ${x}`} dur={`${2+i%3}s`} repeatCount="indefinite"/>
-            </circle>
-          ))}
-        </g>
-      )}
+          {/* Gender + season label */}
+          <div className="mb-1 sm:mb-2 flex items-center gap-1.5 sm:gap-2">
+            <span className={`text-xs sm:text-sm font-extrabold ${gender === 'girl' ? 'text-pink-600' : 'text-blue-600'}`}>
+              {gender === 'girl' ? '👧 Девочка' : '👦 Мальчик'}
+            </span>
+            <span className="text-[10px] sm:text-xs text-slate-400">•</span>
+            <span className="text-[10px] sm:text-xs font-bold text-slate-500">
+              {effectiveTemp <= 0 ? '❄️ Зима' : effectiveTemp <= 10 ? '🍂 Демисезон' : '☀️ Лето'}
+            </span>
+          </div>
+        </div>
 
-      {/* --- CHARACTER --- */}
-      <g className="animate-breathe">
-        {/* HAIR (BACK) */}
-        {girl && (
-          <g fill={hair}>
-            <path d={`M ${CX}${Y_HEAD} Q ${CX-50}${Y_HEAD+20}${CX-45}${Y_HEAD+80} Q ${CX-20}${Y_HEAD+90}${CX}${Y_HEAD+50}`}/>
-            <path d={`M ${CX}${Y_HEAD} Q ${CX+50}${Y_HEAD+20}${CX+45}${Y_HEAD+80} Q ${CX+20}${Y_HEAD+90}${CX}${Y_HEAD+50}`}/>
-          </g>
+        {/* Layer control panel */}
+        <div className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-slate-100 shadow-sm space-y-2 sm:space-y-3">
+          <div className="flex items-center gap-2">
+            <span className="text-sm sm:text-base">🧅</span>
+            <div className="min-w-0">
+              <h4 className="text-[11px] sm:text-sm font-extrabold text-slate-700">Луковый разбор</h4>
+              <p className="text-[9px] sm:text-[10px] text-slate-400 truncate">Снимайте слои чтобы увидеть что под курткой</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <button disabled={!hasOuter} onClick={() => setShowOuter(!showOuter)}
+              className={`flex items-center justify-center gap-1 sm:gap-2 py-2 sm:py-2.5 px-2 sm:px-3 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-extrabold border-2 transition-all active:scale-95 ${
+                !hasOuter ? 'bg-slate-50 text-slate-300 border-slate-100 cursor-not-allowed' :
+                showOuter ? 'bg-rose-500 text-white border-rose-600 shadow-md active:bg-rose-600' :
+                'bg-white text-rose-500 border-rose-200 active:bg-rose-50'
+              }`}>
+              {showOuter ? <EyeOff size={12} /> : <Eye size={12} />}
+              <span>Куртка {showOuter ? '✓' : '✗'}</span>
+            </button>
+            <button disabled={!hasMiddle} onClick={() => setShowMiddle(!showMiddle)}
+              className={`flex items-center justify-center gap-1 sm:gap-2 py-2 sm:py-2.5 px-2 sm:px-3 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-extrabold border-2 transition-all active:scale-95 ${
+                !hasMiddle ? 'bg-slate-50 text-slate-300 border-slate-100 cursor-not-allowed' :
+                showMiddle ? 'bg-violet-500 text-white border-violet-600 shadow-md active:bg-violet-600' :
+                'bg-white text-violet-500 border-violet-200 active:bg-violet-50'
+              }`}>
+              {showMiddle ? <EyeOff size={12} /> : <Eye size={12} />}
+              <span>Кофта {showMiddle ? '✓' : '✗'}</span>
+            </button>
+          </div>
+          {/* Layer indicators */}
+          <div className="flex items-center gap-1 pt-0.5">
+            <span className="text-[9px] font-bold text-slate-400 mr-0.5">Слои:</span>
+            {hasOuter && <span className={`px-1.5 sm:px-2 py-0.5 rounded text-[9px] sm:text-[10px] font-bold transition-all ${showOuter ? 'bg-rose-100 text-rose-700' : 'bg-slate-100 text-slate-400 line-through'}`}>Внеш</span>}
+            {hasMiddle && <span className={`px-1.5 sm:px-2 py-0.5 rounded text-[9px] sm:text-[10px] font-bold transition-all ${showMiddle ? 'bg-violet-100 text-violet-700' : 'bg-slate-100 text-slate-400 line-through'}`}>Сред</span>}
+            {hasBase && <span className="px-1.5 sm:px-2 py-0.5 rounded text-[9px] sm:text-[10px] font-bold bg-sky-100 text-sky-700">Нател</span>}
+          </div>
+        </div>
+      </div>
+
+      {/* ===== CLOTHING CHECKLIST ===== */}
+      <div className="w-full lg:col-span-7 space-y-3 sm:space-y-5">
+        <div className="hidden sm:block">
+          <h3 className="text-xl font-extrabold text-slate-800 flex items-center gap-2">
+            <Layers size={22} className="text-indigo-500" />
+            <span>Полный гардероб на прогулку</span>
+          </h3>
+          <p className="text-sm text-slate-500 mt-1">Собираем ребенка слой за слоем — от нательного белья до аксессуаров.</p>
+        </div>
+        <div className="sm:hidden text-center">
+          <h3 className="text-sm font-extrabold text-slate-800">📋 Чек-лист гардероба</h3>
+        </div>
+
+        <div className="space-y-2 sm:space-y-4">
+          {renderLayerCard('Верхняя одежда', <Shirt size={13} />, outfit.outer, showOuter && hasOuter, 3, hasOuter ? () => setShowOuter(!showOuter) : undefined, showOuter)}
+          {renderLayerCard('Утепляющий слой', <Layers size={13} />, outfit.middle, showMiddle && hasMiddle, 2, hasMiddle ? () => setShowMiddle(!showMiddle) : undefined, showMiddle)}
+          {renderLayerCard('Нательное бельё', <Shirt size={13} />, outfit.base, hasBase, 1)}
+          {renderLayerCard('Обувь', <Footprints size={13} />, outfit.shoes, hasShoes, 0)}
+          {renderLayerCard('Аксессуары', <span className="text-xs">🧤</span>, outfit.accessories, outfit.accessories.length > 0, 0)}
+        </div>
+
+        {/* Advice */}
+        {outfit.specialAdvice.length > 0 && (
+          <div className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-amber-50/80 border border-amber-200/70 space-y-1.5 sm:space-y-2">
+            <h4 className="font-extrabold text-amber-900 text-[11px] sm:text-sm flex items-center gap-1.5 sm:gap-2">
+              <span className="text-sm sm:text-base">⚠️</span> Важные рекомендации
+            </h4>
+            <ul className="space-y-1">
+              {outfit.specialAdvice.map((advice, i) => (
+                <li key={i} className="text-[10px] sm:text-xs text-amber-800 leading-relaxed flex items-start gap-1.5 sm:gap-2">
+                  <span className="mt-0.5 shrink-0 text-amber-500">▸</span>
+                  <span>{advice}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
 
-        {/* LEGS (SKIN) */}
-        <path d={legL} stroke={skin} strokeWidth="18" strokeLinecap="round"/>
-        <path d={legR} stroke={skin} strokeWidth="18" strokeLinecap="round"/>
-
-        {/* BOTTOMS */}
-        {drawSkirt ? (
-          <path d={`M ${CX-22}${Y_WAIST-10} L ${CX+22}${Y_WAIST-10} L ${CX+45}${Y_WAIST+60} Q ${CX}${Y_WAIST+75}${CX-45}${Y_WAIST+60} Z`} fill={C.bottom} filter="url(#soft-shadow)"/>
-        ) : drawShorts ? (
-          <g filter="url(#soft-shadow)">
-            <rect x={CX-24} y={Y_WAIST-10} width="48" height="30" rx="10" fill={C.bottom}/>
-            <path d={`M ${CX-15}${Y_WAIST+10} L ${CX-20}${Y_WAIST+50}`} stroke={C.bottom} strokeWidth="26" strokeLinecap="round"/>
-            <path d={`M ${CX+15}${Y_WAIST+10} L ${CX+20}${Y_WAIST+50}`} stroke={C.bottom} strokeWidth="26" strokeLinecap="round"/>
-          </g>
-        ) : (
-          <g filter="url(#soft-shadow)">
-            <rect x={CX-24} y={Y_WAIST-10} width="48" height="30" rx="10" fill={C.bottom}/>
-            <path d={legL} stroke={C.bottom} strokeWidth="26" strokeLinecap="round"/>
-            <path d={legR} stroke={C.bottom} strokeWidth="26" strokeLinecap="round"/>
-            {/* Knee wrinkles */}
-            <path d={`M ${CX-26}${Y_ANKLE-50} Q ${CX-20}${Y_ANKLE-45}${CX-14}${Y_ANKLE-50}`} fill="none" stroke="#FFFFFF" strokeWidth="2" opacity="0.3" strokeLinecap="round"/>
-            <path d={`M ${CX+14}${Y_ANKLE-50} Q ${CX+20}${Y_ANKLE-45}${CX+26}${Y_ANKLE-50}`} fill="none" stroke="#FFFFFF" strokeWidth="2" opacity="0.3" strokeLinecap="round"/>
-          </g>
-        )}
-
-        {/* SHOES */}
-        <g filter="url(#soft-shadow)">
-          {drawBoots ? (
-            <>
-              {/* Left Boot */}
-              <rect x={CX-32} y={Y_ANKLE-10} width="26" height="35" rx="12" fill={C.shoes}/>
-              <rect x={CX-34} y={Y_ANKLE+20} width="30" height="8" rx="3" fill={C.shoesDetail}/>
-              {cold && <ellipse cx={CX-19} cy={Y_ANKLE-10} rx="15" ry="6" fill="#FFFFFF" opacity="0.9"/>}
-              {/* Right Boot */}
-              <rect x={CX+6} y={Y_ANKLE-10} width="26" height="35" rx="12" fill={C.shoes}/>
-              <rect x={CX+4} y={Y_ANKLE+20} width="30" height="8" rx="3" fill={C.shoesDetail}/>
-              {cold && <ellipse cx={CX+19} cy={Y_ANKLE-10} rx="15" ry="6" fill="#FFFFFF" opacity="0.9"/>}
-            </>
-          ) : drawSandals ? (
-            <>
-              {/* Left Sandal */}
-              <path d={`M ${CX-30}${Y_ANKLE+20} L ${CX-10}${Y_ANKLE+20}`} stroke={C.shoes} strokeWidth="8" strokeLinecap="round"/>
-              <path d={`M ${CX-25}${Y_ANKLE+10} L ${CX-15}${Y_ANKLE+20}`} stroke={C.shoes} strokeWidth="4" strokeLinecap="round"/>
-              {/* Right Sandal */}
-              <path d={`M ${CX+10}${Y_ANKLE+20} L ${CX+30}${Y_ANKLE+20}`} stroke={C.shoes} strokeWidth="8" strokeLinecap="round"/>
-              <path d={`M ${CX+15}${Y_ANKLE+10} L ${CX+25}${Y_ANKLE+20}`} stroke={C.shoes} strokeWidth="4" strokeLinecap="round"/>
-            </>
-          ) : (
-            <>
-              {/* Left Sneaker */}
-              <rect x={CX-30} y={Y_ANKLE+5} width="24" height="20" rx="10" fill={C.shoes}/>
-              <rect x={CX-32} y={Y_ANKLE+20} width="28" height="6" rx="3" fill="#FFFFFF"/>
-              <line x1={CX-26} y1={Y_ANKLE+10} x2={CX-16} y2={Y_ANKLE+10} stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" opacity="0.8"/>
-              <line x1={CX-25} y1={Y_ANKLE+14} x2={CX-15} y2={Y_ANKLE+14} stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" opacity="0.8"/>
-              {/* Right Sneaker */}
-              <rect x={CX+6} y={Y_ANKLE+5} width="24" height="20" rx="10" fill={C.shoes}/>
-              <rect x={CX+4} y={Y_ANKLE+20} width="28" height="6" rx="3" fill="#FFFFFF"/>
-              <line x1={CX+16} y1={Y_ANKLE+10} x2={CX+26} y2={Y_ANKLE+10} stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" opacity="0.8"/>
-              <line x1={CX+15} y1={Y_ANKLE+14} x2={CX+25} y2={Y_ANKLE+14} stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" opacity="0.8"/>
-            </>
-          )}
-        </g>
-
-        {/* TORSO (SKIN) */}
-        <rect x={CX-22} y={Y_SHOULDER} width="44" height="80" rx="20" fill={skin}/>
-
-        {/* BASE TOP */}
-        <g filter="url(#soft-shadow)">
-          {/* Base Sleeves */}
-          {showBaseLongSleeve ? (
-            <>
-              <path d={armL} stroke={C.top} strokeWidth="22" strokeLinecap="round" fill="none"/>
-              <path d={armR} stroke={C.top} strokeWidth="22" strokeLinecap="round" fill="none"/>
-            </>
-          ) : (
-            <>
-              <path d={`M ${CX-25}${Y_SHOULDER+10} Q ${CX-35}${Y_SHOULDER+20}${CX-40}${Y_SHOULDER+35}`} stroke={C.top} strokeWidth="22" strokeLinecap="round" fill="none"/>
-              <path d={`M ${CX+25}${Y_SHOULDER+10} Q ${CX+35}${Y_SHOULDER+20}${CX+40}${Y_SHOULDER+35}`} stroke={C.top} strokeWidth="22" strokeLinecap="round" fill="none"/>
-            </>
-          )}
-          {/* Base Torso */}
-          <rect x={CX-25} y={Y_SHOULDER-5} width="50" height="90" rx="20" fill={C.top}/>
-          {/* Neckline */}
-          <path d={`M ${CX-12}${Y_SHOULDER-5} Q ${CX}${Y_SHOULDER+15}${CX+12}${Y_SHOULDER-5}`} fill={skin}/>
-          {/* Dress details */}
-          {drawSkirt && (
-            <path d={`M ${CX-25}${Y_WAIST-15} Q ${CX}${Y_WAIST-5}${CX+25}${Y_WAIST-15}`} fill="none" stroke="#FFFFFF" strokeWidth="3" opacity="0.5"/>
-          )}
-        </g>
-
-        {/* MIDDLE LAYER (HOODIE/SWEATER) */}
-        {drawMiddle && (
-          <g filter="url(#soft-shadow)">
-            <path d={armL} stroke={C.mid} strokeWidth="28" strokeLinecap="round" fill="none"/>
-            <path d={armR} stroke={C.mid} strokeWidth="28" strokeLinecap="round" fill="none"/>
-            <rect x={CX-28} y={Y_SHOULDER-8} width="56" height="96" rx="24" fill={C.mid}/>
-            {/* Neckline / Hood strings */}
-            <path d={`M ${CX-15}${Y_SHOULDER-8} Q ${CX}${Y_SHOULDER+20}${CX+15}${Y_SHOULDER-8}`} fill={C.top}/>
-            {cold && (
-              <>
-                <line x1={CX-6} y1={Y_SHOULDER+10} x2={CX-6} y2={Y_SHOULDER+30} stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" opacity="0.7"/>
-                <line x1={CX+6} y1={Y_SHOULDER+10} x2={CX+6} y2={Y_SHOULDER+30} stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" opacity="0.7"/>
-              </>
-            )}
-            {/* Kangaroo pocket */}
-            <path d={`M ${CX-18}${Y_WAIST-10} L ${CX+18}${Y_WAIST-10} L ${CX+24}${Y_WAIST+15} L ${CX-24}${Y_WAIST+15} Z`} fill="#FFFFFF" opacity="0.15"/>
-            {/* Ribbed hem */}
-            <rect x={CX-26} y={Y_WAIST+18} width="52" height="6" rx="3" fill="#000000" opacity="0.1"/>
-          </g>
-        )}
-
-        {/* OUTER LAYER (JACKET) */}
-        {drawOuter && (
-          <g filter="url(#soft-shadow)">
-            <path d={armL} stroke={shellMain} strokeWidth="34" strokeLinecap="round" fill="none"/>
-            <path d={armR} stroke={shellMain} strokeWidth="34" strokeLinecap="round" fill="none"/>
-            <rect x={CX-32} y={Y_SHOULDER-10} width="64" height="106" rx="28" fill={shellMain}/>
-            {/* Zipper */}
-            <line x1={CX} y1={Y_SHOULDER-10} x2={CX} y2={Y_WAIST+26} stroke={shellDetail} strokeWidth="3" strokeLinecap="round"/>
-            {/* Pockets */}
-            <rect x={CX-26} y={Y_WAIST-5} width="16" height="18" rx="4" fill={shellDetail} opacity="0.4"/>
-            <rect x={CX+10} y={Y_WAIST-5} width="16" height="18" rx="4" fill={shellDetail} opacity="0.4"/>
-            {/* Puffer quilting lines */}
-            {(zone==='arctic'||zone==='winter')&&!rainShell&&(
-              <g stroke={shellDetail} strokeWidth="2" opacity="0.3" fill="none" strokeLinecap="round">
-                <line x1={CX-30} y1={Y_SHOULDER+15} x2={CX+30} y2={Y_SHOULDER+15}/>
-                <line x1={CX-31} y1={Y_SHOULDER+40} x2={CX+31} y2={Y_SHOULDER+40}/>
-                <line x1={CX-31} y1={Y_SHOULDER+65} x2={CX+31} y2={Y_SHOULDER+65}/>
-                {/* Arm quilting */}
-                <path d={`M ${CX-50}${Y_SHOULDER+20} L ${CX-30}${Y_SHOULDER+30}`}/>
-                <path d={`M ${CX+50}${Y_SHOULDER+20} L ${CX+30}${Y_SHOULDER+30}`}/>
-                <path d={`M ${CX-55}${Y_SHOULDER+50} L ${CX-35}${Y_SHOULDER+60}`}/>
-                <path d={`M ${CX+55}${Y_SHOULDER+50} L ${CX+35}${Y_SHOULDER+60}`}/>
-              </g>
-            )}
-            {/* Rain shell highlight */}
-            {rainShell&&(
-              <path d={`M ${CX-24}${Y_SHOULDER} Q ${CX-15}${Y_SHOULDER+20}${CX-24}${Y_SHOULDER+60}`} fill="none" stroke="#FFFFFF" strokeWidth="4" strokeLinecap="round" opacity="0.4"/>
-            )}
-            {/* Winter Collar/Fur */}
-            {zone==='arctic'&&!rainShell&&(
-              <path d={`M ${CX-25}${Y_SHOULDER-10} Q ${CX}${Y_SHOULDER+10}${CX+25}${Y_SHOULDER-10} Q ${CX}${Y_SHOULDER-30}${CX-25}${Y_SHOULDER-10} Z`} fill="#FAFAF9" filter="url(#inner-shadow)"/>
-            )}
-          </g>
-        )}
-
-        {/* ARMS (SKIN) - drawn over clothes if short sleeves */}
-        {!showBaseLongSleeve&&!drawMiddle&&!drawOuter&&(
-          <g>
-            <path d={`M ${CX-40}${Y_SHOULDER+35} Q ${CX-55}${Y_SHOULDER+45}${CX-50}${Y_SHOULDER+90}`} stroke={skin} strokeWidth="14" strokeLinecap="round" fill="none"/>
-            <path d={`M ${CX+40}${Y_SHOULDER+35} Q ${CX+55}${Y_SHOULDER+45}${CX+50}${Y_SHOULDER+90}`} stroke={skin} strokeWidth="14" strokeLinecap="round" fill="none"/>
-          </g>
-        )}
-
-        {/* HANDS & MITTENS */}
-        {cold ? (
-          <g filter="url(#soft-shadow)">
-            <circle cx={CX-50} cy={Y_SHOULDER+95} r="12" fill={C.hat}/>
-            <circle cx={CX+50} cy={Y_SHOULDER+95} r="12" fill={C.hat}/>
-          </g>
-        ) : (
-          <g>
-            <circle cx={CX-50} cy={Y_SHOULDER+95} r="8" fill={skin}/>
-            <circle cx={CX+50} cy={Y_SHOULDER+95} r="8" fill={skin}/>
-          </g>
-        )}
-
-        {/* UMBRELLA */}
-        {isRainy&&(
-          <g className="animate-float" style={{animationDuration: '4s'}} filter="url(#soft-shadow)">
-            <line x1={CX+50} y1={Y_SHOULDER+90} x2={CX+50} y2={Y_HEAD-40} stroke="#475569" strokeWidth="4" strokeLinecap="round"/>
-            <path d={`M ${CX-10}${Y_HEAD-20} Q ${CX+50}${Y_HEAD-70}${CX+110}${Y_HEAD-20} Z`} fill="#EF4444"/>
-            <path d={`M ${CX+50}${Y_HEAD-60} L ${CX+50}${Y_HEAD-20}`} stroke="#B91C1C" strokeWidth="2" opacity="0.5"/>
-          </g>
-        )}
-
-        {/* SCARF */}
-        {cold&&(
-          <g filter="url(#soft-shadow)">
-            <rect x={CX-22} y={Y_SHOULDER-18} width="44" height="18" rx="8" fill={C.scarf}/>
-            <path d={`M ${CX-15}${Y_SHOULDER} L ${CX-10}${Y_SHOULDER+35} L ${CX}${Y_SHOULDER+32} L ${CX-5}${Y_SHOULDER} Z`} fill={C.scarf}/>
-            <line x1={CX-10} y1={Y_SHOULDER+35} x2={CX} y2={Y_SHOULDER+32} stroke={C.scarf} strokeWidth="4" strokeDasharray="2,2"/>
-          </g>
-        )}
-
-        {/* NECK (SKIN) */}
-        {!cold&&<rect x={CX-8} y={Y_HEAD+25} width="16" height="20" fill={skinShadow}/>}
-
-        {/* HEAD */}
-        <g>
-          {/* Base Face */}
-          <circle cx={CX} cy={Y_HEAD} r="35" fill={skin}/>
-          {/* Eyes */}
-          <circle cx={CX-12} cy={Y_HEAD+5} r="4.5" fill={ink}/>
-          <circle cx={CX-13.5} cy={Y_HEAD+3.5} r="1.5" fill="#FFFFFF"/>
-          <circle cx={CX+12} cy={Y_HEAD+5} r="4.5" fill={ink}/>
-          <circle cx={CX+10.5} cy={Y_HEAD+3.5} r="1.5" fill="#FFFFFF"/>
-          {girl&&(
-            <g stroke={ink} strokeWidth="1.5" strokeLinecap="round">
-              <line x1={CX-17} y1={Y_HEAD+3} x2={CX-19} y2={Y_HEAD}/>
-              <line x1={CX+17} y1={Y_HEAD+3} x2={CX+19} y2={Y_HEAD}/>
-            </g>
-          )}
-          {/* Blush */}
-          <circle cx={CX-20} cy={Y_HEAD+12} r={cold ? 8 : 6} fill={cold ? '#EF4444' : blush} opacity={cold ? 0.5 : 0.6} filter="url(#inner-shadow)"/>
-          <circle cx={CX+20} cy={Y_HEAD+12} r={cold ? 8 : 6} fill={cold ? '#EF4444' : blush} opacity={cold ? 0.5 : 0.6} filter="url(#inner-shadow)"/>
-          {/* Nose */}
-          <circle cx={CX} cy={Y_HEAD+12} r="2" fill={skinShadow}/>
-          {/* Smile */}
-          <path d={`M ${CX-6}${Y_HEAD+20} Q ${CX}${Y_HEAD+28}${CX+6}${Y_HEAD+20}`} fill="none" stroke={ink} strokeWidth="2.5" strokeLinecap="round"/>
-          {/* Freckles (Boy) */}
-          {!girl&&(
-            <g fill={skinShadow} opacity="0.8">
-              <circle cx={CX-18} cy={Y_HEAD+10} r="1"/>
-              <circle cx={CX-22} cy={Y_HEAD+14} r="1"/>
-              <circle cx={CX+18} cy={Y_HEAD+10} r="1"/>
-              <circle cx={CX+22} cy={Y_HEAD+14} r="1"/>
-            </g>
-          )}
-          {/* Cold Breath */}
-          {cold&&(
-            <g opacity="0.4" className="animate-float" style={{animationDuration: '2s'}}>
-              <ellipse cx={CX+15} cy={Y_HEAD+25} rx="6" ry="3" fill="#FFFFFF"/>
-              <ellipse cx={CX+22} cy={Y_HEAD+22} rx="4" ry="2" fill="#FFFFFF"/>
-            </g>
-          )}
-          {/* Hair (Front) */}
-          <g fill={hair}>
-            {girl ? (
-              <path d={`M ${CX-35}${Y_HEAD-5} Q ${CX}${Y_HEAD-25}${CX+35}${Y_HEAD-5} Q ${CX+38}${Y_HEAD-35}${CX}${Y_HEAD-38} Q ${CX-38}${Y_HEAD-35}${CX-35}${Y_HEAD-5} Z`}/>
-            ) : (
-              <path d={`M ${CX-35}${Y_HEAD-10} Q ${CX-20}${Y_HEAD-30}${CX}${Y_HEAD-25} Q ${CX+20}${Y_HEAD-35}${CX+35}${Y_HEAD-15} Q ${CX+40}${Y_HEAD-40}${CX}${Y_HEAD-45} Q ${CX-40}${Y_HEAD-40}${CX-35}${Y_HEAD-10} Z`}/>
-            )}
-          </g>
-          {/* HAT / SUNGLASSES */}
-          {coolish||(hot&&!isRainy) ? (
-            <g filter="url(#soft-shadow)">
-              {hot ? (
-                <>
-                  {/* Sunhat */}
-                  <ellipse cx={CX} cy={Y_HEAD-25} rx="45" ry="12" fill={C.hat}/>
-                  <path d={`M ${CX-28}${Y_HEAD-25} Q ${CX}${Y_HEAD-55}${CX+28}${Y_HEAD-25} Z`} fill={C.hat}/>
-                  {/* Sunglasses */}
-                  <rect x={CX-22} y={Y_HEAD} width="18" height="12" rx="4" fill="#0F172A"/>
-                  <rect x={CX+4} y={Y_HEAD} width="18" height="12" rx="4" fill="#0F172A"/>
-                  <line x1={CX-4} y1={Y_HEAD+4} x2={CX+4} y2={Y_HEAD+4} stroke="#0F172A" strokeWidth="2"/>
-                  <line x1={CX-18} y1={Y_HEAD+2} x2={CX-10} y2={Y_HEAD+8} stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" opacity="0.3"/>
-                  <line x1={CX+8} y1={Y_HEAD+2} x2={CX+16} y2={Y_HEAD+8} stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" opacity="0.3"/>
-                </>
-              ) : (
-                <>
-                  {/* Beanie */}
-                  <path d={`M ${CX-34}${Y_HEAD-15} Q ${CX}${Y_HEAD-55}${CX+34}${Y_HEAD-15} Z`} fill={C.hat}/>
-                  <rect x={CX-36} y={Y_HEAD-18} width="72" height="14" rx="6" fill={C.hat}/>
-                  {zone==='arctic'&&(
-                    <circle cx={CX} cy={Y_HEAD-48} r="12" fill="#FFFFFF"/>
-                  )}
-                </>
-              )}
-            </g>
-          ) : null}
-        </g>
-      </g>
-    </svg>
+      </div>
+    </div>
   );
 };

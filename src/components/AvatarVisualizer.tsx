@@ -16,7 +16,7 @@ interface AvatarVisualizerProps {
 
 // Эмодзи для кнопок переключения слоев
 const LAYER_EMOJI: Record<LayerId, string> = {
-  outer: '🧥', upper: '', lower: '👖', underwear: '🩱', headwear: '', shoes: '👟', accessory: '🧤',
+  outer: '🧥', upper: '🧶', lower: '👖', underwear: '', headwear: '🧢', shoes: '👟', accessory: '🧤',
 };
 
 export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
@@ -27,20 +27,20 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
     underwear: false, lower: false, upper: false, outer: false, headwear: false, shoes: false, accessory: false,
   });
 
-  // Функция получения предметов слоя из НОВОЙ структуры outfit.layers
+  // ИСПРАВЛЕННАЯ ФУНКЦИЯ: читаем данные напрямую из полей outfit
   const itemsOf = (l: LayerId): ClothingItem[] => {
-    if (!outfit.layers) return [];
-    // Маппинг старых ID слоев на ключи в объекте layers
-    const keyMap: Record<LayerId, keyof typeof outfit.layers> = {
-      outer: 'outerwear',
-      upper: 'upper_layer',
-      lower: 'lower_layer',
-      underwear: 'underwear',
-      headwear: 'headwear',
-      shoes: 'shoes',
-      accessory: 'accessories'
-    };
-    return (outfit.layers[keyMap[l]] as ClothingItem[]) || [];
+    if (!outfit) return [];
+    
+    switch (l) {
+      case 'underwear': return outfit.underwear || [];
+      case 'lower': return outfit.lower || [];
+      case 'upper': return outfit.upper || [];
+      case 'outer': return outfit.outer || [];
+      case 'headwear': return outfit.headwear || [];
+      case 'shoes': return outfit.shoes || [];
+      case 'accessory': return outfit.accessories || []; // Обрати внимание: accessories (множественное число)
+      default: return [];
+    }
   };
 
   const has = (l: LayerId) => itemsOf(l).length > 0;

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { RecommendedOutfit, ClothingItem, ChildGender, LayerVisibility } from '../types';
-// ЗАМЕНЕНЫ НЕСУЩЕСТВУЮЩИЕ ИКОНКИ НА ДОСТУПНЫЕ АНАЛОГИ
-import { Info, Layers, Shirt, Footprints, Hat, Ribbon, LayoutGrid } from 'lucide-react';
+// ИСПОЛЬЗУЕМ ПРАВИЛЬНЫЕ ИКОНКИ (требует lucide-react >= 0.500)
+import { Info, Layers, Shirt, Footprints, Hat, Pants, Underwear, Ribbon } from 'lucide-react';
 import { ChildFigure } from './ChildFigure';
 import { LayerToggles } from './LayerToggles';
 
@@ -98,9 +98,9 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
           </div>
           
           <div className="mt-2 flex items-center gap-2 text-sm font-bold">
-            <span className={gender === 'girl' ? 'text-pink-600' : 'text-blue-600'}>{gender === 'girl' ? '👧 Девочка' : ' Мальчик'}</span>
+            <span className={gender === 'girl' ? 'text-pink-600' : 'text-blue-600'}>{gender === 'girl' ? '👧 Девочка' : '👦 Мальчик'}</span>
             <span className="text-slate-400">•</span>
-            <span className="text-slate-500">{effectiveTemp > 15 ? '️ Лето' : effectiveTemp > 0 ? '🍂 Демисезон' : '❄️ Зима'}</span>
+            <span className="text-slate-500">{effectiveTemp > 15 ? '☀️ Лето' : effectiveTemp > 0 ? '🍂 Демисезон' : '❄️ Зима'}</span>
           </div>
         </div>
         <LayerToggles visibility={vis} onToggle={toggle} />
@@ -114,9 +114,9 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
         </div>
         
         <div className="space-y-3">
-          {/* ИСПОЛЬЗОВАНЫ БЕЗОПАСНЫЕ ИКОНКИ */}
-          <Card title="Нательное белье" Icon={Shirt} layer="underwear" active={vis.underwear && has.under} num={1} />
-          <Card title="Нижний слой" Icon={LayoutGrid} layer="lower_layer" active={vis.lower && has.lower} num={2} />
+          {/* ПРАВИЛЬНЫЕ ИКОНКИ ИЗ LUCIDE-REACT */}
+          <Card title="Нательное белье" Icon={Underwear} layer="underwear" active={vis.underwear && has.under} num={1} />
+          <Card title="Нижний слой" Icon={Pants} layer="lower_layer" active={vis.lower && has.lower} num={2} />
           <Card title="Верхний слой" Icon={Shirt} layer="upper_layer" active={vis.upper && has.upper} num={2} />
           <Card title="Верхняя одежда" Icon={Shirt} layer="outerwear" active={vis.outer && has.outer} num={3} />
           <Card title="Головной убор" Icon={Hat} layer="headwear" active={vis.headwear && has.head} num={0} />
@@ -127,7 +127,7 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
         {outfit.specialAdvice?.length > 0 && (
           <div className="p-4 rounded-2xl bg-amber-50/80 border border-amber-200/70 space-y-2">
             <h4 className="font-bold text-amber-900 text-sm flex items-center gap-2"><span className="text-base">️</span> Важные рекомендации</h4>
-            <ul className="space-y-1">{outfit.specialAdvice.map((a, i) => <li key={i} className="text-xs text-amber-800 flex gap-2"><span className="shrink-0 text-amber-500">▸</span><span>{a}</span></li>)}</ul>
+            <ul className="space-y-1">{outfit.specialAdvice.map((a, i) => <li key={i} className="text-xs text-amber-800 flex gap-2"><span className="shrink-0 text-amber-500"></span><span>{a}</span></li>)}</ul>
           </div>
         )}
       </div>

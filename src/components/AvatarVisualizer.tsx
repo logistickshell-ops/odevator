@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { RecommendedOutfit, ClothingItem, ChildGender, LayerVisibility } from '../types';
-import { Info, Layers, Shirt, Footprints, Hat, Scarf, Pants, Underwear } from 'lucide-react';
+// ЗАМЕНЕНЫ НЕСУЩЕСТВУЮЩИЕ ИКОНКИ НА ДОСТУПНЫЕ АНАЛОГИ
+import { Info, Layers, Shirt, Footprints, Hat, Ribbon, LayoutGrid } from 'lucide-react';
 import { ChildFigure } from './ChildFigure';
 import { LayerToggles } from './LayerToggles';
 
@@ -24,6 +25,7 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
 
   const [selected, setSelected] = useState<string | null>(null);
 
+  // Проверки наличия предметов в слоях
   const has = {
     outer: (outfit.layers?.outerwear?.length ?? 0) > 0,
     upper: (outfit.layers?.upper_layer?.length ?? 0) > 0,
@@ -42,6 +44,7 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
 
   const getItems = (layer: string) => (outfit.layers as any)?.[layer] || [];
 
+  // Компонент карточки слоя
   const Card = ({ title, Icon, layer, active, num }: any) => {
     const items = getItems(layer);
     if (!items.length) return null;
@@ -74,6 +77,7 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
     );
   };
 
+  // Градиент фона аватара по температуре
   const bg = effectiveTemp <= -15 ? 'from-blue-200 via-blue-100 to-indigo-50' : 
              effectiveTemp <= 0 ? 'from-cyan-100 via-sky-50 to-slate-50' : 
              effectiveTemp <= 15 ? 'from-amber-100 via-yellow-50 to-emerald-50' : 
@@ -81,6 +85,7 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
 
   return (
     <div className="flex flex-col lg:grid lg:grid-cols-12 gap-4 sm:gap-8 items-start">
+      {/* Левая колонка: Аватар + Тогглы */}
       <div className="w-full lg:col-span-5 space-y-3">
         <div className={`bg-gradient-to-b ${bg} rounded-3xl p-5 border-4 border-white shadow-xl relative flex flex-col items-center overflow-hidden`}>
           <div className="absolute top-3 left-3 z-10 bg-white/90 backdrop-blur px-3 py-1.5 rounded-2xl text-xs font-bold text-slate-700 border border-white/80 shadow-sm">
@@ -101,6 +106,7 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
         <LayerToggles visibility={vis} onToggle={toggle} />
       </div>
 
+      {/* Правая колонка: Чек-лист гардероба */}
       <div className="w-full lg:col-span-7 space-y-4">
         <div className="hidden sm:block">
           <h3 className="text-xl font-black text-slate-800 flex items-center gap-2"><Layers size={22} className="text-indigo-500" /><span>Полный гардероб на прогулку</span></h3>
@@ -108,13 +114,14 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
         </div>
         
         <div className="space-y-3">
-          <Card title="Нательное белье" Icon={Underwear} layer="underwear" active={vis.underwear && has.under} num={1} />
-          <Card title="Нижний слой" Icon={Pants} layer="lower_layer" active={vis.lower && has.lower} num={2} />
+          {/* ИСПОЛЬЗОВАНЫ БЕЗОПАСНЫЕ ИКОНКИ */}
+          <Card title="Нательное белье" Icon={Shirt} layer="underwear" active={vis.underwear && has.under} num={1} />
+          <Card title="Нижний слой" Icon={LayoutGrid} layer="lower_layer" active={vis.lower && has.lower} num={2} />
           <Card title="Верхний слой" Icon={Shirt} layer="upper_layer" active={vis.upper && has.upper} num={2} />
           <Card title="Верхняя одежда" Icon={Shirt} layer="outerwear" active={vis.outer && has.outer} num={3} />
           <Card title="Головной убор" Icon={Hat} layer="headwear" active={vis.headwear && has.head} num={0} />
           <Card title="Обувь" Icon={Footprints} layer="shoes" active={vis.shoes && has.shoes} num={0} />
-          <Card title="Аксессуары" Icon={Scarf} layer="accessories" active={vis.accessory && has.acc} num={0} />
+          <Card title="Аксессуары" Icon={Ribbon} layer="accessories" active={vis.accessory && has.acc} num={0} />
         </div>
 
         {outfit.specialAdvice?.length > 0 && (

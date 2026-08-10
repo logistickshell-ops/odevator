@@ -40,51 +40,6 @@ export type ColdSensitivity = 'sensitive' | 'normal' | 'resistant';
 export type ChildGender = 'girl' | 'boy';
 export type AgeGroup = '0-3m' | '3-12m' | '1-3y' | '3-7y' | '7-12y';
 
-// --- НОВАЯ СИСТЕМА СЛОЕВ ---
-export type ClothingLayer = 
-  | 'outerwear'    // Верхняя одежда
-  | 'upper_layer'  // Средний слой (худи, свитер)
-  | 'lower_layer'  // Низ (штаны, юбка)
-  | 'underwear'    // Белье (футболка, боди)
-  | 'headwear'     // Головной убор
-  | 'shoes'        // Обувь
-  | 'accessories'; // Аксессуары
-
-export interface ClothingItem {
-  id: string;
-  name: string;
-  layer: ClothingLayer;
-  description: string;
-  emoji: string;
-  tips?: string;
-}
-
-export interface RecommendedOutfit {
-  summary: string;
-  specialAdvice: string[];
-  parentTips: ParentTip[];
-  
-  // ЕДИНЫЙ ИСТОЧНИК ПРАВДЫ ДЛЯ UI
-  layers: Record<ClothingLayer, ClothingItem[]>;
-  
-  // Устаревшие поля для совместимости (не использовать в новом коде!)
-  base: ClothingItem[];
-  middle: ClothingItem[];
-  outer: ClothingItem[];
-  shoes: ClothingItem[];
-  accessories: ClothingItem[];
-}
-
-export interface LayerVisibility {
-  underwear: boolean;
-  lower: boolean;
-  upper: boolean;
-  outer: boolean;
-  shoes: boolean;
-  headwear: boolean;
-  accessory: boolean;
-}
-
 export type ParentTipCategory = 'safety' | 'time' | 'essentials' | 'alerts' | 'age' | 'practical';
 export type ParentTipPriority = 'danger' | 'warning' | 'info';
 
@@ -96,3 +51,68 @@ export interface ParentTip {
   priority: ParentTipPriority;
   icon: string;
 }
+
+/** 7 слоёв одеватора */
+export type ClothingCategory =
+  | 'underwear'
+  | 'lower'
+  | 'upper'
+  | 'outer'
+  | 'headwear'
+  | 'shoes'
+  | 'accessory';
+
+// Алиас для совместимости с AvatarVisualizer
+export type LayerId = ClothingCategory;
+export type LayerVisibility = Record<LayerId, boolean>;
+
+export interface ClothingItem {
+  id: string;
+  name: string;
+  category: ClothingCategory;
+  description: string;
+  color: string;
+  emoji: string;
+  layerIndex: number;
+  tips?: string;
+}
+
+// ИСПРАВЛЕННЫЙ ИНТЕРФЕЙС: поддерживает и старую структуру (для UI), и новую (для Engine)
+export interface RecommendedOutfit {
+  summary: string;
+  
+  // Прямые поля для AvatarVisualizer (восстановленная версия)
+  underwear: ClothingItem[];
+  lower: ClothingItem[];
+  upper: ClothingItem[];
+  outer: ClothingItem[];
+  headwear: ClothingItem[];
+  shoes: ClothingItem[];
+  accessories: ClothingItem[]; // Обрати внимание: accessories (множественное число)
+  
+  specialAdvice: string[];
+  parentTips: ParentTip[];
+  
+  // Опциональное поле layers для совместимости с weatherEngine
+  layers?: {
+    underwear: ClothingItem[];
+    lower_layer: ClothingItem[];
+    upper_layer: ClothingItem[];
+    outerwear: ClothingItem[];
+    headwear: ClothingItem[];
+    shoes: ClothingItem[];
+    accessories: ClothingItem[];
+  };
+}
+
+export const LAYER_ORDER: LayerId[] = ['outer', 'upper', 'lower', 'underwear', 'headwear', 'shoes', 'accessory'];
+
+export const LAYER_LABELS: Record<LayerId, string> = {
+  underwear: 'Нательное бельё',
+  lower: 'Нижний слой',
+  upper: 'Верхний слой',
+  outer: 'Верхняя одежда',
+  headwear: 'Головной убор',
+  shoes: 'Обувь',
+  accessory: 'Аксессуары',
+};

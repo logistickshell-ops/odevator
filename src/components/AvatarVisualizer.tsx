@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+// Импортируем типы и константы из актуального types.ts
 import { RecommendedOutfit, ClothingItem, ChildGender, LayerId, LayerVisibility, LAYER_ORDER, LAYER_LABELS } from '../types';
 import { Eye, EyeOff, Shirt, Layers, Footprints } from 'lucide-react';
 import { ChildFigure } from './ChildFigure';
@@ -13,22 +14,38 @@ interface AvatarVisualizerProps {
   onItemSelect?: (item: ClothingItem) => void;
 }
 
+// Эмодзи для кнопок переключения слоев
 const LAYER_EMOJI: Record<LayerId, string> = {
-  outer: '🧥', upper: '🧶', lower: '👕', underwear: '🩱', headwear: '🧢', shoes: '👟', accessory: '🧤',
+  outer: '🧥', upper: '', lower: '👖', underwear: '🩱', headwear: '', shoes: '👟', accessory: '🧤',
 };
 
 export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
   gender, outfit, effectiveTemp, isRainy = false, isSnowy = false, isWindy = false, onItemSelect,
 }) => {
+  // Состояние видимости слоев (по умолчанию все включены)
   const [hidden, setHidden] = useState<LayerVisibility>({
     underwear: false, lower: false, upper: false, outer: false, headwear: false, shoes: false, accessory: false,
   });
 
-  const itemsOf = (l: LayerId): ClothingItem[] =>
-    l === 'underwear' ? outfit.underwear : l === 'lower' ? outfit.lower : l === 'upper' ? outfit.upper :
-    l === 'outer' ? outfit.outer : l === 'headwear' ? outfit.headwear : l === 'shoes' ? outfit.shoes : outfit.accessories;
+  // Функция получения предметов слоя из НОВОЙ структуры outfit.layers
+  const itemsOf = (l: LayerId): ClothingItem[] => {
+    if (!outfit.layers) return [];
+    // Маппинг старых ID слоев на ключи в объекте layers
+    const keyMap: Record<LayerId, keyof typeof outfit.layers> = {
+      outer: 'outerwear',
+      upper: 'upper_layer',
+      lower: 'lower_layer',
+      underwear: 'underwear',
+      headwear: 'headwear',
+      shoes: 'shoes',
+      accessory: 'accessories'
+    };
+    return (outfit.layers[keyMap[l]] as ClothingItem[]) || [];
+  };
 
   const has = (l: LayerId) => itemsOf(l).length > 0;
+  
+  // Вычисляем реальную видимость: слой есть в гардеробе И не скрыт пользователем
   const show: LayerVisibility = {
     underwear: has('underwear') && !hidden.underwear,
     lower: has('lower') && !hidden.lower,
@@ -38,14 +55,18 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
     shoes: has('shoes') && !hidden.shoes,
     accessory: has('accessory') && !hidden.accessory,
   };
+
   const toggle = (l: LayerId) => setHidden((s) => ({ ...s, [l]: !s[l] }));
 
+  // Градиент фона в зависимости от температуры
   const bgGradient = effectiveTemp <= 0 ? 'from-sky-100 to-indigo-50' : effectiveTemp <= 15 ? 'from-indigo-100 to-sky-50' : 'from-amber-100 to-rose-50';
 
+  // Рендер карточки отдельного слоя одежды
   const renderLayerCard = (layer: LayerId, layerNum: number) => {
     const items = itemsOf(layer);
     if (items.length === 0) return null;
     const visible = show[layer];
+    
     return (
       <div key={layer} className={`bg-white/85 backdrop-blur rounded-2xl sm:rounded-3xl border p-3 sm:p-4 shadow-xs transition ${visible ? 'border-indigo-100/70' : 'border-slate-100 opacity-60'}`}>
         <div className="flex items-center justify-between gap-2 mb-2">
@@ -77,8 +98,11 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
 
   return (
     <div className="flex flex-col lg:grid lg:grid-cols-12 gap-4 sm:gap-8 items-start">
+      {/* Левая колонка: Аватар и кнопки управления */}
       <div className="w-full lg:col-span-5 space-y-3 sm:space-y-4">
         <div className={`bg-gradient-to-b ${bgGradient} rounded-2xl sm:rounded-3xl p-3 sm:p-5 border-3 sm:border-4 border-white shadow-lg sm:shadow-xl relative flex flex-col items-center overflow-hidden`}>
+          
+          {/* Компонент ребенка */}
           <div className="w-full max-w-[230px] sm:max-w-[280px] aspect-[11/20] pt-6 sm:pt-8 pb-1 sm:pb-2">
             <ChildFigure
               gender={gender}
@@ -86,11 +110,12 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
               isRainy={isRainy}
               isSnowy={isSnowy}
               isWindy={isWindy}
-              show={show}
+              show={show} // Передаем вычисленную видимость
             />
           </div>
 
-          <div className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-slate-100 shadow-sm w-full">
+          {/* Панель управления слоями */}
+          <div className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-slate-100 shadow-sm w-full mt-4">
             <div className="flex flex-wrap items-center justify-center gap-1.5">
               {LAYER_ORDER.map((l) => (
                 <button
@@ -109,6 +134,8 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
                 </button>
               ))}
             </div>
+            
+            {/* Индикаторы основных слоев одежды */}
             <div className="flex items-center justify-center gap-1 pt-2">
               <span className="text-[9px] font-bold text-slate-400">Слои:</span>
               {(['outer', 'upper', 'lower', 'underwear'] as LayerId[]).map((l, i) =>
@@ -123,6 +150,7 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
         </div>
       </div>
 
+      {/* Правая колонка: Детальный чек-лист гардероба */}
       <div className="w-full lg:col-span-7 space-y-2 sm:space-y-4">
         {renderLayerCard('outer', 4)}
         {renderLayerCard('upper', 3)}

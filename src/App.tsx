@@ -31,7 +31,39 @@ import {
   Settings
 } from 'lucide-react';
 
-// A robust mock data generator for instant offline/fallback usage
+// ============================================
+// ХЕЛПЕРЫ ДЛЯ РАБОТЫ С LOCALSTORAGE
+// ============================================
+const STORAGE_KEYS = {
+  CITY: 'meteo_saved_city',
+  GENDER: 'meteo_saved_gender',
+  ACTIVITY: 'meteo_saved_activity',
+  SENSITIVITY: 'meteo_saved_sensitivity',
+  AGE: 'meteo_saved_age',
+} as const;
+
+const loadFromStorage = <T,>(key: string, fallback: T): T => {
+  try {
+    if (typeof window === 'undefined') return fallback;
+    const stored = localStorage.getItem(key);
+    return stored ? JSON.parse(stored) : fallback;
+  } catch {
+    return fallback;
+  }
+};
+
+const saveToStorage = (key: string, value: unknown) => {
+  try {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch (error) {
+    console.warn('Failed to save to localStorage:', error);
+  }
+};
+
+// ============================================
+// MOCK DATA GENERATOR
+// ============================================
 const generateMockForecast = (baseTemp: number): DayForecast[] => {
   const periods: WeatherPeriodType[] = ['morning', 'day', 'evening', 'night'];
   const dayOffsets = [0, 1];
@@ -51,9 +83,8 @@ const generateMockForecast = (baseTemp: number): DayForecast[] => {
     const periodData: any = {};
 
     periods.forEach((period) => {
-      // Simulate temperature variation based on period
       let tempMod = 0;
-      let weatherCode = 0; // clear
+      let weatherCode = 0;
       let description = 'Ясно';
       let icon = 'Sun';
 
@@ -69,16 +100,16 @@ const generateMockForecast = (baseTemp: number): DayForecast[] => {
 
       if (precipProb > 50) {
         if (temp <= 0) {
-          weatherCode = 71; // Snowy
+          weatherCode = 71;
           description = 'Снегопад';
           icon = 'Snowflake';
         } else {
-          weatherCode = 61; // Rainy
+          weatherCode = 61;
           description = 'Дождь';
           icon = 'CloudRain';
         }
       } else if (Math.random() > 0.5) {
-        weatherCode = 3; // Partly cloudy
+        weatherCode = 3;
         description = 'Переменная облачность';
         icon = 'CloudSun';
       }
@@ -128,42 +159,75 @@ export default function App() {
     }
   }, []);
 
-  // Active city and search variables
-  const [selectedCity, setSelectedCity] = useState<CityData>(DEFAULT_CITY);
+  // ============================================
+  // СОСТОЯНИЯ С ЗАГРУЗКОЙ ИЗ LOCALSTORAGE
+  // ============================================
+  const [selectedCity, setSelectedCity] = useState<CityData>(() => 
+    loadFromStorage(STORAGE_KEYS.CITY, DEFAULT_CITY)
+  );
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<CityData[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
-  // Weather state variables
   const [todayForecast, setTodayForecast] = useState<DayForecast | null>(null);
   const [tomorrowForecast, setTomorrowForecast] = useState<DayForecast | null>(null);
   const [isLoadingWeather, setIsLoadingWeather] = useState(false);
   const [weatherError, setWeatherError] = useState<string | null>(null);
 
-  // Selection variables
   const [selectedDay, setSelectedDay] = useState<'today' | 'tomorrow'>('today');
   const [selectedPeriod, setSelectedPeriod] = useState<WeatherPeriodType>('day');
-  const [gender, setGender] = useState<ChildGender>('girl');
-  // ИСПРАВЛЕНО: убран 'simulator' из типа
+  
+  const [gender, setGender] = useState<ChildGender>(() => 
+    loadFromStorage(STORAGE_KEYS.GENDER, 'girl')
+  );
+  
   const [activeTab, setActiveTab] = useState<'clothing' | 'tips' | 'parameters' | 'faq'>('clothing');
 
-  // Simulated / manual weather controls state
   const [isManual, setIsManual] = useState(false);
   const [manualTemp, setManualTemp] = useState(12);
   const [manualWindSpeed, setManualWindSpeed] = useState(10);
   const [manualHumidity, setManualHumidity] = useState(60);
   const [manualCondition, setManualCondition] = useState<'sunny' | 'cloudy' | 'rainy' | 'snowy'>('sunny');
 
-  // Child factors
-  const [activityLevel, setActivityLevel] = useState<ActivityLevel>('normal');
-  const [coldSensitivity, setColdSensitivity] = useState<ColdSensitivity>('normal');
-  const [ageGroup, setAgeGroup] = useState<AgeGroup>('1-3y');
+  const [activityLevel, setActivityLevel] = useState<ActivityLevel>(() => 
+    loadFromStorage(STORAGE_KEYS.ACTIVITY, 'normal')
+  );
+  const [coldSensitivity, setColdSensitivity] = useState<ColdSensitivity>(() => 
+    loadFromStorage(STORAGE_KEYS.SENSITIVITY, 'normal')
+  );
+  const [ageGroup, setAgeGroup] = useState<AgeGroup>(() => 
+    loadFromStorage(STORAGE_KEYS.AGE, '1-3y')
+  );
 
-  // Selected Item Tip
   const [selectedItem, setSelectedItem] = useState<ClothingItem | null>(null);
 
-  // Fetch weather forecast from Open-Meteo API with mock fallback
+  // ============================================
+  // АВТОСОХРАНЕНИЕ В LOCALSTORAGE
+  // ============================================
+  useEffect(() => {
+    saveToStorage(STORAGE_KEYS.CITY, selectedCity);
+  }, [selectedCity]);
+
+  useEffect(() => {
+    saveToStorage(STORAGE_KEYS.GENDER, gender);
+  }, [gender]);
+
+  useEffect(() => {
+    saveToStorage(STORAGE_KEYS.ACTIVITY, activityLevel);
+  }, [activityLevel]);
+
+  useEffect(() => {
+    saveToStorage(STORAGE_KEYS.SENSITIVITY, coldSensitivity);
+  }, [coldSensitivity]);
+
+  useEffect(() => {
+    saveToStorage(STORAGE_KEYS.AGE, ageGroup);
+  }, [ageGroup]);
+
+  // ============================================
+  // FETCH WEATHER
+  // ============================================
   const fetchWeather = useCallback(async (city: CityData) => {
     setIsLoadingWeather(true);
     setWeatherError(null);
@@ -180,10 +244,8 @@ export default function App() {
         throw new Error('Некорректный формат данных прогноза.');
       }
 
-      // Parse hourly data to find morning (8:00), day (14:00), evening (18:00), and night (23:00)
       const hourly = data.hourly;
       
-      // Helper to build DayForecast
       const parseDay = (dayIndex: 0 | 1): DayForecast => {
         const date = new Date();
         date.setDate(date.getDate() + dayIndex);
@@ -199,7 +261,6 @@ export default function App() {
 
         const startOffset = dayIndex * 24;
         
-        // Time slot indexes
         const morningIdx = startOffset + 8;
         const dayIdx = startOffset + 14;
         const eveningIdx = startOffset + 18;
@@ -248,7 +309,6 @@ export default function App() {
       setTodayForecast(today);
       setTomorrowForecast(tomorrow);
 
-      // Sync manual temperature slider to real value on initial fetch
       const activeVal = today.periods.day;
       setManualTemp(activeVal.temp);
       setManualWindSpeed(Math.round(activeVal.windSpeed));
@@ -258,7 +318,6 @@ export default function App() {
     } catch (error) {
       console.error('Weather API Error. Using mock fallback:', error);
       setWeatherError('Не удалось связаться с сервером Open-Meteo. Используются симулированные данные погоды.');
-      // Gracefully fallback to simulated mock data
       const mockToday = generateMockForecast(10)[0];
       const mockTomorrow = generateMockForecast(10)[1];
       setTodayForecast(mockToday);
@@ -274,7 +333,6 @@ export default function App() {
     }
   }, []);
 
-  // Handle Geocoding search for city name
   const handleCitySearch = async (query: string) => {
     if (!query || query.trim().length < 2) {
       setSearchResults([]);
@@ -308,12 +366,10 @@ export default function App() {
     }
   };
 
-  // Trigger initial search & forecast loading
   useEffect(() => {
     fetchWeather(selectedCity);
   }, [selectedCity, fetchWeather]);
 
-  // Trigger geocoding search debouncing or typing update
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
       handleCitySearch(searchQuery);
@@ -322,7 +378,6 @@ export default function App() {
     return () => clearTimeout(delayDebounceFn);
   }, [searchQuery]);
 
-  // Extract active weather metrics (manual or real forecast)
   const getActiveWeatherData = (): WeatherData => {
     if (isManual) {
       const codeMap = { sunny: 0, cloudy: 3, rainy: 61, snowy: 71 };
@@ -344,13 +399,11 @@ export default function App() {
       };
     }
 
-    // Real weather path
     const activeDayForecast = selectedDay === 'today' ? todayForecast : tomorrowForecast;
     if (activeDayForecast) {
       return activeDayForecast.periods[selectedPeriod];
     }
 
-    // Safe fallback
     return {
       temp: 15,
       feelsLike: 15,
@@ -380,15 +433,12 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-indigo-50/60 via-white to-sky-50/60 text-slate-700 pb-16 relative overflow-hidden">
       
-      {/* BACKGROUND GRAPHICS */}
       <div className="absolute top-0 left-0 w-full h-[600px] bg-gradient-to-b from-indigo-100/40 to-transparent -z-10 pointer-events-none" />
       <div className="absolute top-48 -left-24 w-96 h-96 bg-indigo-200/20 rounded-full filter blur-3xl pointer-events-none" />
       <div className="absolute top-[500px] -right-24 w-96 h-96 bg-sky-200/20 rounded-full filter blur-3xl pointer-events-none" />
 
-      {/* HEADER */}
       <header className="border-b border-indigo-100/70 bg-white/75 backdrop-blur-md sticky top-0 z-40 shadow-xs">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-4 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
-          {/* Logo / Title */}
           <div className="flex items-center gap-2 sm:gap-3 group cursor-pointer shrink-0">
             <div className="h-9 w-9 sm:h-11 sm:w-11 rounded-xl sm:rounded-2xl bg-gradient-to-br from-indigo-500 to-pink-400 flex items-center justify-center text-white shadow-md shadow-indigo-100 hover:scale-105 transition duration-300">
               <span className="text-lg sm:text-2xl select-none font-extrabold">🌤️</span>
@@ -406,7 +456,6 @@ export default function App() {
             </div>
           </div>
 
-          {/* GEOLOCATION & SEARCH ENGINE */}
           <div className="relative w-full sm:w-64 lg:w-72 z-50">
             <div className="relative">
               <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-indigo-500" size={15} />
@@ -428,7 +477,6 @@ export default function App() {
               )}
             </div>
 
-            {/* Search results dropdown */}
             {isSearchFocused && searchResults.length > 0 && (
               <div className="absolute top-full mt-2 left-0 w-full bg-white border border-slate-100 rounded-2xl shadow-lg z-50 overflow-hidden divide-y divide-slate-50 animate-fadeIn">
                 {searchResults.map((city, index) => (
@@ -452,7 +500,6 @@ export default function App() {
           </div>
         </div>
         <nav className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 border-t border-slate-100/70">
-          {/* ИСПРАВЛЕНО: grid-cols-4 вместо grid-cols-5 */}
           <div className="grid grid-cols-4 gap-1 py-1 sm:flex sm:items-center sm:justify-start sm:gap-6">
             <button
               onClick={() => setActiveTab('clothing')}
@@ -478,11 +525,9 @@ export default function App() {
                 activeTab === 'parameters' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-600'
               }`}
             >
-              {/* ИСПРАВЛЕНО: иконка Settings вместо Baby */}
               <Settings size={14} className="shrink-0" />
               <span>Параметры</span>
             </button>
-            {/* КНОПКА СИМУЛЯТОРА УДАЛЕНА */}
             <button
               onClick={() => setActiveTab('faq')}
               className={`py-2 px-1 font-extrabold text-[9px] xs:text-[11px] sm:text-sm border-b-2 transition flex flex-col xs:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-1.5 whitespace-nowrap ${
@@ -496,12 +541,10 @@ export default function App() {
         </nav>
       </header>
 
-      {/* MAIN SECTION */}
       <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 mt-4 sm:mt-8 space-y-5 sm:space-y-8">
         
         {activeTab === 'clothing' && (
           <>
-        {/* SELECTED CITY WEATHER CARD */}
         <div className="bg-white/80 backdrop-blur-md rounded-2xl sm:rounded-3xl border border-indigo-100/60 p-4 sm:p-6 shadow-sm">
           <div className="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-0">
             <div className="p-3 sm:p-4 bg-indigo-50 rounded-xl sm:rounded-2xl border border-indigo-100/30 shrink-0">
@@ -517,7 +560,6 @@ export default function App() {
                 </span>
               </div>
               
-              {/* Real / Manual Mode Indicator */}
               <div className="flex items-center gap-1.5 mt-0.5">
                 <span className={`h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full shrink-0 ${isManual ? 'bg-amber-500' : 'bg-emerald-500'}`} />
                 <span className="text-[10px] sm:text-xs text-slate-500 font-medium truncate">
@@ -536,7 +578,6 @@ export default function App() {
             </div>
           </div>
 
-          {/* Active metrics summaries — 2×2 grid on mobile */}
           <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-4 md:gap-6 mt-3 sm:mt-0 sm:justify-end">
             <div className="bg-slate-50/70 rounded-xl sm:rounded-2xl px-3 sm:px-4 py-1.5 sm:py-2 border border-slate-100/60 flex items-center gap-2 sm:gap-2.5">
               <Thermometer className="text-rose-500 shrink-0" size={16} />
@@ -576,7 +617,6 @@ export default function App() {
           </div>
         </div>
 
-        {/* WEATHER SELECTOR TABS */}
         {!isManual && (
           <div className="relative">
             {isLoadingWeather && (
@@ -600,11 +640,8 @@ export default function App() {
           </div>
         )}
 
-        {/* INTERACTIVE CHILD DRESS UP PANEL & CHECKLISTS */}
         <div className="space-y-4 sm:space-y-6">
-          {/* Title / Controls bar */}
           <div className="flex flex-col gap-3">
-            {/* Boy / Girl Switcher Tab — moved to top on mobile */}
             <div className="flex bg-slate-100 p-1 rounded-2xl border border-slate-200/60 shadow-xs self-center sm:self-auto w-full sm:w-auto">
               <button
                 onClick={() => setGender('girl')}
@@ -650,7 +687,6 @@ export default function App() {
             </div>
           </div>
 
-          {/* AVATAR VISUALIZER AND DETAILED GARMENT CARDS */}
           <AvatarVisualizer
             gender={gender}
             outfit={activeOutfit}
@@ -664,20 +700,16 @@ export default function App() {
           </>
         )}
 
-        {/* TAB CONTENTS */}
         <div className="space-y-8">
           
-          {/* 2. Parent Tips Tab */}
           {activeTab === 'tips' && (
             <div className="space-y-4">
               <ParentTipsSection tips={activeOutfit.parentTips} />
             </div>
           )}
 
-          {/* 3. Parameters Tab (ОБЪЕДИНЁННЫЙ с симулятором) */}
           {activeTab === 'parameters' && (
             <div className="space-y-4">
-              {/* Блок быстрых пресетов (бывший симулятор) */}
               <div className="bg-indigo-50/30 p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-indigo-100/50 space-y-3 sm:space-y-4">
                 <h3 className="text-sm sm:text-base font-black text-slate-800">⚡ Быстрые сценарии погоды</h3>
                 <p className="text-[10px] sm:text-xs text-slate-500 leading-relaxed">
@@ -703,7 +735,6 @@ export default function App() {
                 </div>
               </div>
               
-              {/* Основные параметры */}
               <CustomWeatherControls
                 isManual={isManual}
                 setIsManual={setIsManual}
@@ -725,13 +756,9 @@ export default function App() {
             </div>
           )}
 
-          {/* БЛОК СИМУЛЯТОРА ПОЛНОСТЬЮ УДАЛЁН */}
-
-          {/* 4. FAQ & Scientific School for Parents */}
           {activeTab === 'faq' && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6">
               
-              {/* FAQ 1 */}
               <div className="bg-white p-3 sm:p-5 rounded-xl sm:rounded-3xl border border-slate-100 shadow-xs space-y-1.5 sm:space-y-2">
                 <h4 className="font-bold text-slate-800 text-[11px] sm:text-sm flex items-center gap-1.5 sm:gap-2">
                   <span className="text-base sm:text-lg">🧥</span>
@@ -747,7 +774,6 @@ export default function App() {
                 </ul>
               </div>
 
-              {/* FAQ 2 */}
               <div className="bg-white p-3 sm:p-5 rounded-xl sm:rounded-3xl border border-slate-100 shadow-xs space-y-1.5 sm:space-y-2">
                 <h4 className="font-bold text-slate-800 text-[11px] sm:text-sm flex items-center gap-1.5 sm:gap-2">
                   <span className="text-base sm:text-lg">👶</span>
@@ -763,7 +789,6 @@ export default function App() {
                 </ul>
               </div>
 
-              {/* FAQ 3 */}
               <div className="bg-white p-3 sm:p-5 rounded-xl sm:rounded-3xl border border-slate-100 shadow-xs space-y-1.5 sm:space-y-2">
                 <h4 className="font-bold text-slate-800 text-[11px] sm:text-sm flex items-center gap-1.5 sm:gap-2">
                   <span className="text-base sm:text-lg">🌬️</span>
@@ -774,7 +799,6 @@ export default function App() {
                 </p>
               </div>
 
-              {/* FAQ 4 */}
               <div className="bg-white p-3 sm:p-5 rounded-xl sm:rounded-3xl border border-slate-100 shadow-xs space-y-1.5 sm:space-y-2">
                 <h4 className="font-bold text-slate-800 text-[11px] sm:text-sm flex items-center gap-1.5 sm:gap-2">
                   <span className="text-base sm:text-lg">☔</span>
@@ -788,13 +812,10 @@ export default function App() {
           )}
         </div>
 
-        {/* FLOATING CLOTHING ITEM DETAIL CARD — full-width bottom sheet on mobile */}
         {selectedItem && (
           <>
-            {/* Backdrop */}
             <div className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm animate-fadeIn sm:hidden" onClick={() => setSelectedItem(null)} />
             <div className="fixed bottom-0 sm:bottom-6 sm:right-6 z-50 w-full sm:max-w-sm bg-white rounded-t-3xl sm:rounded-3xl border-t-4 sm:border-4 border-indigo-100 shadow-2xl p-4 sm:p-5 transition-all animate-slideUp">
-              {/* Handle bar for mobile */}
               <div className="sm:hidden w-10 h-1 bg-slate-200 rounded-full mx-auto -mt-1 mb-3" />
               <div className="flex justify-between items-start gap-3">
                 <div className="flex items-start gap-2.5 sm:gap-3">
@@ -830,7 +851,6 @@ export default function App() {
         )}
       </main>
 
-      {/* FOOTER */}
       <footer className="mt-16 border-t border-indigo-50 pt-8 text-center space-y-3 max-w-7xl mx-auto px-4">
         <p className="text-xs text-slate-400">
           Created by Disa. Разработано с любовью и заботой о здоровье детей во всем мире ❤️

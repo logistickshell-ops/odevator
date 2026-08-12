@@ -28,7 +28,7 @@ import {
   Droplets, 
   Baby, 
   HelpCircle,
-  RefreshCw
+  Settings
 } from 'lucide-react';
 
 // A robust mock data generator for instant offline/fallback usage
@@ -145,7 +145,8 @@ export default function App() {
   const [selectedDay, setSelectedDay] = useState<'today' | 'tomorrow'>('today');
   const [selectedPeriod, setSelectedPeriod] = useState<WeatherPeriodType>('day');
   const [gender, setGender] = useState<ChildGender>('girl');
-  const [activeTab, setActiveTab] = useState<'clothing' | 'tips' | 'parameters' | 'simulator' | 'faq'>('clothing');
+  // ИСПРАВЛЕНО: убран 'simulator' из типа
+  const [activeTab, setActiveTab] = useState<'clothing' | 'tips' | 'parameters' | 'faq'>('clothing');
 
   // Simulated / manual weather controls state
   const [isManual, setIsManual] = useState(false);
@@ -451,7 +452,8 @@ export default function App() {
           </div>
         </div>
         <nav className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 border-t border-slate-100/70">
-          <div className="grid grid-cols-5 gap-1 py-1 sm:flex sm:items-center sm:justify-start sm:gap-6">
+          {/* ИСПРАВЛЕНО: grid-cols-4 вместо grid-cols-5 */}
+          <div className="grid grid-cols-4 gap-1 py-1 sm:flex sm:items-center sm:justify-start sm:gap-6">
             <button
               onClick={() => setActiveTab('clothing')}
               className={`py-2 px-1 font-extrabold text-[9px] xs:text-[11px] sm:text-sm border-b-2 transition flex flex-col xs:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-1.5 whitespace-nowrap ${
@@ -476,18 +478,11 @@ export default function App() {
                 activeTab === 'parameters' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-600'
               }`}
             >
-              <Baby size={14} className="shrink-0" />
+              {/* ИСПРАВЛЕНО: иконка Settings вместо Baby */}
+              <Settings size={14} className="shrink-0" />
               <span>Параметры</span>
             </button>
-            <button
-              onClick={() => setActiveTab('simulator')}
-              className={`py-2 px-1 font-extrabold text-[9px] xs:text-[11px] sm:text-sm border-b-2 transition flex flex-col xs:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-1.5 whitespace-nowrap ${
-                activeTab === 'simulator' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-600'
-              }`}
-            >
-              <RefreshCw size={14} className="shrink-0" />
-              <span>Симулятор</span>
-            </button>
+            {/* КНОПКА СИМУЛЯТОРА УДАЛЕНА */}
             <button
               onClick={() => setActiveTab('faq')}
               className={`py-2 px-1 font-extrabold text-[9px] xs:text-[11px] sm:text-sm border-b-2 transition flex flex-col xs:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-1.5 whitespace-nowrap ${
@@ -527,7 +522,7 @@ export default function App() {
                 <span className={`h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full shrink-0 ${isManual ? 'bg-amber-500' : 'bg-emerald-500'}`} />
                 <span className="text-[10px] sm:text-xs text-slate-500 font-medium truncate">
                   {isManual 
-                    ? 'Ручной симулятор' 
+                    ? 'Ручной режим' 
                     : 'Прогноз реального времени'}
                 </span>
               </div>
@@ -679,37 +674,14 @@ export default function App() {
             </div>
           )}
 
-          {/* 3. Parameters Tab */}
+          {/* 3. Parameters Tab (ОБЪЕДИНЁННЫЙ с симулятором) */}
           {activeTab === 'parameters' && (
             <div className="space-y-4">
-              <CustomWeatherControls
-                isManual={isManual}
-                setIsManual={setIsManual}
-                temp={manualTemp}
-                setTemp={setManualTemp}
-                windSpeed={manualWindSpeed}
-                setWindSpeed={setManualWindSpeed}
-                humidity={manualHumidity}
-                setHumidity={setManualHumidity}
-                weatherCondition={manualCondition}
-                setWeatherCondition={setManualCondition}
-                activity={activityLevel}
-                setActivity={setActivityLevel}
-                sensitivity={coldSensitivity}
-                setSensitivity={setColdSensitivity}
-                ageGroup={ageGroup}
-                setAgeGroup={setAgeGroup}
-              />
-            </div>
-          )}
-
-          {/* 4. Manual Simulator Tab */}
-          {activeTab === 'simulator' && (
-            <div className="space-y-4">
+              {/* Блок быстрых пресетов (бывший симулятор) */}
               <div className="bg-indigo-50/30 p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-indigo-100/50 space-y-3 sm:space-y-4">
-                <h3 className="text-sm sm:text-base font-black text-slate-800">Ручной генератор погодных сценариев</h3>
+                <h3 className="text-sm sm:text-base font-black text-slate-800">⚡ Быстрые сценарии погоды</h3>
                 <p className="text-[10px] sm:text-xs text-slate-500 leading-relaxed">
-                  Проверьте, какую одежду порекомендует «МетеоОдевайка» в экстремальных условиях.
+                  Нажмите на кнопку, чтобы мгновенно смоделировать экстремальные условия и проверить рекомендации.
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <button onClick={() => { setIsManual(true); setManualTemp(-20); setManualWindSpeed(25); setManualCondition('snowy'); }}
@@ -724,9 +696,14 @@ export default function App() {
                     className="px-3 py-1.5 bg-amber-100 text-amber-700 border border-amber-200 rounded-xl text-[10px] sm:text-xs font-bold active:bg-amber-200 transition">
                     ☀️ Жара +28°С
                   </button>
+                  <button onClick={() => { setIsManual(false); }}
+                    className="px-3 py-1.5 bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-[10px] sm:text-xs font-bold active:bg-emerald-200 transition">
+                    🌐 Реальная погода
+                  </button>
                 </div>
               </div>
               
+              {/* Основные параметры */}
               <CustomWeatherControls
                 isManual={isManual}
                 setIsManual={setIsManual}
@@ -748,7 +725,9 @@ export default function App() {
             </div>
           )}
 
-          {/* 5. FAQ & Scientific School for Parents */}
+          {/* БЛОК СИМУЛЯТОРА ПОЛНОСТЬЮ УДАЛЁН */}
+
+          {/* 4. FAQ & Scientific School for Parents */}
           {activeTab === 'faq' && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6">
               

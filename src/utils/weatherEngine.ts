@@ -42,6 +42,78 @@ const it = (
   color: string, layerIndex: number, description: string, tips?: string,
 ): ClothingItem => ({ id, name, category, emoji, color, layerIndex, description, tips });
 
+// ПУЛ ИЗ 51 ПОДСКАЗКИ ДЛЯ РОДИТЕЛЕЙ
+const TIPS_POOL: ParentTip[] = [
+  // БЕЗОПАСНОСТЬ (danger)
+  { id: 'tip-01', category: 'safety', title: 'Тест по загривку', text: 'Шея сзади тёплая и сухая — одето правильно. Влажная — перегрев, холодная — добавить слой.', priority: 'danger', icon: '💡' },
+  { id: 'tip-02', category: 'safety', title: 'Риск обморожения', text: 'Проверяйте нос и щёки каждые 15 минут: побеление — срочно греться.', priority: 'danger', icon: '❄️' },
+  { id: 'tip-03', category: 'safety', title: 'Риск перегрева', text: 'Светлая одежда, панамка и вода обязательны. Гуляйте до 11:00 и после 17:00.', priority: 'danger', icon: '☀️' },
+  { id: 'tip-04', category: 'safety', title: 'Мокрые ноги = простуда', text: 'Если ребёнок промочил ноги — сразу домой переобуваться. Влажные стопы остывают в 25 раз быстрее.', priority: 'danger', icon: '💧' },
+  { id: 'tip-05', category: 'safety', title: 'Капюшон на ветру', text: 'При сильном ветре капюшон может закрыть обзор. Лучше шапка + шарф.', priority: 'danger', icon: '💨' },
+  
+  // ВРЕМЯ СУТОК (time)
+  { id: 'tip-06', category: 'time', title: 'Утро холоднее', text: 'Утром роса и иней. Наденьте куртку сразу, к обеду потеплеет — снимете.', priority: 'info', icon: '🌅' },
+  { id: 'tip-07', category: 'time', title: 'Вечерняя прохлада', text: 'После 18:00 температура падает на 3-5°. Приготовьте кофту заранее.', priority: 'info', icon: '🌆' },
+  { id: 'tip-08', category: 'time', title: 'Пик жары', text: 'С 12:00 до 16:00 солнце максимально активно. Ищите тень, предлагайте воду каждые 15 минут.', priority: 'warning', icon: '🔥' },
+  { id: 'tip-09', category: 'time', title: 'Ночные прогулки', text: 'Темнее и прохладнее, чем кажется. Используйте светоотражающие элементы на одежде.', priority: 'info', icon: '🌙' },
+  { id: 'tip-10', category: 'time', title: 'После сна', text: 'Ребёнок только проснулся — тело ещё не разогрелось. Добавьте один слой сверх рекомендации.', priority: 'info', icon: '😴' },
+  
+  // ЧТО ВЗЯТЬ С СОБОЙ (essentials)
+  { id: 'tip-11', category: 'essentials', title: 'Запасные варежки', text: 'Дети теряют или мочат варежки. Всегда берите запасную пару в карман куртки.', priority: 'warning', icon: '🧤' },
+  { id: 'tip-12', category: 'essentials', title: 'Бутылка воды', text: 'Даже зимой ребёнок теряет влагу через дыхание. Предлагайте тёплый напиток из термоса.', priority: 'info', icon: '🍼' },
+  { id: 'tip-13', category: 'essentials', title: 'Солнцезащитный крем', text: 'SPF 30+ даже в пасмурную погоду. UV-лучи проходят сквозь облака.', priority: 'warning', icon: '🧴' },
+  { id: 'tip-14', category: 'essentials', title: 'Запасные носки', text: 'Один мокрый носок = холодные ноги на всю прогулку. Пакетик в рюкзак.', priority: 'info', icon: '🧦' },
+  { id: 'tip-15', category: 'essentials', title: 'Лёгкая куртка в рюкзак', text: 'Погода весной и осенью переменчива. Компактная ветровка спасёт при похолодании.', priority: 'info', icon: '🎒' },
+  
+  // ПРЕДУПРЕЖДЕНИЯ (alerts)
+  { id: 'tip-16', category: 'alerts', title: 'Сильный ветер', text: 'Ветровка важнее тёплой кофты: ветер выдувает воздушную прослойку.', priority: 'warning', icon: '💨' },
+  { id: 'tip-17', category: 'alerts', title: 'Высокая влажность', text: 'При влажности >80% и температуре <10° ощущается на 5° холоднее. Одевайтесь теплее.', priority: 'warning', icon: '💧' },
+  { id: 'tip-18', category: 'alerts', title: 'Гололёд', text: 'При околонулевой температуре асфальт скользкий. Обувь с нескользкой подошвой обязательна.', priority: 'warning', icon: '⚠️' },
+  { id: 'tip-19', category: 'alerts', title: 'Туман', text: 'Видимость снижена. Яркая одежда и светоотражатели помогут водителям заметить ребёнка.', priority: 'warning', icon: '🌫️' },
+  { id: 'tip-20', category: 'alerts', title: 'Резкое похолодание', text: 'Если температура упала на 10° за час — добавьте слой немедленно.', priority: 'danger', icon: '📉' },
+  
+  // ВОЗРАСТНЫЕ ОСОБЕННОСТИ (age)
+  { id: 'tip-21', category: 'age', title: 'Новорождённый (0-3 мес)', text: 'Терморегуляция незрелая. Не может эффективно сохранять тепло. Проверяйте шею каждые 15 минут.', priority: 'danger', icon: '👶' },
+  { id: 'tip-22', category: 'age', title: 'Малыш в коляске', text: 'Неподвижный ребёнок мёрзнет: добавьте один слой сверх рекомендации.', priority: 'warning', icon: '🛒' },
+  { id: 'tip-23', category: 'age', title: 'Ползунок (3-12 мес)', text: 'Начинает ползать — больше движений = больше тепла. При активности одевайте на 1 слой меньше.', priority: 'info', icon: '🧸' },
+  { id: 'tip-24', category: 'age', title: 'Бегун (1-3 года)', text: 'Бегает 90% времени. Не одевайте слишком тепло — вспотеет и мгновенно замёрзнет.', priority: 'warning', icon: '🏃' },
+  { id: 'tip-25', category: 'age', title: 'Дошкольник (3-7 лет)', text: 'Может сам снимать/надевать одежду. Объясняйте ЗАЧЕМ нужна шапка, давайте выбор.', priority: 'info', icon: '🎒' },
+  { id: 'tip-26', category: 'age', title: 'Школьник (7-12 лет)', text: 'Одевается сам — уважайте его выбор, но напоминайте о последствиях. Тяжёлый рюкзак даёт дополнительное тепло.', priority: 'info', icon: '🏫' },
+  { id: 'tip-27', category: 'age', title: 'Коляска vs ходунки', text: 'Ребёнок в коляске неподвижен — ему нужно на 1 слой больше, чем бегающему сверстнику.', priority: 'warning', icon: '👶' },
+  { id: 'tip-28', category: 'age', title: 'Сон на улице', text: 'Спящий ребёнок не двигается — метаболизм замедляется. Добавьте плед или конверт.', priority: 'warning', icon: '💤' },
+  
+  // ПРАКТИЧЕСКИЕ СОВЕТЫ (practical)
+  { id: 'tip-29', category: 'practical', title: 'Правило трёх слоёв', text: 'Влагоотвод (термобельё) → Изоляция (флис/шерсть) → Защита (мембрана). Работает всегда.', priority: 'info', icon: '🧅' },
+  { id: 'tip-30', category: 'practical', title: 'Хлопок на морозе = опасно', text: 'Хлопок впитывает влагу и долго сохнет. На холоде только шерсть мериноса или синтетика.', priority: 'warning', icon: '⚠️' },
+  { id: 'tip-31', category: 'practical', title: 'Мембрана дышит', text: 'Обычный плащ создаст парник. Мембранная куртка отводит влагу наружу — ребёнок не вспотеет.', priority: 'info', icon: '💨' },
+  { id: 'tip-32', category: 'practical', title: 'Размер обуви с запасом', text: '+1 см к длине стопы. Воздушная прослойка греет лучше любого утеплителя.', priority: 'info', icon: '👟' },
+  { id: 'tip-33', category: 'practical', title: 'Варежки теплее перчаток', text: 'Пальцы в варежке греют друг друга. Перчатки — только для старших детей.', priority: 'info', icon: '🧤' },
+  { id: 'tip-34', category: 'practical', title: 'Шапка-шлем идеальна', text: 'Не сползает, закрывает шею и лоб. Для активных детей — лучший выбор.', priority: 'info', icon: '🪖' },
+  { id: 'tip-35', category: 'practical', title: 'Снуд вместо шарфа', text: 'Не развязывается, не болтается, закрывает шею полностью. Безопаснее для малышей.', priority: 'info', icon: '🧣' },
+  { id: 'tip-36', category: 'practical', title: 'Резиновые сапоги с носком', text: 'Резина не греет. Надевайте сапоги на толстый шерстяной носок, иначе ноги замёрзнут.', priority: 'warning', icon: '🥾' },
+  { id: 'tip-37', category: 'practical', title: 'Светлая одежда в жару', text: 'Белый и пастельные тона отражают солнце. Чёрный нагревается на 10-15° сильнее.', priority: 'info', icon: '👕' },
+  { id: 'tip-38', category: 'practical', title: 'Панама с полями', text: 'Широкие поля защищают лицо, уши и шею от солнца. Кепка закрывает только лоб.', priority: 'info', icon: '👒' },
+  { id: 'tip-39', category: 'practical', title: 'Солнцезащитные очки', text: 'Детская сетчатка вдвое чувствительнее взрослой. Линзы с UV400 обязательны.', priority: 'warning', icon: '🕶️' },
+  { id: 'tip-40', category: 'practical', title: 'Проверка перед выходом', text: 'Присядьте на корточки и посмотрите на ребёнка снизу: не задралась ли куртка, не сползла ли шапка.', priority: 'info', icon: '🔍' },
+  
+  // АКТИВНОСТЬ (activity)
+  { id: 'tip-41', category: 'practical', title: 'Активная прогулка', text: 'Ребёнок будет бегать: снимите верхний слой до выхода со двора, чтобы не вспотел.', priority: 'info', icon: '⚽' },
+  { id: 'tip-42', category: 'practical', title: 'Спокойная прогулка', text: 'Тело греет меньше при низкой активности. Добавьте изоляции (флисовый слой).', priority: 'info', icon: '📚' },
+  { id: 'tip-43', category: 'practical', title: 'Площадка vs коляска', text: 'На площадке ребёнок двигается — одевайте на 1 слой легче, чем в коляску.', priority: 'info', icon: '🛝' },
+  { id: 'tip-44', category: 'practical', title: 'Санки и снегокаты', text: 'Неподвижное катание = быстрое охлаждение. Добавьте windstopper-слой поверх одежды.', priority: 'warning', icon: '🛷' },
+  { id: 'tip-45', category: 'practical', title: 'Велосипед/самокат', text: 'Встречный ветер усиливает охлаждение. Непродуваемая куртка обязательна.', priority: 'warning', icon: '🚲' },
+  
+  // ДОПОЛНИТЕЛЬНЫЕ (bonus)
+  { id: 'tip-46', category: 'practical', title: 'Многослойность работает всегда', text: 'Лучше 3 тонких слоя, чем 1 толстый. Можно регулировать температуру, снимая/надевая.', priority: 'info', icon: '🧅' },
+  { id: 'tip-47', category: 'practical', title: 'Проверяйте руки и ноги', text: 'Тёплые, розовые = хорошо. Бледные, холодные = добавить слой. Горячие, влажные = снять слой.', priority: 'info', icon: '✋' },
+  { id: 'tip-48', category: 'practical', title: 'Лицо на морозе', text: 'Нос белый/синий — признак обморожения. Щёки розовые — норма. Уши плотно закрыты шапкой.', priority: 'warning', icon: '😊' },
+  { id: 'tip-49', category: 'practical', title: 'Обувь не тесная', text: 'Тесная обувь нарушает кровообращение — ноги мёрзнут быстрее. Палец должен проходить за пяткой.', priority: 'warning', icon: '👢' },
+  { id: 'tip-50', category: 'practical', title: 'Доверяйте ребёнку', text: 'Если ребёнок говорит "мне жарко/холодно" — прислушайтесь. Дети чувствуют температуру точнее взрослых.', priority: 'info', icon: '💬' },
+  
+  // НОВАЯ ПОДСКАЗКА ПРО БАХИЛЫ
+  { id: 'tip-51', category: 'essentials', title: 'Силиконовые бахилы', text: 'Лёгкие силиконовые бахилы спасут в дождь и слякоть. Надеваются поверх любой обуви, занимают мало места в кармане.', priority: 'info', icon: '🧦' },
+];
+
 export const generateOutfit = (
   gender: ChildGender, w: WeatherData, activity: ActivityLevel,
   sensitivity: ColdSensitivity, age: AgeGroup,
@@ -115,13 +187,49 @@ export const generateOutfit = (
   if (zone === 'hot') accessories.push(it('ac-sun', 'Солнечные очки', 'accessory', '🕶️', '#0F172A', 0, 'Детские линзы с UV400 — сетчатка ребёнка вдвое чувствительнее.'));
   if (w.isRainy) accessories.push(it('ac-umb', 'Зонт', 'accessory', '☂️', '#EF4444', 0, 'Яркий зонт: ребёнка видно издалека.'));
 
+  // ГЕНЕРАЦИЯ СОВЕТОВ: контекстные + случайные из пула
   const parentTips: ParentTip[] = [];
-  if (eff <= -10) parentTips.push({ id: 't-frost', category: 'safety', title: 'Риск обморожения', text: 'Проверяйте нос и щёки каждые 15 минут: побеление — срочно греться.', priority: 'danger', icon: '❄️' });
-  if (eff >= 27) parentTips.push({ id: 't-heat', category: 'safety', title: 'Риск перегрева', text: 'Светлая одежда, панамка и вода обязательны. Гуляйте до 11:00 и после 17:00.', priority: 'danger', icon: '☀️' });
-  if (w.windSpeed > 15) parentTips.push({ id: 't-wind', category: 'alerts', title: 'Сильный ветер', text: 'Ветровка важнее тёплой кофты: ветер выдувает воздушную прослойку.', priority: 'warning', icon: '💨' });
-  if (w.isRainy) parentTips.push({ id: 't-rain', category: 'practical', title: 'Влажно', text: 'Мембрана и резиновые сапоги. Хлопок намок = ребёнок замёрз.', priority: 'warning', icon: '☔' });
-  parentTips.push({ id: 't-neck', category: 'practical', title: 'Тест по загривку', text: 'Шея сзади тёплая и сухая — одето правильно. Влажная — перегрев, холодная — добавить слой.', priority: 'info', icon: '💡' });
-  if (age === '0-3m' || age === '3-12m') parentTips.push({ id: 't-baby', category: 'age', title: 'Малыш в коляске', text: 'Неподвижный ребёнок мёрзнет: добавьте один слой сверх рекомендации.', priority: 'warning', icon: '👶' });
+  
+  // 1. Контекстные советы (зависят от погоды)
+  if (eff <= -10) {
+    parentTips.push(TIPS_POOL.find(t => t.id === 'tip-02')!); // Риск обморожения
+  }
+  if (eff >= 27) {
+    parentTips.push(TIPS_POOL.find(t => t.id === 'tip-03')!); // Риск перегрева
+  }
+  if (w.windSpeed > 15) {
+    parentTips.push(TIPS_POOL.find(t => t.id === 'tip-16')!); // Сильный ветер
+  }
+  if (w.isRainy) {
+    parentTips.push(TIPS_POOL.find(t => t.id === 'tip-04')!); // Мокрые ноги
+    // ДОБАВЛЯЕМ ПОДСКАЗКУ ПРО БАХИЛЫ ПРИ ДОЖДЕ
+    parentTips.push(TIPS_POOL.find(t => t.id === 'tip-51')!); // Силиконовые бахилы
+  }
+  if (age === '0-3m' || age === '3-12m') {
+    parentTips.push(TIPS_POOL.find(t => t.id === 'tip-22')!); // Малыш в коляске
+  }
+  
+  // 2. Случайные советы из пула (исключая уже добавленные)
+  const usedIds = new Set(parentTips.map(t => t.id));
+  const availableTips = TIPS_POOL.filter(t => !usedIds.has(t.id));
+  
+  // Выбираем 3 случайных совета
+  const shuffled = availableTips.sort(() => 0.5 - Math.random());
+  const randomTips = shuffled.slice(0, 3);
+  
+  parentTips.push(...randomTips);
+  
+  // 3. Обязательно добавляем "Тест по загривку" (главный совет)
+  const neckTip = TIPS_POOL.find(t => t.id === 'tip-01');
+  if (neckTip && !parentTips.some(t => t.id === 'tip-01')) {
+    parentTips.push(neckTip);
+  }
+  
+  // Сортировка по приоритету: danger → warning → info
+  parentTips.sort((a, b) => {
+    const pWeight = { danger: 1, warning: 2, info: 3 };
+    return pWeight[a.priority] - pWeight[b.priority];
+  });
 
   const specialAdvice: string[] = [];
   if (coolish) specialAdvice.push('Правило трёх слоёв: влагоотвод → изоляция → защита.');

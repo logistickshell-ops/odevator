@@ -8,7 +8,8 @@ import {
   ColdSensitivity, 
   ChildGender, 
   ClothingItem,
-  AgeGroup
+  AgeGroup,
+  LAYER_LABELS
 } from './types';
 import { 
   interpretWeatherCode, 
@@ -822,10 +823,15 @@ export default function App() {
                   <span className="text-3xl sm:text-4xl leading-none">{selectedItem.emoji}</span>
                   <div>
                     <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-wider bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-md border border-indigo-100">
-                      {selectedItem.category === 'base' ? 'Слой 1. Влагоотвод' :
-                       selectedItem.category === 'middle' ? 'Слой 2. Термоизоляция' :
-                       selectedItem.category === 'outer' ? 'Слой 3. Ветро-влагозащита' :
-                       selectedItem.category === 'shoes' ? 'Обувь' : 'Аксессуары'}
+                      {selectedItem.category === 'outer'
+                        ? 'Слой 4. Ветро-влагозащита'
+                        : selectedItem.category === 'upper'
+                          ? 'Слой 3. Термоизоляция'
+                          : selectedItem.category === 'lower'
+                            ? 'Слой 2. Основной слой'
+                            : selectedItem.category === 'underwear'
+                              ? 'Слой 1. Влагоотвод'
+                              : LAYER_LABELS[selectedItem.category]}
                     </span>
                     <h3 className="text-sm font-extrabold text-slate-800 mt-1.5">{selectedItem.name}</h3>
                   </div>

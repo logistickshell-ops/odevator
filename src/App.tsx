@@ -176,6 +176,7 @@ export default function App() {
 
   const [todayForecast, setTodayForecast] = useState<DayForecast | null>(null);
   const [tomorrowForecast, setTomorrowForecast] = useState<DayForecast | null>(null);
+  const [currentCityWeather, setCurrentCityWeather] = useState<WeatherData | null>(null);
   const [isLoadingWeather, setIsLoadingWeather] = useState(false);
   const [weatherError, setWeatherError] = useState<string | null>(null);
 
@@ -237,7 +238,7 @@ export default function App() {
     setWeatherError(null);
     
     try {
-      const url = `https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&hourly=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation_probability,weather_code,wind_speed_10m&timezone=auto`;
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation_probability,weather_code,wind_speed_10m&hourly=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation_probability,weather_code,wind_speed_10m&timezone=auto`;
       
       const response = await fetch(url);
       if (!response.ok) throw new Error('Ошибка ответа сервера погоды.');
@@ -309,6 +310,24 @@ export default function App() {
 
       const today = parseDay(0);
       const tomorrow = parseDay(1);
+      const current = data.current;
+      const currentFallback = today.periods.day;
+      const currentWeatherCode = current?.weather_code ?? currentFallback.weatherCode;
+      const currentInterpretation = interpretWeatherCode(currentWeatherCode);
+
+      setCurrentCityWeather({
+        temp: current?.temperature_2m !== undefined ? Math.round(current.temperature_2m * 10) / 10 : currentFallback.temp,
+        feelsLike: current?.apparent_temperature !== undefined ? Math.round(current.apparent_temperature * 10) / 10 : currentFallback.feelsLike,
+        windSpeed: current?.wind_speed_10m !== undefined ? Math.round(current.wind_speed_10m * 10) / 10 : currentFallback.windSpeed,
+        humidity: current?.relative_humidity_2m !== undefined ? Math.round(current.relative_humidity_2m) : currentFallback.humidity,
+        precipProb: current?.precipitation_probability !== undefined ? Math.round(current.precipitation_probability) : currentFallback.precipProb,
+        weatherCode: currentWeatherCode,
+        description: currentInterpretation.description,
+        icon: currentInterpretation.icon,
+        isRainy: currentInterpretation.isRain,
+        isSnowy: currentInterpretation.isSnow,
+        isWindy: (current?.wind_speed_10m ?? currentFallback.windSpeed) > 15,
+      });
 
       setTodayForecast(today);
       setTomorrowForecast(tomorrow);
@@ -326,6 +345,7 @@ export default function App() {
       const mockTomorrow = generateMockForecast(10)[1];
       setTodayForecast(mockToday);
       setTomorrowForecast(mockTomorrow);
+      setCurrentCityWeather(mockToday.periods.day);
       
       const activeVal = mockToday.periods.day;
       setManualTemp(activeVal.temp);
@@ -433,6 +453,19 @@ export default function App() {
     coldSensitivity,
     ageGroup
   );
+  const displayedCurrentWeather = currentCityWeather ?? {
+    temp: 15,
+    feelsLike: 15,
+    windSpeed: 5,
+    humidity: 50,
+    precipProb: 0,
+    weatherCode: 0,
+    description: 'Загружаем данные',
+    icon: 'Cloud',
+    isRainy: false,
+    isSnowy: false,
+    isWindy: false,
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-indigo-50/60 via-white to-sky-50/60 text-slate-700 pb-16 relative overflow-hidden">
@@ -557,7 +590,7 @@ export default function App() {
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5 flex-wrap">
                 <h2 className="text-base sm:text-xl font-black text-slate-800 tracking-tight truncate">
-                  Погода в г. {selectedCity.name}
+                  Сейчас в г. {selectedCity.name}
                 </h2>
                 <span className="text-[10px] sm:text-xs font-bold text-slate-400 whitespace-nowrap">
                   ({selectedCity.region ? `${selectedCity.region}, ` : ''}{selectedCity.country})
@@ -565,11 +598,9 @@ export default function App() {
               </div>
               
               <div className="flex items-center gap-1.5 mt-0.5">
-                <span className={`h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full shrink-0 ${isManual ? 'bg-amber-500' : 'bg-emerald-500'}`} />
+                <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full shrink-0 bg-emerald-500" />
                 <span className="text-[10px] sm:text-xs text-slate-500 font-medium truncate">
-                  {isManual 
-                    ? 'Ручной режим' 
-                    : 'Прогноз реального времени'}
+                  Текущая погода · не зависит от времени прогулки
                 </span>
               </div>
 
@@ -588,7 +619,7 @@ export default function App() {
               <div className="min-w-0">
                 <span className="text-[8px] sm:text-[10px] text-slate-400 block font-bold uppercase">На улице</span>
                 <span className="text-xs sm:text-sm font-black text-slate-800">
-                  {activeWeather.temp > 0 ? `+${activeWeather.temp}` : activeWeather.temp}°C
+                  {displayedCurrentWeather.temp > 0 ? `+${displayedCurrentWeather.temp}` : displayedCurrentWeather.temp}°C
                 </span>
               </div>
             </div>
@@ -598,7 +629,7 @@ export default function App() {
               <div className="min-w-0">
                 <span className="text-[8px] sm:text-[10px] text-indigo-500 block font-bold uppercase">Ощущается</span>
                 <span className="text-xs sm:text-sm font-black text-slate-800">
-                  {computedFeelsLike > 0 ? `+${computedFeelsLike}` : computedFeelsLike}°C
+                  {displayedCurrentWeather.feelsLike > 0 ? `+${displayedCurrentWeather.feelsLike}` : displayedCurrentWeather.feelsLike}°C
                 </span>
               </div>
             </div>
@@ -607,7 +638,7 @@ export default function App() {
               <Wind className="text-slate-400 shrink-0" size={16} />
               <div className="min-w-0">
                 <span className="text-[8px] sm:text-[10px] text-slate-400 block font-bold uppercase">Ветер</span>
-                <span className="text-xs sm:text-sm font-black text-slate-800">{activeWeather.windSpeed} км/ч</span>
+                <span className="text-xs sm:text-sm font-black text-slate-800">{displayedCurrentWeather.windSpeed} км/ч</span>
               </div>
             </div>
 
@@ -615,7 +646,7 @@ export default function App() {
               <Droplets className="text-blue-400 shrink-0" size={16} />
               <div className="min-w-0">
                 <span className="text-[8px] sm:text-[10px] text-slate-400 block font-bold uppercase">Влажность</span>
-                <span className="text-xs sm:text-sm font-black text-slate-800">{activeWeather.humidity}%</span>
+                <span className="text-xs sm:text-sm font-black text-slate-800">{displayedCurrentWeather.humidity}%</span>
               </div>
             </div>
           </div>

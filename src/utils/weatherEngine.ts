@@ -1,6 +1,6 @@
 import {
   ActivityLevel, AgeGroup, ChildGender, ClothingItem, ColdSensitivity,
-  ParentTip, RecommendedOutfit, WeatherData,
+  ParentTip, RecommendedOutfit, WeatherData, WeatherPeriodType,
 } from '../types';
 
 export const interpretWeatherCode = (code: number) => {
@@ -117,7 +117,7 @@ const TIPS_POOL: ParentTip[] = [
 export const generateOutfit = (
   gender: ChildGender, w: WeatherData, activity: ActivityLevel,
   sensitivity: ColdSensitivity, age: AgeGroup,
-  _period?: string,
+  period: WeatherPeriodType = 'day',
 ): RecommendedOutfit => {
   const girl = gender === 'girl';
   const eff = calculateEffectiveTemp(w.temp, w.windSpeed, w.humidity, activity, sensitivity, age);
@@ -187,49 +187,54 @@ export const generateOutfit = (
   if (zone === 'hot') accessories.push(it('ac-sun', 'Солнечные очки', 'accessory', '🕶️', '#0F172A', 0, 'Детские линзы с UV400 — сетчатка ребёнка вдвое чувствительнее.'));
   if (w.isRainy) accessories.push(it('ac-umb', 'Зонт', 'accessory', '☂️', '#EF4444', 0, 'Яркий зонт: ребёнка видно издалека.'));
 
-  // ГЕНЕРАЦИЯ СОВЕТОВ: контекстные + случайные из пула
-  const parentTips: ParentTip[] = [];
-  
-  // 1. Контекстные советы (зависят от погоды)
-  if (eff <= -10) {
-    parentTips.push(TIPS_POOL.find(t => t.id === 'tip-02')!); // Риск обморожения
+  // ДЕТЕРМИНИРОВАННЫЕ ПОДСКАЗКИ: одинаковые условия всегда дают одинаковый порядок карточек.
+  // Порядок: риск → действие по погоде → время суток → возраст/активность → практический шаг.
+  const tipIds: string[] = ['tip-01']; // Универсальная проверка комфорта: загривок.
+  const addTip = (id: string) => {
+    if (!tipIds.includes(id)) tipIds.push(id);
+  };
+
+  if (eff <= -10) addTip('tip-02');
+  if (eff >= 27) addTip('tip-03');
+  if (w.windSpeed >= 15) addTip('tip-16');
+  if (w.humidity >= 80 && eff <= 10) addTip('tip-17');
+  if (w.isRainy || w.precipProb >= 50) {
+    addTip('tip-04');
+    addTip('tip-51');
   }
-  if (eff >= 27) {
-    parentTips.push(TIPS_POOL.find(t => t.id === 'tip-03')!); // Риск перегрева
-  }
-  if (w.windSpeed > 15) {
-    parentTips.push(TIPS_POOL.find(t => t.id === 'tip-16')!); // Сильный ветер
-  }
-  if (w.isRainy) {
-    parentTips.push(TIPS_POOL.find(t => t.id === 'tip-04')!); // Мокрые ноги
-    // ДОБАВЛЯЕМ ПОДСКАЗКУ ПРО БАХИЛЫ ПРИ ДОЖДЕ
-    parentTips.push(TIPS_POOL.find(t => t.id === 'tip-51')!); // Силиконовые бахилы
-  }
-  if (age === '0-3m' || age === '3-12m') {
-    parentTips.push(TIPS_POOL.find(t => t.id === 'tip-22')!); // Малыш в коляске
-  }
-  
-  // 2. Случайные советы из пула (исключая уже добавленные)
-  const usedIds = new Set(parentTips.map(t => t.id));
-  const availableTips = TIPS_POOL.filter(t => !usedIds.has(t.id));
-  
-  // Выбираем 3 случайных совета
-  const shuffled = availableTips.sort(() => 0.5 - Math.random());
-  const randomTips = shuffled.slice(0, 3);
-  
-  parentTips.push(...randomTips);
-  
-  // 3. Обязательно добавляем "Тест по загривку" (главный совет)
-  const neckTip = TIPS_POOL.find(t => t.id === 'tip-01');
-  if (neckTip && !parentTips.some(t => t.id === 'tip-01')) {
-    parentTips.push(neckTip);
-  }
-  
-  // Сортировка по приоритету: danger → warning → info
-  parentTips.sort((a, b) => {
-    const pWeight = { danger: 1, warning: 2, info: 3 };
-    return pWeight[a.priority] - pWeight[b.priority];
-  });
+  if (w.isSnowy) addTip('tip-11');
+  if (eff >= -2 && eff <= 2) addTip('tip-18');
+  if (w.weatherCode === 45 || w.weatherCode === 48) addTip('tip-19');
+
+  const periodTip: Record<WeatherPeriodType, string> = {
+    morning: 'tip-06',
+    day: eff >= 20 ? 'tip-08' : 'tip-10',
+    evening: 'tip-07',
+    night: 'tip-09',
+  };
+  addTip(periodTip[period]);
+
+  const ageTip: Record<AgeGroup, string> = {
+    '0-3m': 'tip-21',
+    '3-12m': 'tip-22',
+    '1-3y': 'tip-24',
+    '3-7y': 'tip-25',
+    '7-12y': 'tip-26',
+  };
+  addTip(ageTip[age]);
+
+  if (activity === 'active') addTip(w.windSpeed >= 15 ? 'tip-45' : 'tip-41');
+  if (activity === 'quiet') addTip('tip-42');
+
+  if (w.isRainy) addTip('tip-36');
+  else if (eff <= 0) addTip('tip-30');
+  else if (eff >= 25) addTip('tip-37');
+  else addTip('tip-40');
+
+  const parentTips: ParentTip[] = tipIds
+    .map((id) => TIPS_POOL.find((tip) => tip.id === id))
+    .filter((tip): tip is ParentTip => Boolean(tip))
+    .slice(0, 7);
 
   const specialAdvice: string[] = [];
   if (coolish) specialAdvice.push('Правило трёх слоёв: влагоотвод → изоляция → защита.');

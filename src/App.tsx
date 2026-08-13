@@ -20,6 +20,10 @@ import { WeatherSelector } from './components/WeatherSelector';
 import { AvatarVisualizer } from './components/AvatarVisualizer';
 import { CustomWeatherControls } from './components/CustomWeatherControls';
 import { ParentTipsSection } from './components/ParentTipsSection';
+import { FaqSection } from './components/FaqSection';
+import { AnalysisSection } from './components/AnalysisSection';
+import { WalkNotes } from './components/WalkNotes';
+import { WalkChecklist } from './components/WalkChecklist';
 import { 
   MapPin, 
   Search, 
@@ -28,7 +32,6 @@ import {
   Wind, 
   Droplets, 
   Baby, 
-  HelpCircle,
   Settings
 } from 'lucide-react';
 
@@ -183,7 +186,7 @@ export default function App() {
     loadFromStorage(STORAGE_KEYS.GENDER, 'girl')
   );
   
-  const [activeTab, setActiveTab] = useState<'clothing' | 'tips' | 'parameters' | 'faq'>('clothing');
+  const [activeTab, setActiveTab] = useState<'clothing' | 'parameters' | 'tips' | 'notes'>('clothing');
 
   const [isManual, setIsManual] = useState(false);
   const [manualTemp, setManualTemp] = useState(12);
@@ -512,15 +515,6 @@ export default function App() {
               <span>Одежда</span>
             </button>
             <button
-              onClick={() => setActiveTab('tips')}
-              className={`py-2 px-1 font-extrabold text-[9px] xs:text-[11px] sm:text-sm border-b-2 transition flex flex-col xs:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-1.5 whitespace-nowrap ${
-                activeTab === 'tips' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-600'
-              }`}
-            >
-              <span>💡</span>
-              <span>Подсказки</span>
-            </button>
-            <button
               onClick={() => setActiveTab('parameters')}
               className={`py-2 px-1 font-extrabold text-[9px] xs:text-[11px] sm:text-sm border-b-2 transition flex flex-col xs:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-1.5 whitespace-nowrap ${
                 activeTab === 'parameters' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-600'
@@ -530,13 +524,22 @@ export default function App() {
               <span>Параметры</span>
             </button>
             <button
-              onClick={() => setActiveTab('faq')}
+              onClick={() => setActiveTab('tips')}
               className={`py-2 px-1 font-extrabold text-[9px] xs:text-[11px] sm:text-sm border-b-2 transition flex flex-col xs:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-1.5 whitespace-nowrap ${
-                activeTab === 'faq' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-600'
+                activeTab === 'tips' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-600'
               }`}
             >
-              <HelpCircle size={14} className="shrink-0" />
-              <span>FAQ</span>
+              <span>💡</span>
+              <span>Подсказки</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('notes')}
+              className={`py-2 px-1 font-extrabold text-[9px] xs:text-[11px] sm:text-sm border-b-2 transition flex flex-col xs:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-1.5 whitespace-nowrap ${
+                activeTab === 'notes' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-600'
+              }`}
+            >
+              <span>📝</span>
+              <span>Заметки</span>
             </button>
           </div>
         </nav>
@@ -704,8 +707,24 @@ export default function App() {
         <div className="space-y-8">
           
           {activeTab === 'tips' && (
-            <div className="space-y-4">
-              <ParentTipsSection tips={activeOutfit.parentTips} />
+            <div className="space-y-6">
+              <ParentTipsSection
+                tips={activeOutfit.parentTips}
+                weather={activeWeather}
+                period={selectedPeriod}
+                ageGroup={ageGroup}
+                outfit={activeOutfit}
+              />
+              <FaqSection weather={activeWeather} period={selectedPeriod} />
+              <AnalysisSection
+                weather={activeWeather}
+                period={selectedPeriod}
+                ageGroup={ageGroup}
+                activity={activityLevel}
+                sensitivity={coldSensitivity}
+                effectiveTemp={computedFeelsLike}
+                outfit={activeOutfit}
+              />
             </div>
           )}
 
@@ -757,58 +776,14 @@ export default function App() {
             </div>
           )}
 
-          {activeTab === 'faq' && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6">
-              
-              <div className="bg-white p-3 sm:p-5 rounded-xl sm:rounded-3xl border border-slate-100 shadow-xs space-y-1.5 sm:space-y-2">
-                <h4 className="font-bold text-slate-800 text-[11px] sm:text-sm flex items-center gap-1.5 sm:gap-2">
-                  <span className="text-base sm:text-lg">🧥</span>
-                  <span>Как работает «правило многослойности»?</span>
-                </h4>
-                <p className="text-[10px] sm:text-xs text-slate-500 leading-relaxed">
-                  Многослойная структура — золотой стандарт детского гардероба в холодное время. 3 обязательных элемента:
-                </p>
-                <ul className="text-[10px] sm:text-[11px] text-slate-500 space-y-1 list-disc list-inside pl-1 sm:pl-2">
-                  <li><strong>Слой 1 (Белье):</strong> отводит влагу. Влажное тело остывает в 25 раз быстрее сухого!</li>
-                  <li><strong>Слой 2 (Утеплитель):</strong> сохраняет воздух (флис или шерсть).</li>
-                  <li><strong>Слой 3 (Внешний):</strong> блокирует ветер и воду (мембрана).</li>
-                </ul>
+          {activeTab === 'notes' && (
+            <div className="space-y-6">
+              <div className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-600 p-5 sm:p-7 text-white shadow-lg shadow-violet-100">
+                <h2 className="text-lg sm:text-2xl font-black">Заметки и чек-листы</h2>
+                <p className="mt-1 text-[12px] sm:text-sm text-violet-100 leading-relaxed">Соберите важное к прогулке, сохраните личную заметку и отмечайте готовность по шагам. Всё хранится только на этом устройстве.</p>
               </div>
-
-              <div className="bg-white p-3 sm:p-5 rounded-xl sm:rounded-3xl border border-slate-100 shadow-xs space-y-1.5 sm:space-y-2">
-                <h4 className="font-bold text-slate-800 text-[11px] sm:text-sm flex items-center gap-1.5 sm:gap-2">
-                  <span className="text-base sm:text-lg">👶</span>
-                  <span>Как проверить, жарко или холодно ребенку?</span>
-                </h4>
-                <p className="text-[10px] sm:text-xs text-slate-500 leading-relaxed">
-                  Не ориентируйтесь на нос или ладошки: на ветру они остывают первыми. Проверьте <strong>заднюю сторону шеи (загривок)</strong>:
-                </p>
-                <ul className="text-[10px] sm:text-[11px] text-slate-500 space-y-1 list-disc list-inside pl-1 sm:pl-2">
-                  <li>Шея горячая и влажная — перегрев, снимите слой.</li>
-                  <li>Шея холодная — ребенок мерзнет, добавьте слой.</li>
-                  <li>Шея теплая и сухая — температура идеальна!</li>
-                </ul>
-              </div>
-
-              <div className="bg-white p-3 sm:p-5 rounded-xl sm:rounded-3xl border border-slate-100 shadow-xs space-y-1.5 sm:space-y-2">
-                <h4 className="font-bold text-slate-800 text-[11px] sm:text-sm flex items-center gap-1.5 sm:gap-2">
-                  <span className="text-base sm:text-lg">🌬️</span>
-                  <span>Как ветер меняет комфортную температуру?</span>
-                </h4>
-                <p className="text-[10px] sm:text-xs text-slate-500 leading-relaxed">
-                  Сильный ветер уносит тепловую прослойку воздуха вокруг тела. При +2°С и ветре 10 м/с кожа теряет тепло как при -5°С! Наш сервис всегда рассчитывает <strong>«эффективную ощущаемую температуру»</strong>.
-                </p>
-              </div>
-
-              <div className="bg-white p-3 sm:p-5 rounded-xl sm:rounded-3xl border border-slate-100 shadow-xs space-y-1.5 sm:space-y-2">
-                <h4 className="font-bold text-slate-800 text-[11px] sm:text-sm flex items-center gap-1.5 sm:gap-2">
-                  <span className="text-base sm:text-lg">☔</span>
-                  <span>Что делать в сырую погоду весной и осенью?</span>
-                </h4>
-                <p className="text-[10px] sm:text-xs text-slate-500 leading-relaxed">
-                  В слякоть обычные джинсы быстро промокают. Отдавайте предпочтение мембранным полукомбинезонам. Обувь — на толстой подошве или Gore-Tex, чтобы изолировать ноги от холодной земли.
-                </p>
-              </div>
+              <WalkNotes city={selectedCity} weather={activeWeather} period={selectedPeriod} />
+              <WalkChecklist weather={activeWeather} period={selectedPeriod} ageGroup={ageGroup} activity={activityLevel} />
             </div>
           )}
         </div>

@@ -1,9 +1,9 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { ShieldCheck, Lightbulb, ChevronLeft, ChevronRight, Clock, Baby, Package, CheckSquare, Square, RotateCcw } from 'lucide-react';
-import { Tip } from '../tips';
+import { ParentTip, ParentTipCategory } from '../types';
 
 interface ParentTipsSectionProps {
-  tips: Tip[];
+  tips: ParentTip[];
 }
 
 export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({ tips }) => {
@@ -45,28 +45,35 @@ export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({ tips }) =>
 
   const categories = [
     { id: 'all', label: 'Все', icon: '📋', count: tips.length },
-    { id: 'health', label: 'Здоровье', icon: '❤️', count: tips.filter(t => t.category === 'health').length },
-    { id: 'weather', label: 'Погода', icon: '🌤️', count: tips.filter(t => t.category === 'weather').length },
-    { id: 'clothing', label: 'Одежда', icon: '👕', count: tips.filter(t => t.category === 'clothing').length },
-    { id: 'general', label: 'Общее', icon: '📝', count: tips.filter(t => t.category === 'general').length },
-  ];
+    { id: 'safety', label: 'Безопасность', icon: '🛡️', count: tips.filter(t => t.category === 'safety').length },
+    { id: 'alerts', label: 'Риски', icon: '⚠️', count: tips.filter(t => t.category === 'alerts').length },
+    { id: 'time', label: 'Время', icon: '🕒', count: tips.filter(t => t.category === 'time').length },
+    { id: 'essentials', label: 'С собой', icon: '🎒', count: tips.filter(t => t.category === 'essentials').length },
+    { id: 'age', label: 'Возраст', icon: '👶', count: tips.filter(t => t.category === 'age').length },
+    { id: 'practical', label: 'Практика', icon: '🧩', count: tips.filter(t => t.category === 'practical').length },
+  ].filter((category) => category.id === 'all' || category.count > 0);
 
-  const getCategoryColor = (category: string | undefined) => {
+  const getCategoryColor = (category: ParentTipCategory) => {
     switch (category) {
-      case 'health': return 'bg-rose-50 border-rose-200 text-rose-900';
-      case 'weather': return 'bg-blue-50 border-blue-200 text-blue-900';
-      case 'clothing': return 'bg-emerald-50 border-emerald-200 text-emerald-900';
-      default: return 'bg-amber-50 border-amber-200 text-amber-900';
+      case 'safety': return 'bg-rose-50 border-rose-200 text-rose-900';
+      case 'alerts': return 'bg-amber-50 border-amber-200 text-amber-900';
+      case 'time': return 'bg-violet-50 border-violet-200 text-violet-900';
+      case 'essentials': return 'bg-sky-50 border-sky-200 text-sky-900';
+      case 'age': return 'bg-pink-50 border-pink-200 text-pink-900';
+      case 'practical': return 'bg-emerald-50 border-emerald-200 text-emerald-900';
     }
   };
 
-  const getCategoryBadge = (category: string | undefined) => {
-    switch (category) {
-      case 'health': return '❤️ Здоровье';
-      case 'weather': return '🌤️ Погода';
-      case 'clothing': return '👕 Одежда';
-      default: return '📝 Общее';
-    }
+  const getCategoryBadge = (category: ParentTipCategory) => {
+    const labels: Record<ParentTipCategory, string> = {
+      safety: '🛡️ Безопасность',
+      time: '🕒 Время суток',
+      essentials: '🎒 С собой',
+      alerts: '⚠️ Погодный риск',
+      age: '👶 Возраст',
+      practical: '🧩 Практика',
+    };
+    return labels[category];
   };
 
   const checklists = {

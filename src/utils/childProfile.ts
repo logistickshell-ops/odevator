@@ -35,18 +35,25 @@ export function getChildDisplayName(name: string) {
   return cleaned && !/^реб[её]нок(?:\s+\d+)?$/i.test(cleaned) ? cleaned : '';
 }
 
-function declineFirstNameToDative(firstName: string, gender: ChildGender) {
+function declineFirstNameToGenitive(firstName: string, gender: ChildGender) {
   const lower = firstName.toLowerCase();
 
   if (gender === 'girl') {
-    if (lower.endsWith('ия')) return `${firstName.slice(0, -1)}и`;
-    if (lower.endsWith('а') || lower.endsWith('я')) return `${firstName.slice(0, -1)}е`;
+    if (lower.endsWith('ия') || lower.endsWith('я')) return `${firstName.slice(0, -1)}и`;
+    if (lower.endsWith('а')) {
+      const stem = firstName.slice(0, -1);
+      return /[гкхжчшщ]$/i.test(stem) ? `${stem}и` : `${stem}ы`;
+    }
     return firstName;
   }
 
-  if (lower.endsWith('й') || lower.endsWith('ь')) return `${firstName.slice(0, -1)}ю`;
-  if (lower.endsWith('а') || lower.endsWith('я')) return `${firstName.slice(0, -1)}е`;
-  if (/[бвгджзклмнпрстфхцчшщ]$/i.test(lower)) return `${firstName}у`;
+  if (lower.endsWith('й') || lower.endsWith('ь')) return `${firstName.slice(0, -1)}я`;
+  if (lower.endsWith('я')) return `${firstName.slice(0, -1)}и`;
+  if (lower.endsWith('а')) {
+    const stem = firstName.slice(0, -1);
+    return /[гкхжчшщ]$/i.test(stem) ? `${stem}и` : `${stem}ы`;
+  }
+  if (/[бвгджзклмнпрстфхцчшщ]$/i.test(lower)) return `${firstName}а`;
   return firstName;
 }
 
@@ -55,6 +62,6 @@ export function formatClothingHeading(name: string, gender: ChildGender) {
   if (!displayName) return 'Одежда для ребёнка';
 
   const words = displayName.split(' ');
-  words[0] = declineFirstNameToDative(words[0], gender);
+  words[0] = declineFirstNameToGenitive(words[0], gender);
   return `Одежда для ${words.join(' ')}`;
 }

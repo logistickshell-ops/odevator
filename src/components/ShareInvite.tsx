@@ -1,32 +1,10 @@
 import { useMemo, useState } from 'react';
 import { Check, Copy, Send, Share2 } from 'lucide-react';
-
-const INVITE_ID_STORAGE_KEY = 'meteo_invite_id';
-const BOT_USERNAME = 'meteo_odevaika_bot';
-
-function getOrCreateInviteId() {
-  try {
-    const existing = window.localStorage.getItem(INVITE_ID_STORAGE_KEY);
-    if (existing) return existing;
-
-    const id = window.crypto?.randomUUID?.() ?? `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
-    window.localStorage.setItem(INVITE_ID_STORAGE_KEY, id);
-    return id;
-  } catch {
-    return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
-  }
-}
-
-function createBotInviteUrl(inviteId: string) {
-  return `https://t.me/${BOT_USERNAME}?startapp=${encodeURIComponent(`ref_${inviteId}`)}`;
-}
+import { copyText, getBotInviteUrl, shareViaTelegram } from '../utils/telegramShare';
 
 export function ShareInvite() {
   const [isCopied, setIsCopied] = useState(false);
-  const inviteUrl = useMemo(() => {
-    if (typeof window === 'undefined') return '';
-    return createBotInviteUrl(getOrCreateInviteId());
-  }, []);
+  const inviteUrl = useMemo(getBotInviteUrl, []);
 
   const inviteText = [
     '🌤️ «МетеоОдевайка» — помощник для прогулок с ребёнком.',
@@ -36,49 +14,16 @@ export function ShareInvite() {
   ].join('\n');
 
   const copyInvite = async () => {
-    if (!inviteUrl) return;
-    try {
-      if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(`${inviteText}\n${inviteUrl}`);
-      } else {
-        const textArea = document.createElement('textarea');
-        textArea.value = `${inviteText}\n${inviteUrl}`;
-        textArea.style.position = 'fixed';
-        textArea.style.opacity = '0';
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        textArea.remove();
-      }
-      setIsCopied(true);
-      window.setTimeout(() => setIsCopied(false), 2200);
-    } catch {
-      setIsCopied(false);
-    }
+    const copied = inviteUrl && await copyText(`${inviteText}\n${inviteUrl}`);
+    setIsCopied(Boolean(copied));
+    if (copied) window.setTimeout(() => setIsCopied(false), 2200);
   };
 
-  const shareInvite = async () => {
-    if (!inviteUrl) return;
-
-    const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(inviteUrl)}&text=${encodeURIComponent(inviteText)}`;
-    const telegram = (window as typeof window & { Telegram?: { WebApp?: { openTelegramLink?: (url: string) => void } } }).Telegram?.WebApp;
-
-    if (telegram?.openTelegramLink) {
-      telegram.openTelegramLink(telegramUrl);
-      return;
-    }
-
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: 'МетеоОдевайка', text: inviteText, url: inviteUrl });
-        return;
-      } catch {
-        // Пользователь мог закрыть системное меню; в этом случае открываем Telegram как запасной вариант.
-      }
-    }
-
-    window.open(telegramUrl, '_blank', 'noopener,noreferrer');
-  };
+  const shareInvite = () => shareViaTelegram({
+    title: 'МетеоОдевайка',
+    text: inviteText,
+    url: inviteUrl,
+  });
 
   return (
     <section className="rounded-2xl sm:rounded-3xl border border-sky-100 bg-gradient-to-br from-sky-50/85 via-white to-rose-50/45 p-4 sm:p-6 shadow-sm">

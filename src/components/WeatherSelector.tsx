@@ -1,6 +1,29 @@
 import React from 'react';
 import { DayForecast, WeatherPeriodType, WeatherData } from '../types';
-import * as Icons from 'lucide-react';
+import {
+  CalendarDays,
+  Clock,
+  Cloud,
+  CloudFog,
+  CloudLightning,
+  CloudRain,
+  CloudSun,
+  Droplets,
+  Snowflake,
+  Sun,
+  Thermometer,
+  Wind,
+} from 'lucide-react';
+
+const WEATHER_ICONS = {
+  Sun,
+  CloudSun,
+  Cloud,
+  CloudFog,
+  CloudRain,
+  Snowflake,
+  CloudLightning,
+};
 
 interface WeatherSelectorProps {
   todayForecast: DayForecast | null;
@@ -19,7 +42,7 @@ export const WeatherSelector: React.FC<WeatherSelectorProps> = ({
 }) => {
   // Helper to render the Lucide icon dynamically
   const renderWeatherIcon = (iconName: string, size: number = 24, className: string = '') => {
-    const IconComponent = (Icons as any)[iconName] || Icons.Cloud;
+    const IconComponent = WEATHER_ICONS[iconName as keyof typeof WEATHER_ICONS] ?? Cloud;
     return <IconComponent size={size} className={className} />;
   };
 
@@ -77,15 +100,15 @@ export const WeatherSelector: React.FC<WeatherSelectorProps> = ({
         {/* Mini Weather details bar */}
         <div className="mt-3 sm:mt-4 pt-2 sm:pt-3 border-t border-slate-100/70 flex items-center justify-between text-[8px] sm:text-[10px] font-bold text-slate-500 gap-1">
           <span className="flex items-center gap-0.5 sm:gap-1">
-            <Icons.Droplets size={10} className="text-blue-400" />
+            <Droplets size={10} className="text-blue-400" />
             <span className="hidden xs:inline">💧</span> {data.precipProb}%
           </span>
           <span className="flex items-center gap-0.5 sm:gap-1">
-            <Icons.Wind size={10} className="text-slate-400" />
+            <Wind size={10} className="text-slate-400" />
             <span className="hidden xs:inline">💨</span> {data.windSpeed}
           </span>
           <span className="flex items-center gap-0.5 sm:gap-1">
-            <Icons.Thermometer size={10} className="text-amber-400" />
+            <Thermometer size={10} className="text-amber-400" />
             <span className="hidden xs:inline">🌡️</span> {data.humidity}%
           </span>
         </div>
@@ -116,7 +139,7 @@ export const WeatherSelector: React.FC<WeatherSelectorProps> = ({
               : 'text-slate-600 hover:text-slate-800 hover:bg-white/50'
           }`}
         >
-          <Icons.CalendarDays size={14} />
+          <CalendarDays size={14} />
           <div>
             <span>Сегодня</span>
             <span className="block text-[8px] sm:text-[10px] font-normal text-slate-400 mt-0.5 truncate max-w-[80px] sm:max-w-none">
@@ -133,7 +156,7 @@ export const WeatherSelector: React.FC<WeatherSelectorProps> = ({
               : 'text-slate-600 hover:text-slate-800 hover:bg-white/50'
           }`}
         >
-          <Icons.CalendarDays size={14} />
+          <CalendarDays size={14} />
           <div>
             <span>Завтра</span>
             <span className="block text-[8px] sm:text-[10px] font-normal text-slate-400 mt-0.5 truncate max-w-[80px] sm:max-w-none">
@@ -146,7 +169,7 @@ export const WeatherSelector: React.FC<WeatherSelectorProps> = ({
       {/* Forecast periods grid — 2 cols on mobile */}
       <div>
         <h3 className="text-[10px] sm:text-sm font-black text-slate-500 uppercase tracking-wider mb-2 sm:mb-3 flex items-center gap-1 sm:gap-1.5">
-          <Icons.Clock size={12} />
+          <Clock size={12} />
           <span>Выберите время для прогулки</span>
         </h3>
         

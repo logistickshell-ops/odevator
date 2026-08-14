@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ChevronDown, ChevronUp, Plus, Save, Trash2, UserRound } from 'lucide-react';
-import { ActivityLevel, AgeGroup, ChildGender, ChildProfile, ColdSensitivity } from '../types';
+import { ActivityLevel, ChildGender, ChildProfile, ColdSensitivity } from '../types';
+import { AGE_GROUP_OPTIONS } from '../utils/childProfile';
 
 interface ChildProfileSettingsProps {
   profiles: ChildProfile[];
@@ -11,13 +12,23 @@ interface ChildProfileSettingsProps {
   onDeleteChild: (childId: string) => void;
 }
 
-const ageOptions: { value: AgeGroup; label: string; icon: string; desc: string }[] = [
-  { value: '0-3m', label: 'Новорождённый', icon: '🐣', desc: '0–3 месяца' },
-  { value: '3-12m', label: 'Младенец', icon: '🧸', desc: '3–12 месяцев' },
-  { value: '1-3y', label: 'Ясельный', icon: '🍼', desc: '1–3 года' },
-  { value: '3-7y', label: 'Дошкольник', icon: '🎒', desc: '3–7 лет' },
-  { value: '7-12y', label: 'Школьник', icon: '🏫', desc: '7–12 лет' },
-];
+const PROFILE_SETTINGS_EXPANDED_KEY = 'meteo_profile_settings_expanded_v1';
+
+const loadExpandedState = () => {
+  try {
+    return typeof window === 'undefined' || window.localStorage.getItem(PROFILE_SETTINGS_EXPANDED_KEY) !== 'false';
+  } catch {
+    return true;
+  }
+};
+
+const saveExpandedState = (expanded: boolean) => {
+  try {
+    window.localStorage.setItem(PROFILE_SETTINGS_EXPANDED_KEY, String(expanded));
+  } catch {
+    // Настройки профиля продолжают работать и без доступа к localStorage.
+  }
+};
 
 const activityOptions: { value: ActivityLevel; label: string; icon: string; desc: string }[] = [
   { value: 'quiet', label: 'Спокойный', icon: '👶', desc: 'Коляска, спокойная игра' },
@@ -40,7 +51,7 @@ export function ChildProfileSettings({
   onDeleteChild,
 }: ChildProfileSettingsProps) {
   const activeProfile = profiles.find((profile) => profile.id === activeChildId) ?? profiles[0];
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(loadExpandedState);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [draft, setDraft] = useState<ChildProfile>(activeProfile);
 
@@ -49,13 +60,18 @@ export function ChildProfileSettings({
     setIsDeleteConfirmOpen(false);
   }, [activeProfile]);
 
+  const setProfileExpanded = (expanded: boolean) => {
+    setIsExpanded(expanded);
+    saveExpandedState(expanded);
+  };
+
   const updateDraft = <Key extends keyof ChildProfile>(key: Key, value: ChildProfile[Key]) => {
     setDraft((current) => ({ ...current, [key]: value }));
   };
 
   const handleAddChild = () => {
     onAddChild();
-    setIsExpanded(true);
+    setProfileExpanded(true);
   };
 
   if (!activeProfile) return null;
@@ -76,7 +92,7 @@ export function ChildProfileSettings({
         </div>
         <button
           type="button"
-          onClick={() => setIsExpanded((value) => !value)}
+          onClick={() => setProfileExpanded(!isExpanded)}
           className="flex shrink-0 items-center gap-1 rounded-xl border border-sky-100 bg-white/85 px-2.5 py-2 text-[10px] sm:text-xs font-extrabold text-sky-700 transition hover:bg-sky-50"
           aria-expanded={isExpanded}
         >
@@ -94,7 +110,7 @@ export function ChildProfileSettings({
               key={profile.id}
               onClick={() => {
                 onSelectChild(profile.id);
-                setIsExpanded(true);
+                setProfileExpanded(true);
               }}
               className={`shrink-0 rounded-xl border px-3 py-2 text-left text-[10px] sm:text-xs font-extrabold transition ${
                 isActive
@@ -156,7 +172,7 @@ export function ChildProfileSettings({
           <div>
             <span className="mb-2 block text-[10px] font-black uppercase tracking-wider text-slate-500">Возрастная группа</span>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
-              {ageOptions.map((option) => (
+              {AGE_GROUP_OPTIONS.map((option) => (
                 <button
                   type="button"
                   key={option.value}
@@ -169,7 +185,7 @@ export function ChildProfileSettings({
                 >
                   <span className="block text-xl leading-none">{option.icon}</span>
                   <span className="mt-1 block text-[10px] font-extrabold leading-tight">{option.label}</span>
-                  <span className="mt-0.5 block text-[9px] leading-tight text-slate-400">{option.desc}</span>
+                  <span className="mt-0.5 block text-[9px] leading-tight text-slate-400">{option.description}</span>
                 </button>
               ))}
             </div>
@@ -223,7 +239,7 @@ export function ChildProfileSettings({
               type="button"
               onClick={() => {
                 onSaveChild({ ...draft, name: draft.name.trim() || 'Ребёнок' });
-                setIsExpanded(false);
+                setProfileExpanded(false);
                 setIsDeleteConfirmOpen(false);
               }}
               className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-sky-200 bg-sky-100 px-4 py-3 text-xs font-black text-sky-800 transition hover:bg-sky-200 active:scale-[0.99] sm:w-auto"
@@ -260,7 +276,7 @@ export function ChildProfileSettings({
                   onClick={() => {
                     onDeleteChild(activeProfile.id);
                     setIsDeleteConfirmOpen(false);
-                    setIsExpanded(false);
+                    setProfileExpanded(false);
                   }}
                   className="rounded-xl border border-rose-200 bg-rose-100 px-3 py-2 text-[10px] sm:text-xs font-extrabold text-rose-800 transition hover:bg-rose-200"
                 >

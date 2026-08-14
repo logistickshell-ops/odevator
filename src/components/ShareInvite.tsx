@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 
 const INVITE_ID_STORAGE_KEY = 'meteo_invite_id';
+const BOT_USERNAME = 'meteo_odevaika_bot';
 
 function getOrCreateInviteId() {
   try {
@@ -15,17 +16,19 @@ function getOrCreateInviteId() {
   }
 }
 
+function createBotInviteUrl(inviteId: string) {
+  const startParam = `ref_${inviteId}`;
+  return `https://t.me/${BOT_USERNAME}?startapp=${encodeURIComponent(startParam)}`;
+}
+
 export function ShareInvite() {
   const [isCopied, setIsCopied] = useState(false);
   const inviteUrl = useMemo(() => {
     if (typeof window === 'undefined') return '';
-
-    const url = new URL(window.location.href);
-    url.searchParams.set('ref', getOrCreateInviteId());
-    return url.toString();
+    return createBotInviteUrl(getOrCreateInviteId());
   }, []);
 
-  const shareText = 'Подбираю одежду ребёнку по погоде в «МетеоОдевайке». Попробуй тоже:';
+  const shareText = 'Подбираю одежду ребёнку по погоде в «МетеоОдевайке». Открой приложение в Telegram:';
 
   const copyInvite = async () => {
     if (!inviteUrl) return;
@@ -80,7 +83,7 @@ export function ShareInvite() {
         <div className="min-w-0">
           <h3 className="text-sm sm:text-base font-black text-slate-800">Поделиться с близкими</h3>
           <p className="mt-1 text-[11px] sm:text-xs leading-relaxed text-slate-500">
-            Отправьте ссылку родителям и тем, с кем гуляете. Она открывает этот сервис без передачи данных ребёнка.
+            Отправьте близким ссылку на Telegram-бота — она откроет «МетеоОдевайку» сразу в Telegram.
           </p>
         </div>
       </div>
@@ -95,20 +98,20 @@ export function ShareInvite() {
         <button
           type="button"
           onClick={shareInvite}
-          className="rounded-xl bg-violet-600 px-3 py-2.5 text-[11px] sm:text-xs font-extrabold text-white shadow-sm shadow-violet-200 transition hover:bg-violet-700 active:scale-[0.98]"
+          className="rounded-xl bg-violet-600 px-3 py-2.5 text-[10px] sm:text-xs font-extrabold text-white shadow-sm shadow-violet-200 transition hover:bg-violet-700 active:scale-[0.98]"
         >
           ↗ Отправить
         </button>
         <button
           type="button"
           onClick={copyInvite}
-          className="rounded-xl border border-violet-200 bg-white px-3 py-2.5 text-[11px] sm:text-xs font-extrabold text-violet-700 transition hover:bg-violet-50 active:scale-[0.98]"
+          className="rounded-xl border border-violet-200 bg-white px-3 py-2.5 text-[10px] sm:text-xs font-extrabold text-violet-700 transition hover:bg-violet-50 active:scale-[0.98]"
         >
           {isCopied ? '✓ Скопировано' : '⧉ Скопировать'}
         </button>
       </div>
       <p className="mt-3 text-[9px] sm:text-[10px] leading-relaxed text-slate-400" aria-live="polite">
-        Ссылка содержит только технический идентификатор приглашения. Учёт приглашений требует серверной аналитики и в этой статической версии не ведётся.
+        Ссылка открывает @{BOT_USERNAME} и передаёт только технический идентификатор приглашения — без данных ребёнка.
       </p>
     </section>
   );

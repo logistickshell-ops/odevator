@@ -9,6 +9,7 @@ import {
   ChildGender, 
   ClothingItem,
   AgeGroup,
+  ChildProfile,
   LAYER_LABELS
 } from './types';
 import { 
@@ -25,6 +26,7 @@ import { AnalysisSection } from './components/AnalysisSection';
 import { WalkNotes } from './components/WalkNotes';
 import { WalkChecklist } from './components/WalkChecklist';
 import { ShareInvite } from './components/ShareInvite';
+import { ChildProfileSettings } from './components/ChildProfileSettings';
 import { 
   MapPin, 
   Search, 
@@ -41,6 +43,9 @@ import {
 // ============================================
 const STORAGE_KEYS = {
   CITY: 'meteo_saved_city',
+  CHILDREN: 'meteo_child_profiles_v1',
+  ACTIVE_CHILD: 'meteo_active_child_v1',
+  // Старые ключи нужны только для мягкого переноса одного существующего профиля.
   GENDER: 'meteo_saved_gender',
   ACTIVITY: 'meteo_saved_activity',
   SENSITIVITY: 'meteo_saved_sensitivity',
@@ -154,6 +159,22 @@ const DEFAULT_CITY: CityData = {
   lon: 39.8737
 };
 
+const createChildId = () => window.crypto?.randomUUID?.() ?? `child-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+
+const createDefaultChild = (): ChildProfile => ({
+  id: createChildId(),
+  name: 'Ребёнок',
+  gender: loadFromStorage<ChildGender>(STORAGE_KEYS.GENDER, 'girl'),
+  ageGroup: loadFromStorage<AgeGroup>(STORAGE_KEYS.AGE, '1-3y'),
+  activityLevel: loadFromStorage<ActivityLevel>(STORAGE_KEYS.ACTIVITY, 'normal'),
+  coldSensitivity: loadFromStorage<ColdSensitivity>(STORAGE_KEYS.SENSITIVITY, 'normal'),
+});
+
+const loadChildProfiles = (): ChildProfile[] => {
+  const storedProfiles = loadFromStorage<ChildProfile[]>(STORAGE_KEYS.CHILDREN, []);
+  return Array.isArray(storedProfiles) && storedProfiles.length > 0 ? storedProfiles : [createDefaultChild()];
+};
+
 export default function App() {
   // Telegram Mini App init
   useEffect(() => {
@@ -184,9 +205,14 @@ export default function App() {
   const [selectedDay, setSelectedDay] = useState<'today' | 'tomorrow'>('today');
   const [selectedPeriod, setSelectedPeriod] = useState<WeatherPeriodType>('day');
   
-  const [gender, setGender] = useState<ChildGender>(() => 
-    loadFromStorage(STORAGE_KEYS.GENDER, 'girl')
-  );
+  const [children, setChildren] = useState<ChildProfile[]>(loadChildProfiles);
+  const [activeChildId, setActiveChildId] = useState<string>(() => {
+    const storedId = loadFromStorage<string>(STORAGE_KEYS.ACTIVE_CHILD, '');
+    const profiles = loadChildProfiles();
+    return profiles.some((profile) => profile.id === storedId) ? storedId : profiles[0].id;
+  });
+  const activeChild = children.find((profile) => profile.id === activeChildId) ?? children[0];
+  const { gender, ageGroup, activityLevel, coldSensitivity } = activeChild;
   
   const [activeTab, setActiveTab] = useState<'clothing' | 'parameters' | 'tips' | 'notes'>('clothing');
 
@@ -195,16 +221,6 @@ export default function App() {
   const [manualWindSpeed, setManualWindSpeed] = useState(10);
   const [manualHumidity, setManualHumidity] = useState(60);
   const [manualCondition, setManualCondition] = useState<'sunny' | 'cloudy' | 'rainy' | 'snowy'>('sunny');
-
-  const [activityLevel, setActivityLevel] = useState<ActivityLevel>(() => 
-    loadFromStorage(STORAGE_KEYS.ACTIVITY, 'normal')
-  );
-  const [coldSensitivity, setColdSensitivity] = useState<ColdSensitivity>(() => 
-    loadFromStorage(STORAGE_KEYS.SENSITIVITY, 'normal')
-  );
-  const [ageGroup, setAgeGroup] = useState<AgeGroup>(() => 
-    loadFromStorage(STORAGE_KEYS.AGE, '1-3y')
-  );
 
   const [selectedItem, setSelectedItem] = useState<ClothingItem | null>(null);
 
@@ -216,20 +232,42 @@ export default function App() {
   }, [selectedCity]);
 
   useEffect(() => {
-    saveToStorage(STORAGE_KEYS.GENDER, gender);
-  }, [gender]);
+    saveToStorage(STORAGE_KEYS.CHILDREN, children);
+  }, [children]);
 
   useEffect(() => {
-    saveToStorage(STORAGE_KEYS.ACTIVITY, activityLevel);
-  }, [activityLevel]);
+    saveToStorage(STORAGE_KEYS.ACTIVE_CHILD, activeChildId);
+  }, [activeChildId]);
 
-  useEffect(() => {
-    saveToStorage(STORAGE_KEYS.SENSITIVITY, coldSensitivity);
-  }, [coldSensitivity]);
+  const saveChildProfile = (profile: ChildProfile) => {
+    setChildren((current) => current.map((item) => (item.id === profile.id ? profile : item)));
+    setActiveChildId(profile.id);
+  };
 
-  useEffect(() => {
-    saveToStorage(STORAGE_KEYS.AGE, ageGroup);
-  }, [ageGroup]);
+  const addChildProfile = () => {
+    const profile: ChildProfile = {
+      id: createChildId(),
+      name: `Ребёнок ${children.length + 1}`,
+      gender: 'girl',
+      ageGroup: '1-3y',
+      activityLevel: 'normal',
+      coldSensitivity: 'normal',
+    };
+    setChildren((current) => [...current, profile]);
+    setActiveChildId(profile.id);
+  };
+
+  const deleteChildProfile = (childId: string) => {
+    if (children.length <= 1) return;
+
+    const remainingProfiles = children.filter((profile) => profile.id !== childId);
+    if (remainingProfiles.length === 0) return;
+
+    setChildren(remainingProfiles);
+    if (activeChildId === childId) {
+      setActiveChildId(remainingProfiles[0].id);
+    }
+  };
 
   // ============================================
   // FETCH WEATHER
@@ -469,22 +507,22 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-indigo-50/60 via-white to-sky-50/60 text-slate-700 pb-16 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-b from-sky-50/75 via-white to-rose-50/45 text-slate-700 pb-16 relative overflow-hidden">
       
-      <div className="absolute top-0 left-0 w-full h-[600px] bg-gradient-to-b from-indigo-100/40 to-transparent -z-10 pointer-events-none" />
-      <div className="absolute top-48 -left-24 w-96 h-96 bg-indigo-200/20 rounded-full filter blur-3xl pointer-events-none" />
-      <div className="absolute top-[500px] -right-24 w-96 h-96 bg-sky-200/20 rounded-full filter blur-3xl pointer-events-none" />
+      <div className="absolute top-0 left-0 w-full h-[600px] bg-gradient-to-b from-sky-100/45 to-transparent -z-10 pointer-events-none" />
+      <div className="absolute top-48 -left-24 w-96 h-96 bg-sky-200/20 rounded-full filter blur-3xl pointer-events-none" />
+      <div className="absolute top-[500px] -right-24 w-96 h-96 bg-rose-200/20 rounded-full filter blur-3xl pointer-events-none" />
 
-      <header className="border-b border-indigo-100/70 bg-white/75 backdrop-blur-md sticky top-0 z-40 shadow-xs">
+      <header className="border-b border-sky-100/80 bg-white/80 backdrop-blur-md sticky top-0 z-40 shadow-xs">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-4 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
           <div className="flex items-center gap-2 sm:gap-3 group cursor-pointer shrink-0">
-            <div className="h-9 w-9 sm:h-11 sm:w-11 rounded-xl sm:rounded-2xl bg-gradient-to-br from-indigo-500 to-pink-400 flex items-center justify-center text-white shadow-md shadow-indigo-100 hover:scale-105 transition duration-300">
+            <div className="h-9 w-9 sm:h-11 sm:w-11 rounded-xl sm:rounded-2xl bg-gradient-to-br from-sky-200 to-rose-200 flex items-center justify-center text-sky-800 shadow-sm shadow-sky-100 hover:scale-105 transition duration-300">
               <span className="text-lg sm:text-2xl select-none font-extrabold">🌤️</span>
             </div>
             <div className="min-w-0">
-              <h1 className="text-lg sm:text-2xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 flex items-center gap-1">
+              <h1 className="text-lg sm:text-2xl font-black tracking-tight text-sky-800 flex items-center gap-1">
                 <span className="truncate">МетеоОдевайка</span>
-                <span className="hidden xs:inline text-[9px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 font-extrabold border border-indigo-100 whitespace-nowrap">
+                <span className="hidden xs:inline text-[9px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 font-extrabold border border-sky-100 whitespace-nowrap">
                   Умный гид
                 </span>
               </h1>
@@ -504,7 +542,7 @@ export default function App() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setIsSearchFocused(true)}
                 onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
-                className="w-full pl-9 sm:pl-10 pr-9 sm:pr-10 py-2 sm:py-2.5 bg-white/90 border-2 border-slate-100 rounded-2xl text-[11px] sm:text-xs font-bold text-slate-700 placeholder-slate-400 focus:outline-none focus:border-indigo-500/80 shadow-sm transition duration-300"
+                className="w-full pl-9 sm:pl-10 pr-9 sm:pr-10 py-2 sm:py-2.5 bg-white/90 border-2 border-slate-100 rounded-2xl text-[11px] sm:text-xs font-bold text-slate-700 placeholder-slate-400 focus:outline-none focus:border-sky-300 shadow-sm transition duration-300"
               />
               {isSearching ? (
                 <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -542,7 +580,7 @@ export default function App() {
             <button
               onClick={() => setActiveTab('clothing')}
               className={`py-2 px-1 font-extrabold text-[9px] xs:text-[11px] sm:text-sm border-b-2 transition flex flex-col xs:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-1.5 whitespace-nowrap ${
-                activeTab === 'clothing' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-600'
+                activeTab === 'clothing' ? 'border-sky-400 text-sky-700' : 'border-transparent text-slate-400 hover:text-slate-600'
               }`}
             >
               <span>👕</span>
@@ -551,7 +589,7 @@ export default function App() {
             <button
               onClick={() => setActiveTab('parameters')}
               className={`py-2 px-1 font-extrabold text-[9px] xs:text-[11px] sm:text-sm border-b-2 transition flex flex-col xs:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-1.5 whitespace-nowrap ${
-                activeTab === 'parameters' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-600'
+                activeTab === 'parameters' ? 'border-sky-400 text-sky-700' : 'border-transparent text-slate-400 hover:text-slate-600'
               }`}
             >
               <Settings size={14} className="shrink-0" />
@@ -560,7 +598,7 @@ export default function App() {
             <button
               onClick={() => setActiveTab('tips')}
               className={`py-2 px-1 font-extrabold text-[9px] xs:text-[11px] sm:text-sm border-b-2 transition flex flex-col xs:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-1.5 whitespace-nowrap ${
-                activeTab === 'tips' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-600'
+                activeTab === 'tips' ? 'border-sky-400 text-sky-700' : 'border-transparent text-slate-400 hover:text-slate-600'
               }`}
             >
               <span>💡</span>
@@ -569,7 +607,7 @@ export default function App() {
             <button
               onClick={() => setActiveTab('notes')}
               className={`py-2 px-1 font-extrabold text-[9px] xs:text-[11px] sm:text-sm border-b-2 transition flex flex-col xs:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-1.5 whitespace-nowrap ${
-                activeTab === 'notes' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-600'
+                activeTab === 'notes' ? 'border-sky-400 text-sky-700' : 'border-transparent text-slate-400 hover:text-slate-600'
               }`}
             >
               <span>📝</span>
@@ -676,36 +714,34 @@ export default function App() {
           </div>
         )}
 
+        {children.length > 1 && (
+          <div className="rounded-2xl border border-sky-100 bg-sky-50/70 p-3 sm:p-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="mr-1 text-[10px] font-black uppercase tracking-wider text-slate-500">Кому подбираем</span>
+              {children.map((child) => (
+                <button
+                  type="button"
+                  key={child.id}
+                  onClick={() => setActiveChildId(child.id)}
+                  className={`rounded-xl border px-3 py-2 text-[10px] sm:text-xs font-extrabold transition ${
+                    child.id === activeChild.id
+                      ? 'border-sky-200 bg-white text-sky-800 shadow-sm'
+                      : 'border-transparent bg-white/60 text-slate-600 hover:bg-white'
+                  }`}
+                >
+                  <span className="mr-1.5">{child.gender === 'girl' ? '👧' : '👦'}</span>
+                  {child.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="space-y-4 sm:space-y-6">
           <div className="flex flex-col gap-3">
-            <div className="flex bg-slate-100 p-1 rounded-2xl border border-slate-200/60 shadow-xs self-center sm:self-auto w-full sm:w-auto">
-              <button
-                onClick={() => setGender('girl')}
-                className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 sm:gap-2 py-2 sm:py-2.5 px-3 sm:px-5 rounded-xl text-[11px] sm:text-xs font-extrabold transition ${
-                  gender === 'girl'
-                    ? 'bg-white text-pink-600 shadow-sm ring-2 ring-pink-50'
-                    : 'text-slate-500 hover:text-pink-600 hover:bg-white/50'
-                }`}
-              >
-                <span>👧</span>
-                <span>Девочка</span>
-              </button>
-              <button
-                onClick={() => setGender('boy')}
-                className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 sm:gap-2 py-2 sm:py-2.5 px-3 sm:px-5 rounded-xl text-[11px] sm:text-xs font-extrabold transition ${
-                  gender === 'boy'
-                    ? 'bg-white text-blue-600 shadow-sm ring-2 ring-blue-50'
-                    : 'text-slate-500 hover:text-blue-600 hover:bg-white/50'
-                }`}
-              >
-                <span>👦</span>
-                <span>Мальчик</span>
-              </button>
-            </div>
-
             <div className="text-center sm:text-left">
               <h2 className="text-base sm:text-xl font-black text-slate-800 flex items-center justify-center sm:justify-start gap-1.5 sm:gap-2 flex-wrap">
-                <span>Одежда на</span>
+                <span>Одежда для {activeChild.name}</span>
                 <span className="px-2 sm:px-3 py-0.5 sm:py-1 bg-indigo-50 text-indigo-600 font-extrabold text-[11px] sm:text-sm rounded-xl border border-indigo-100">
                   {isManual 
                     ? 'Тестовые настройки' 
@@ -762,10 +798,19 @@ export default function App() {
 
           {activeTab === 'parameters' && (
             <div className="space-y-4">
-              <div className="bg-indigo-50/30 p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-indigo-100/50 space-y-3 sm:space-y-4">
-                <h3 className="text-sm sm:text-base font-black text-slate-800">⚡ Быстрые сценарии погоды</h3>
-                <p className="text-[10px] sm:text-xs text-slate-500 leading-relaxed">
-                  Нажмите на кнопку, чтобы мгновенно смоделировать экстремальные условия и проверить рекомендации.
+              <ChildProfileSettings
+                profiles={children}
+                activeChildId={activeChild.id}
+                onSelectChild={setActiveChildId}
+                onSaveChild={saveChildProfile}
+                onAddChild={addChildProfile}
+                onDeleteChild={deleteChildProfile}
+              />
+
+              <div className="space-y-3 rounded-2xl sm:rounded-3xl border border-amber-100 bg-amber-50/55 p-4 sm:p-6">
+                <h3 className="text-sm sm:text-base font-black text-slate-800">Проверить другую погоду</h3>
+                <p className="text-[10px] sm:text-xs leading-relaxed text-slate-500">
+                  Выберите вариант, если хотите посмотреть, как изменится комплект в другой ситуации.
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <button onClick={() => { setIsManual(true); setManualTemp(-20); setManualWindSpeed(25); setManualCondition('snowy'); }}
@@ -781,8 +826,8 @@ export default function App() {
                     ☀️ Жара +28°С
                   </button>
                   <button onClick={() => { setIsManual(false); }}
-                    className="px-3 py-1.5 bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-[10px] sm:text-xs font-bold active:bg-emerald-200 transition">
-                    🌐 Реальная погода
+                    className="px-3 py-1.5 bg-sky-100 text-sky-800 border border-sky-200 rounded-xl text-[10px] sm:text-xs font-bold active:bg-sky-200 transition">
+                    🌐 Погода города
                   </button>
                 </div>
               </div>
@@ -798,22 +843,23 @@ export default function App() {
                 setHumidity={setManualHumidity}
                 weatherCondition={manualCondition}
                 setWeatherCondition={setManualCondition}
-                activity={activityLevel}
-                setActivity={setActivityLevel}
-                sensitivity={coldSensitivity}
-                setSensitivity={setColdSensitivity}
-                ageGroup={ageGroup}
-                setAgeGroup={setAgeGroup}
               />
-              <ShareInvite />
+              <ShareInvite
+                childName={activeChild.name}
+                cityName={selectedCity.name}
+                selectedDay={selectedDay}
+                selectedPeriod={selectedPeriod}
+                weather={activeWeather}
+                outfit={activeOutfit}
+              />
             </div>
           )}
 
           {activeTab === 'notes' && (
             <div className="space-y-6">
-              <div className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-600 p-5 sm:p-7 text-white shadow-lg shadow-violet-100">
+              <div className="rounded-2xl sm:rounded-3xl border border-sky-100 bg-gradient-to-br from-sky-100 via-white to-rose-100/70 p-5 sm:p-7 text-slate-800 shadow-sm">
                 <h2 className="text-lg sm:text-2xl font-black">Заметки и чек-листы</h2>
-                <p className="mt-1 text-[12px] sm:text-sm text-violet-100 leading-relaxed">Соберите важное к прогулке, сохраните личную заметку и отмечайте готовность по шагам. Всё хранится только на этом устройстве.</p>
+                <p className="mt-1 text-[12px] sm:text-sm text-slate-500 leading-relaxed">Соберите важное к прогулке, сохраните личную заметку и отмечайте готовность по шагам. Всё хранится только на этом устройстве.</p>
               </div>
               <WalkNotes city={selectedCity} weather={activeWeather} period={selectedPeriod} />
               <WalkChecklist weather={activeWeather} period={selectedPeriod} ageGroup={ageGroup} activity={activityLevel} />

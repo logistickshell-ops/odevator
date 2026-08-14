@@ -178,15 +178,20 @@ const loadChildProfiles = (): ChildProfile[] => {
   return Array.isArray(storedProfiles) && storedProfiles.length > 0 ? storedProfiles : [createDefaultChild()];
 };
 
+const loadChildProfileState = () => {
+  const profiles = loadChildProfiles();
+  const storedActiveId = loadFromStorage<string>(STORAGE_KEYS.ACTIVE_CHILD, '');
+
+  return {
+    profiles,
+    activeChildId: profiles.some((profile) => profile.id === storedActiveId)
+      ? storedActiveId
+      : profiles[0].id,
+  };
+};
+
 export default function App() {
-  // Telegram Mini App init
-  useEffect(() => {
-    if (typeof window !== 'undefined' && (window as any).Telegram && (window as any).Telegram.WebApp) {
-      const tg = (window as any).Telegram.WebApp;
-      tg.ready();
-      tg.expand();
-    }
-  }, []);
+  // Telegram SDK инициализируется один раз в index.html до монтирования React.
 
   // ============================================
   // СОСТОЯНИЯ С ЗАГРУЗКОЙ ИЗ LOCALSTORAGE
@@ -208,12 +213,9 @@ export default function App() {
   const [selectedDay, setSelectedDay] = useState<'today' | 'tomorrow'>('today');
   const [selectedPeriod, setSelectedPeriod] = useState<WeatherPeriodType>('day');
   
-  const [children, setChildren] = useState<ChildProfile[]>(loadChildProfiles);
-  const [activeChildId, setActiveChildId] = useState<string>(() => {
-    const storedId = loadFromStorage<string>(STORAGE_KEYS.ACTIVE_CHILD, '');
-    const profiles = loadChildProfiles();
-    return profiles.some((profile) => profile.id === storedId) ? storedId : profiles[0].id;
-  });
+  const [{ profiles: initialChildren, activeChildId: initialActiveChildId }] = useState(loadChildProfileState);
+  const [children, setChildren] = useState<ChildProfile[]>(initialChildren);
+  const [activeChildId, setActiveChildId] = useState<string>(initialActiveChildId);
   const activeChild = children.find((profile) => profile.id === activeChildId) ?? children[0];
   const { gender, ageGroup, activityLevel, coldSensitivity } = activeChild;
   
@@ -275,17 +277,18 @@ export default function App() {
   // ============================================
   // FETCH WEATHER
   // ============================================
-  const fetchWeather = useCallback(async (city: CityData) => {
+  const fetchWeather = useCallback(async (city: CityData, signal?: AbortSignal) => {
     setIsLoadingWeather(true);
     setWeatherError(null);
     
     try {
       const url = `https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation_probability,weather_code,wind_speed_10m&hourly=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation_probability,weather_code,wind_speed_10m&timezone=auto`;
       
-      const response = await fetch(url);
+      const response = await fetch(url, { signal });
       if (!response.ok) throw new Error('Ошибка ответа сервера погоды.');
       
       const data = await response.json();
+      if (signal?.aborted) return;
       
       if (!data.hourly || !data.hourly.time) {
         throw new Error('Некорректный формат данных прогноза.');
@@ -381,6 +384,7 @@ export default function App() {
       setManualCondition(activeVal.isRainy ? 'rainy' : activeVal.isSnowy ? 'snowy' : activeVal.temp > 20 ? 'sunny' : 'cloudy');
 
     } catch (error) {
+      if (signal?.aborted) return;
       console.error('Weather API Error. Using mock fallback:', error);
       setWeatherError('Не удалось связаться с сервером Open-Meteo. Используются симулированные данные погоды.');
       const mockToday = generateMockForecast(10)[0];
@@ -395,11 +399,11 @@ export default function App() {
       setManualHumidity(activeVal.humidity);
       setManualCondition(activeVal.isRainy ? 'rainy' : activeVal.isSnowy ? 'snowy' : 'cloudy');
     } finally {
-      setIsLoadingWeather(false);
+      if (!signal?.aborted) setIsLoadingWeather(false);
     }
   }, []);
 
-  const handleCitySearch = async (query: string) => {
+  const handleCitySearch = async (query: string, signal?: AbortSignal) => {
     if (!query || query.trim().length < 2) {
       setSearchResults([]);
       return;
@@ -408,10 +412,11 @@ export default function App() {
     setIsSearching(true);
     try {
       const searchUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=5&language=ru&format=json`;
-      const response = await fetch(searchUrl);
+      const response = await fetch(searchUrl, { signal });
       if (!response.ok) throw new Error('Geocoding error');
       
       const data = await response.json();
+      if (signal?.aborted) return;
       if (data.results && data.results.length > 0) {
         const parsedCities: CityData[] = data.results.map((item: any) => ({
           name: item.name,
@@ -425,23 +430,31 @@ export default function App() {
         setSearchResults([]);
       }
     } catch (error) {
+      if (signal?.aborted) return;
       console.error('Search error: ', error);
       setSearchResults([]);
     } finally {
-      setIsSearching(false);
+      if (!signal?.aborted) setIsSearching(false);
     }
   };
 
   useEffect(() => {
-    fetchWeather(selectedCity);
+    const controller = new AbortController();
+    fetchWeather(selectedCity, controller.signal);
+
+    return () => controller.abort();
   }, [selectedCity, fetchWeather]);
 
   useEffect(() => {
+    const controller = new AbortController();
     const delayDebounceFn = setTimeout(() => {
-      handleCitySearch(searchQuery);
+      handleCitySearch(searchQuery, controller.signal);
     }, 400);
 
-    return () => clearTimeout(delayDebounceFn);
+    return () => {
+      controller.abort();
+      clearTimeout(delayDebounceFn);
+    };
   }, [searchQuery]);
 
   const getActiveWeatherData = (): WeatherData => {

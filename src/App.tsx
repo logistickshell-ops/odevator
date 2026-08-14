@@ -24,6 +24,7 @@ import { FaqSection } from './components/FaqSection';
 import { AnalysisSection } from './components/AnalysisSection';
 import { WalkNotes } from './components/WalkNotes';
 import { WalkChecklist } from './components/WalkChecklist';
+import { ShareInvite } from './components/ShareInvite';
 import { 
   MapPin, 
   Search, 
@@ -804,6 +805,7 @@ export default function App() {
                 ageGroup={ageGroup}
                 setAgeGroup={setAgeGroup}
               />
+              <ShareInvite />
             </div>
           )}
 

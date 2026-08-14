@@ -38,7 +38,7 @@ export interface CityData {
 export type ActivityLevel = 'quiet' | 'normal' | 'active';
 export type ColdSensitivity = 'sensitive' | 'normal' | 'resistant';
 export type ChildGender = 'girl' | 'boy';
-export type AgeGroup = '0-3m' | '3-12m' | '1-3y' | '3-7y' | '7-12y';
+export type AgeGroup = '0-3m' | '3-12m' | '1-3y' | '3-7y' | '7-12y' | '12-16y';
 
 export interface ChildProfile {
   id: string;

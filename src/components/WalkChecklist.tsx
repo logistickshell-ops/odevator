@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Baby, CheckSquare, Clock3, MapPin, Package, ShieldCheck, Square } from 'lucide-react';
 import { ActivityLevel, AgeGroup, WeatherData, WeatherPeriodType } from '../types';
+import { AGE_GROUP_LABELS } from '../utils/childProfile';
 
 interface WalkChecklistProps {
   weather: WeatherData;
@@ -44,6 +45,10 @@ export const WalkChecklist: React.FC<WalkChecklistProps> = ({ weather, period, a
     }
     if (period === 'evening' || period === 'night') before.push({ id: 'reflective', text: 'Добавить светоотражающий элемент на верхнюю одежду или рюкзак.' });
     if (activity === 'quiet' || ageGroup === '0-3m' || ageGroup === '3-12m') before.push({ id: 'still', text: 'Для спокойной прогулки или коляски подготовить дополнительный утепляющий слой.' });
+    if (ageGroup === '12-16y') {
+      before.push({ id: 'teen-plan', text: 'Согласовать с подростком, какой регулируемый слой и защита от погоды будут в рюкзаке.' });
+      during.push({ id: 'teen-feedback', text: 'Попросить подростка сообщить, если стало жарко или холодно, и скорректировать слой до дискомфорта.' });
+    }
 
     return { before, during, after };
   }, [activity, ageGroup, period, weather]);
@@ -60,7 +65,7 @@ export const WalkChecklist: React.FC<WalkChecklistProps> = ({ weather, period, a
     <section className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-100 shadow-sm space-y-4">
       <div className="flex items-start gap-2.5">
         <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl shrink-0"><ShieldCheck size={20} /></div>
-        <div><h3 className="text-base sm:text-xl font-black text-slate-800">Чек-лист прогулки</h3><p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 leading-relaxed">Отмечайте готовность до выхода, на улице и после возвращения. Пункты меняются по погоде.</p></div>
+        <div><h3 className="text-base sm:text-xl font-black text-slate-800">Чек-лист прогулки</h3><p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 leading-relaxed">Профиль: {AGE_GROUP_LABELS[ageGroup]}. Отмечайте готовность до выхода, на улице и после возвращения. Пункты меняются по погоде.</p></div>
       </div>
       <div className="flex bg-slate-100 p-1 sm:p-1.5 rounded-xl sm:rounded-2xl border border-slate-200/60">
         {steps.map(([step, label, Icon]) => (

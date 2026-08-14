@@ -1,10 +1,15 @@
 import React, { useMemo, useState } from 'react';
 import { ChevronDown, CircleHelp, HeartPulse, Layers3, Umbrella, Wind } from 'lucide-react';
-import { WeatherData, WeatherPeriodType } from '../types';
+import { ActivityLevel, AgeGroup, ColdSensitivity, WeatherData, WeatherPeriodType } from '../types';
+import { ACTIVITY_LABELS, AGE_GROUP_LABELS, getChildDisplayName, SENSITIVITY_LABELS } from '../utils/childProfile';
 
 interface FaqSectionProps {
   weather: WeatherData;
   period: WeatherPeriodType;
+  ageGroup: AgeGroup;
+  activity: ActivityLevel;
+  sensitivity: ColdSensitivity;
+  childName: string;
 }
 
 type FaqCategory = 'before' | 'comfort' | 'weather' | 'layers';
@@ -31,8 +36,10 @@ const PERIOD_LABELS: Record<WeatherPeriodType, string> = {
   night: 'ночью',
 };
 
-export const FaqSection: React.FC<FaqSectionProps> = ({ weather, period }) => {
+export const FaqSection: React.FC<FaqSectionProps> = ({ weather, period, ageGroup, activity, sensitivity, childName }) => {
   const [selectedCategory, setSelectedCategory] = useState<'all' | FaqCategory>('all');
+  const displayName = getChildDisplayName(childName);
+  const profileSummary = `${AGE_GROUP_LABELS[ageGroup]} · ${ACTIVITY_LABELS[activity].toLowerCase()} · ${SENSITIVITY_LABELS[sensitivity].toLowerCase()}`;
   const [openId, setOpenId] = useState<string | null>('comfort-check');
 
   const items = useMemo<FaqItem[]>(() => [
@@ -78,7 +85,14 @@ export const FaqSection: React.FC<FaqSectionProps> = ({ weather, period }) => {
       answer: 'В темноте ребёнка должно быть видно со стороны дороги и велодорожки. Световозвращатель лучше расположить на верхнем слое или рюкзаке, а не прятать под курткой.',
       action: period === 'evening' || period === 'night' ? 'Для выбранного времени добавьте светоотражатель и учтите вечернее похолодание.' : 'Для дневной прогулки заранее положите светоотражатель в карман на случай задержки.',
     },
-  ], [period, weather]);
+    {
+      id: 'profile-adjustment',
+      category: 'layers',
+      question: 'Почему комплект может отличаться для детей при одинаковой погоде?',
+      answer: 'Сервис учитывает возраст, активность и индивидуальную реакцию на прохладу. Это меняет регулирующие слои, но не отменяет наблюдение за тем, как ребёнок себя чувствует.',
+      action: `Сейчас выбран профиль: ${profileSummary}.`,
+    },
+  ], [period, profileSummary, weather]);
 
   const filteredItems = selectedCategory === 'all' ? items : items.filter((item) => item.category === selectedCategory);
 
@@ -89,7 +103,7 @@ export const FaqSection: React.FC<FaqSectionProps> = ({ weather, period }) => {
           <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl shrink-0"><CircleHelp size={20} /></div>
           <div>
             <h3 className="text-base sm:text-xl font-black text-slate-800">FAQ для прогулки</h3>
-            <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 leading-relaxed">Короткие ответы на вопросы, которые возникают перед выходом и на улице {PERIOD_LABELS[period]}.</p>
+            <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 leading-relaxed">Короткие ответы для выбранного сценария {PERIOD_LABELS[period]}{displayName ? ` · ${displayName}` : ''}. Профиль: {profileSummary}.</p>
           </div>
         </div>
         <div className="flex flex-wrap gap-2" aria-label="Категории FAQ">

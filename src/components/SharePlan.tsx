@@ -1,9 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Check, Copy, Send, Share2 } from 'lucide-react';
 import { RecommendedOutfit, WeatherData, WeatherPeriodType } from '../types';
-
-const INVITE_ID_STORAGE_KEY = 'meteo_invite_id';
-const BOT_USERNAME = 'meteo_odevaika_bot';
+import { copyText, getBotInviteUrl, shareViaTelegram } from '../utils/telegramShare';
 
 interface SharePlanProps {
   childName: string;
@@ -12,23 +10,6 @@ interface SharePlanProps {
   selectedPeriod: WeatherPeriodType;
   weather: WeatherData;
   outfit: RecommendedOutfit;
-}
-
-function getOrCreateInviteId() {
-  try {
-    const existing = window.localStorage.getItem(INVITE_ID_STORAGE_KEY);
-    if (existing) return existing;
-
-    const id = window.crypto?.randomUUID?.() ?? `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
-    window.localStorage.setItem(INVITE_ID_STORAGE_KEY, id);
-    return id;
-  } catch {
-    return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
-  }
-}
-
-function createBotInviteUrl(inviteId: string) {
-  return `https://t.me/${BOT_USERNAME}?startapp=${encodeURIComponent(`ref_${inviteId}`)}`;
 }
 
 function formatTemperature(value: number) {
@@ -44,10 +25,7 @@ const periodLabels: Record<WeatherPeriodType, string> = {
 
 export function SharePlan({ childName, cityName, selectedDay, selectedPeriod, weather, outfit }: SharePlanProps) {
   const [isCopied, setIsCopied] = useState(false);
-  const inviteUrl = useMemo(() => {
-    if (typeof window === 'undefined') return '';
-    return createBotInviteUrl(getOrCreateInviteId());
-  }, []);
+  const inviteUrl = useMemo(getBotInviteUrl, []);
 
   const clothingNames = useMemo(() => {
     const items = [
@@ -80,48 +58,16 @@ export function SharePlan({ childName, cityName, selectedDay, selectedPeriod, we
 
   const copyPlan = async () => {
     const fullPlan = `${shareText}\n\nОткрыть «МетеоОдевайку»: ${inviteUrl}`;
-    try {
-      if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(fullPlan);
-      } else {
-        const textArea = document.createElement('textarea');
-        textArea.value = fullPlan;
-        textArea.style.position = 'fixed';
-        textArea.style.opacity = '0';
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        textArea.remove();
-      }
-      setIsCopied(true);
-      window.setTimeout(() => setIsCopied(false), 2200);
-    } catch {
-      setIsCopied(false);
-    }
+    const copied = await copyText(fullPlan);
+    setIsCopied(copied);
+    if (copied) window.setTimeout(() => setIsCopied(false), 2200);
   };
 
-  const sharePlan = async () => {
-    if (!inviteUrl) return;
-
-    const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(inviteUrl)}&text=${encodeURIComponent(shareText)}`;
-    const telegram = (window as typeof window & { Telegram?: { WebApp?: { openTelegramLink?: (url: string) => void } } }).Telegram?.WebApp;
-
-    if (telegram?.openTelegramLink) {
-      telegram.openTelegramLink(telegramUrl);
-      return;
-    }
-
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: `План прогулки для ${childLabel}`, text: shareText, url: inviteUrl });
-        return;
-      } catch {
-        // Пользователь мог закрыть системное меню — используем Telegram как запасной вариант.
-      }
-    }
-
-    window.open(telegramUrl, '_blank', 'noopener,noreferrer');
-  };
+  const sharePlan = () => shareViaTelegram({
+    title: `План прогулки для ${childLabel}`,
+    text: shareText,
+    url: inviteUrl,
+  });
 
   return (
     <section className="rounded-2xl sm:rounded-3xl border border-sky-100 bg-gradient-to-br from-sky-50/85 via-white to-rose-50/45 p-4 sm:p-6 shadow-sm">

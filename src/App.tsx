@@ -15,7 +15,8 @@ import {
 import { 
   interpretWeatherCode, 
   generateOutfit, 
-  calculateEffectiveTemp 
+  calculateWeatherFeel,
+  calculateRecommendationTemp
 } from './utils/weatherEngine';
 import { WeatherSelector } from './components/WeatherSelector';
 import { AvatarVisualizer } from './components/AvatarVisualizer';
@@ -27,6 +28,7 @@ import { WalkNotes } from './components/WalkNotes';
 import { WalkChecklist } from './components/WalkChecklist';
 import { ShareInvite } from './components/ShareInvite';
 import { ChildProfileSettings } from './components/ChildProfileSettings';
+import { formatClothingHeading } from './utils/childProfile';
 import { 
   MapPin, 
   Search, 
@@ -449,7 +451,7 @@ export default function App() {
 
       return {
         temp: manualTemp,
-        feelsLike: calculateEffectiveTemp(manualTemp, manualWindSpeed, manualHumidity, activityLevel, coldSensitivity, ageGroup),
+        feelsLike: calculateWeatherFeel(manualTemp, manualWindSpeed, manualHumidity),
         windSpeed: manualWindSpeed,
         humidity: manualHumidity,
         precipProb: manualCondition === 'rainy' || manualCondition === 'snowy' ? 80 : 10,
@@ -484,13 +486,11 @@ export default function App() {
 
   const activeWeather = getActiveWeatherData();
   const activeOutfit = generateOutfit(gender, activeWeather, activityLevel, coldSensitivity, ageGroup, selectedPeriod);
-  const computedFeelsLike = calculateEffectiveTemp(
-    activeWeather.temp,
-    activeWeather.windSpeed,
-    activeWeather.humidity,
+  const computedFeelsLike = calculateRecommendationTemp(
+    activeWeather,
     activityLevel,
     coldSensitivity,
-    ageGroup
+    ageGroup,
   );
   const displayedCurrentWeather = currentCityWeather ?? {
     temp: 15,
@@ -741,7 +741,7 @@ export default function App() {
           <div className="flex flex-col gap-3">
             <div className="text-center sm:text-left">
               <h2 className="text-base sm:text-xl font-black text-slate-800 flex items-center justify-center sm:justify-start gap-1.5 sm:gap-2 flex-wrap">
-                <span>Одежда для {activeChild.name}</span>
+                <span>{formatClothingHeading(activeChild.name, activeChild.gender)}</span>
                 <span className="px-2 sm:px-3 py-0.5 sm:py-1 bg-indigo-50 text-indigo-600 font-extrabold text-[11px] sm:text-sm rounded-xl border border-indigo-100">
                   {isManual 
                     ? 'Тестовые настройки' 
@@ -754,7 +754,7 @@ export default function App() {
                 </span>
               </h2>
               <p className="text-[10px] sm:text-xs text-slate-400 font-medium mt-0.5 hidden sm:block">
-                Гардероб автоматически подстраивается под погодные риски текущего периода прогулки.
+                Комплект учитывает погоду выбранного времени, возраст, активность и индивидуальную реакцию на прохладу.
               </p>
             </div>
           </div>
@@ -781,9 +781,19 @@ export default function App() {
                 weather={activeWeather}
                 period={selectedPeriod}
                 ageGroup={ageGroup}
+                activity={activityLevel}
+                sensitivity={coldSensitivity}
+                childName={activeChild.name}
                 outfit={activeOutfit}
               />
-              <FaqSection weather={activeWeather} period={selectedPeriod} />
+              <FaqSection
+                weather={activeWeather}
+                period={selectedPeriod}
+                ageGroup={ageGroup}
+                activity={activityLevel}
+                sensitivity={coldSensitivity}
+                childName={activeChild.name}
+              />
               <AnalysisSection
                 weather={activeWeather}
                 period={selectedPeriod}
@@ -792,6 +802,7 @@ export default function App() {
                 sensitivity={coldSensitivity}
                 effectiveTemp={computedFeelsLike}
                 outfit={activeOutfit}
+                childName={activeChild.name}
               />
             </div>
           )}

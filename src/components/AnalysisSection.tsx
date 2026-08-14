@@ -21,6 +21,7 @@ import {
   WeatherData,
   WeatherPeriodType,
 } from '../types';
+import { ACTIVITY_LABELS, AGE_GROUP_LABELS, getChildDisplayName, SENSITIVITY_LABELS } from '../utils/childProfile';
 
 interface AnalysisSectionProps {
   weather: WeatherData;
@@ -30,6 +31,7 @@ interface AnalysisSectionProps {
   sensitivity: ColdSensitivity;
   effectiveTemp: number;
   outfit: RecommendedOutfit;
+  childName: string;
 }
 
 const PERIOD_LABELS: Record<WeatherPeriodType, string> = {
@@ -37,26 +39,6 @@ const PERIOD_LABELS: Record<WeatherPeriodType, string> = {
   day: 'День',
   evening: 'Вечер',
   night: 'Ночь',
-};
-
-const AGE_LABELS: Record<AgeGroup, string> = {
-  '0-3m': 'Новорождённый',
-  '3-12m': 'Младенец',
-  '1-3y': 'Ясельный возраст',
-  '3-7y': 'Дошкольник',
-  '7-12y': 'Школьник',
-};
-
-const ACTIVITY_LABELS: Record<ActivityLevel, string> = {
-  quiet: 'Спокойная прогулка',
-  normal: 'Умеренная активность',
-  active: 'Активная прогулка',
-};
-
-const SENSITIVITY_LABELS: Record<ColdSensitivity, string> = {
-  sensitive: 'Быстро мёрзнет',
-  normal: 'Обычное теплоощущение',
-  resistant: 'Редко мёрзнет',
 };
 
 export const AnalysisSection: React.FC<AnalysisSectionProps> = ({
@@ -67,14 +49,17 @@ export const AnalysisSection: React.FC<AnalysisSectionProps> = ({
   sensitivity,
   effectiveTemp,
   outfit,
+  childName,
 }) => {
+  const displayName = getChildDisplayName(childName);
+  const profileSummary = `${AGE_GROUP_LABELS[ageGroup]} · ${ACTIVITY_LABELS[activity]} · ${SENSITIVITY_LABELS[sensitivity]}`;
   const factors = [
-    { icon: <Thermometer size={18} />, label: 'Температура', value: `${weather.temp > 0 ? '+' : ''}${weather.temp}°C`, note: `ощущается ${effectiveTemp > 0 ? '+' : ''}${effectiveTemp}°C`, tone: 'bg-rose-50 text-rose-700 border-rose-100' },
+    { icon: <Thermometer size={18} />, label: 'Температура', value: `${weather.temp > 0 ? '+' : ''}${weather.temp}°C`, note: `прогноз: ${weather.feelsLike > 0 ? '+' : ''}${weather.feelsLike}°C · для профиля: ${effectiveTemp > 0 ? '+' : ''}${effectiveTemp}°C`, tone: 'bg-rose-50 text-rose-700 border-rose-100' },
     { icon: <Wind size={18} />, label: 'Ветер', value: `${weather.windSpeed} км/ч`, note: weather.windSpeed >= 15 ? 'влияет на охлаждение' : 'умеренное влияние', tone: 'bg-sky-50 text-sky-700 border-sky-100' },
     { icon: <Droplets size={18} />, label: 'Влажность', value: `${weather.humidity}%`, note: weather.humidity >= 80 ? 'усиливает сырой холод' : 'обычный уровень', tone: 'bg-cyan-50 text-cyan-700 border-cyan-100' },
     { icon: <CloudRain size={18} />, label: 'Осадки', value: `${weather.precipProb}%`, note: weather.isRainy ? 'дождь учтён в комплекте' : weather.isSnowy ? 'снег учтён в комплекте' : 'сухой сценарий', tone: 'bg-violet-50 text-violet-700 border-violet-100' },
     { icon: <Clock3 size={18} />, label: 'Время', value: PERIOD_LABELS[period], note: 'температура и видимость меняются', tone: 'bg-amber-50 text-amber-700 border-amber-100' },
-    { icon: <Baby size={18} />, label: 'Профиль', value: AGE_LABELS[ageGroup], note: `${ACTIVITY_LABELS[activity]} · ${SENSITIVITY_LABELS[sensitivity]}`, tone: 'bg-pink-50 text-pink-700 border-pink-100' },
+    { icon: <Baby size={18} />, label: 'Профиль', value: displayName || AGE_GROUP_LABELS[ageGroup], note: displayName ? profileSummary : `${ACTIVITY_LABELS[activity]} · ${SENSITIVITY_LABELS[sensitivity]}`, tone: 'bg-pink-50 text-pink-700 border-pink-100' },
   ];
 
   const outfitItems = [

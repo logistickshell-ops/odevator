@@ -74,15 +74,7 @@ export const AnalysisSection: React.FC<AnalysisSectionProps> = ({
 
   return (
     <section className="space-y-4 sm:space-y-5">
-      <div className="bg-gradient-to-br from-indigo-600 via-violet-600 to-sky-600 rounded-2xl sm:rounded-3xl p-5 sm:p-7 text-white shadow-lg shadow-indigo-100">
-        <div className="flex items-start gap-3">
-          <div className="p-2.5 bg-white/15 rounded-xl shrink-0"><Eye size={22} /></div>
-          <div>
-            <h3 className="text-lg sm:text-2xl font-black">Как сформирована рекомендация</h3>
-            <p className="text-[12px] sm:text-sm leading-relaxed text-indigo-100 mt-1 max-w-2xl">Сервис складывает погоду, время прогулки и профиль ребёнка, чтобы собрать регулируемый комплект, а не выбрать одежду только по цифре на термометре.</p>
-          </div>
-        </div>
-      </div>
+     
 
       <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-100 shadow-sm">
         <div className="flex items-center gap-2 mb-4"><ListChecks size={20} className="text-indigo-600" /><h3 className="text-base sm:text-xl font-black text-slate-800">Что учтено сейчас</h3></div>

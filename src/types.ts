@@ -40,6 +40,15 @@ export type ColdSensitivity = 'sensitive' | 'normal' | 'resistant';
 export type ChildGender = 'girl' | 'boy';
 export type AgeGroup = '0-3m' | '3-12m' | '1-3y' | '3-7y' | '7-12y';
 
+export interface ChildProfile {
+  id: string;
+  name: string;
+  gender: ChildGender;
+  ageGroup: AgeGroup;
+  activityLevel: ActivityLevel;
+  coldSensitivity: ColdSensitivity;
+}
+
 export type ParentTipCategory = 'safety' | 'time' | 'essentials' | 'alerts' | 'age' | 'practical';
 export type ParentTipPriority = 'danger' | 'warning' | 'info';
 

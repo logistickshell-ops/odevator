@@ -18,24 +18,46 @@ export const interpretWeatherCode = (code: number) => {
   return r;
 };
 
+const profileTemperatureOffset = (
+  activity: ActivityLevel,
+  sensitivity: ColdSensitivity,
+  age: AgeGroup,
+) => {
+  const activityOffset = activity === 'active' ? 2 : activity === 'quiet' ? -2 : 0;
+  const sensitivityOffset = sensitivity === 'sensitive' ? -2 : sensitivity === 'resistant' ? 2 : 0;
+  const ageOffset = age === '0-3m' ? -3 : age === '3-12m' ? -2 : age === '1-3y' ? -1 : 0;
+  return activityOffset + sensitivityOffset + ageOffset;
+};
+
+// Расчёт только физических факторов. Используется для ручной погоды, когда API не даёт apparent temperature.
+export const calculateWeatherFeel = (temp: number, wind: number, humidity: number): number => {
+  const windChill = wind > 10 ? Math.min((wind - 10) * 0.3, 4) : 0;
+  const dampCold = temp <= 10 && humidity > 80 ? 1.5 : 0;
+  const muggy = temp >= 25 && humidity > 70 ? 2 : 0;
+  return Math.round((temp - windChill - dampCold + muggy) * 10) / 10;
+};
+
 export const calculateEffectiveTemp = (
   temp: number, wind: number, humidity: number,
   activity: ActivityLevel, sensitivity: ColdSensitivity, age: AgeGroup,
+): number => Math.round((calculateWeatherFeel(temp, wind, humidity) + profileTemperatureOffset(activity, sensitivity, age)) * 10) / 10;
+
+// Реальный прогноз already включает влияние температуры, ветра и влажности.
+// Здесь применяются только персональные параметры ребёнка — без двойного учёта погоды.
+export const calculateRecommendationTemp = (
+  weather: WeatherData,
+  activity: ActivityLevel,
+  sensitivity: ColdSensitivity,
+  age: AgeGroup,
 ): number => {
-  const windChill = wind > 10 ? (wind - 10) * 0.3 : 0;
-  const dampCold = temp <= 10 && humidity > 80 ? 1.5 : 0;
-  const muggy = temp >= 25 && humidity > 70 ? 2 : 0;
-  let t = temp - windChill - dampCold + muggy;
-  t += activity === 'active' ? 2 : activity === 'quiet' ? -2 : 0;
-  t += sensitivity === 'sensitive' ? -2 : sensitivity === 'resistant' ? 2 : 0;
-  t += age === '0-3m' ? -3 : age === '3-12m' ? -2 : age === '1-3y' ? -1 : 0;
-  return Math.round(t * 10) / 10;
+  const baseline = Number.isFinite(weather.feelsLike) ? weather.feelsLike : weather.temp;
+  return Math.round((baseline + profileTemperatureOffset(activity, sensitivity, age)) * 10) / 10;
 };
 
 type Zone = 'arctic' | 'winter' | 'freeze' | 'chilly' | 'cool' | 'mild' | 'warm' | 'hot';
 const zoneFromTemp = (t: number): Zone =>
-  t <= -15 ? 'arctic' : t <= -5 ? 'winter' : t <= 0 ? 'freeze' : t <= 5 ? 'chilly' :
-  t <= 10 ? 'cool' : t <= 15 ? 'mild' : t <= 20 ? 'warm' : 'hot';
+  t <= -15 ? 'arctic' : t <= -5 ? 'winter' : t <= 0 ? 'freeze' : t <= 7 ? 'chilly' :
+  t <= 13 ? 'cool' : t <= 18 ? 'mild' : t <= 24 ? 'warm' : 'hot';
 
 const it = (
   id: string, name: string, category: ClothingItem['category'], emoji: string,
@@ -46,15 +68,15 @@ const it = (
 const TIPS_POOL: ParentTip[] = [
   // БЕЗОПАСНОСТЬ (danger)
   { id: 'tip-01', category: 'safety', title: 'Тест по загривку', text: 'Шея сзади тёплая и сухая — одето правильно. Влажная — перегрев, холодная — добавить слой.', priority: 'danger', icon: '💡' },
-  { id: 'tip-02', category: 'safety', title: 'Риск обморожения', text: 'Проверяйте нос и щёки каждые 15 минут: побеление — срочно греться.', priority: 'danger', icon: '❄️' },
-  { id: 'tip-03', category: 'safety', title: 'Риск перегрева', text: 'Светлая одежда, панамка и вода обязательны. Гуляйте до 11:00 и после 17:00.', priority: 'danger', icon: '☀️' },
-  { id: 'tip-04', category: 'safety', title: 'Мокрые ноги = простуда', text: 'Если ребёнок промочил ноги — сразу домой переобуваться. Влажные стопы остывают в 25 раз быстрее.', priority: 'danger', icon: '💧' },
+  { id: 'tip-02', category: 'safety', title: 'Сильный холод', text: 'Следите за болью, онемением или белыми участками кожи. При таких признаках зайдите в тепло и согревайте ребёнка постепенно.', priority: 'danger', icon: '❄️' },
+  { id: 'tip-03', category: 'safety', title: 'Риск перегрева', text: 'Выберите лёгкую светлую одежду, головной убор, тень и регулярное питьё. Уменьшите время на солнце, если ребёнку жарко.', priority: 'danger', icon: '☀️' },
+  { id: 'tip-04', category: 'safety', title: 'Мокрая одежда', text: 'Мокрые носки, перчатки или брюки быстро снижают комфорт. Переоденьте ребёнка в сухое и сократите прогулку при необходимости.', priority: 'danger', icon: '💧' },
   { id: 'tip-05', category: 'safety', title: 'Капюшон на ветру', text: 'При сильном ветре капюшон может закрыть обзор. Лучше шапка + шарф.', priority: 'danger', icon: '💨' },
   
   // ВРЕМЯ СУТОК (time)
-  { id: 'tip-06', category: 'time', title: 'Утро холоднее', text: 'Утром роса и иней. Наденьте куртку сразу, к обеду потеплеет — снимете.', priority: 'info', icon: '🌅' },
-  { id: 'tip-07', category: 'time', title: 'Вечерняя прохлада', text: 'После 18:00 температура падает на 3-5°. Приготовьте кофту заранее.', priority: 'info', icon: '🌆' },
-  { id: 'tip-08', category: 'time', title: 'Пик жары', text: 'С 12:00 до 16:00 солнце максимально активно. Ищите тень, предлагайте воду каждые 15 минут.', priority: 'warning', icon: '🔥' },
+  { id: 'tip-06', category: 'time', title: 'Утренний запас', text: 'Утром часто прохладнее. Возьмите слой, который легко снять, если по прогнозу станет теплее.', priority: 'info', icon: '🌅' },
+  { id: 'tip-07', category: 'time', title: 'Вечерняя прохлада', text: 'К вечеру температура и видимость меняются. Положите в рюкзак дополнительный слой и светоотражатель.', priority: 'info', icon: '🌆' },
+  { id: 'tip-08', category: 'time', title: 'Жаркое время дня', text: 'В жару выбирайте тень, лёгкую одежду и предлагайте воду регулярно. Делайте паузы, если ребёнок устал или перегрелся.', priority: 'warning', icon: '🔥' },
   { id: 'tip-09', category: 'time', title: 'Ночные прогулки', text: 'Темнее и прохладнее, чем кажется. Используйте светоотражающие элементы на одежде.', priority: 'info', icon: '🌙' },
   { id: 'tip-10', category: 'time', title: 'После сна', text: 'Ребёнок только проснулся — тело ещё не разогрелось. Добавьте один слой сверх рекомендации.', priority: 'info', icon: '😴' },
   
@@ -67,10 +89,10 @@ const TIPS_POOL: ParentTip[] = [
   
   // ПРЕДУПРЕЖДЕНИЯ (alerts)
   { id: 'tip-16', category: 'alerts', title: 'Сильный ветер', text: 'Ветровка важнее тёплой кофты: ветер выдувает воздушную прослойку.', priority: 'warning', icon: '💨' },
-  { id: 'tip-17', category: 'alerts', title: 'Высокая влажность', text: 'При влажности >80% и температуре <10° ощущается на 5° холоднее. Одевайтесь теплее.', priority: 'warning', icon: '💧' },
+  { id: 'tip-17', category: 'alerts', title: 'Сырость и прохлада', text: 'Влажная погода делает прохладу неприятнее. Оставьте возможность добавить сухой утепляющий слой и защиту от осадков.', priority: 'warning', icon: '💧' },
   { id: 'tip-18', category: 'alerts', title: 'Гололёд', text: 'При околонулевой температуре асфальт скользкий. Обувь с нескользкой подошвой обязательна.', priority: 'warning', icon: '⚠️' },
   { id: 'tip-19', category: 'alerts', title: 'Туман', text: 'Видимость снижена. Яркая одежда и светоотражатели помогут водителям заметить ребёнка.', priority: 'warning', icon: '🌫️' },
-  { id: 'tip-20', category: 'alerts', title: 'Резкое похолодание', text: 'Если температура упала на 10° за час — добавьте слой немедленно.', priority: 'danger', icon: '📉' },
+  { id: 'tip-20', category: 'alerts', title: 'Похолодание', text: 'Если по прогнозу становится холоднее, заранее возьмите регулируемый верхний слой и не ждите, пока ребёнок замёрзнет.', priority: 'danger', icon: '📉' },
   
   // ВОЗРАСТНЫЕ ОСОБЕННОСТИ (age)
   { id: 'tip-21', category: 'age', title: 'Новорождённый (0-3 мес)', text: 'Терморегуляция незрелая. Не может эффективно сохранять тепло. Проверяйте шею каждые 15 минут.', priority: 'danger', icon: '👶' },
@@ -78,7 +100,8 @@ const TIPS_POOL: ParentTip[] = [
   { id: 'tip-23', category: 'age', title: 'Ползунок (3-12 мес)', text: 'Начинает ползать — больше движений = больше тепла. При активности одевайте на 1 слой меньше.', priority: 'info', icon: '🧸' },
   { id: 'tip-24', category: 'age', title: 'Бегун (1-3 года)', text: 'Бегает 90% времени. Не одевайте слишком тепло — вспотеет и мгновенно замёрзнет.', priority: 'warning', icon: '🏃' },
   { id: 'tip-25', category: 'age', title: 'Дошкольник (3-7 лет)', text: 'Может сам снимать/надевать одежду. Объясняйте ЗАЧЕМ нужна шапка, давайте выбор.', priority: 'info', icon: '🎒' },
-  { id: 'tip-26', category: 'age', title: 'Школьник (7-12 лет)', text: 'Одевается сам — уважайте его выбор, но напоминайте о последствиях. Тяжёлый рюкзак даёт дополнительное тепло.', priority: 'info', icon: '🏫' },
+  { id: 'tip-26', category: 'age', title: 'Школьник (7-12 лет)', text: 'Ребёнок уже может сам выбирать слой. Договоритесь, что кофту или ветровку можно убрать в рюкзак, а не оставлять дома.', priority: 'info', icon: '🏫' },
+  { id: 'tip-52', category: 'age', title: 'Подросток (12-16 лет)', text: 'Подростку важны самостоятельность и комфорт. Согласуйте практичный комплект: регулируемые слои, защита от погоды и место для ветровки в рюкзаке.', priority: 'info', icon: '🎧' },
   { id: 'tip-27', category: 'age', title: 'Коляска vs ходунки', text: 'Ребёнок в коляске неподвижен — ему нужно на 1 слой больше, чем бегающему сверстнику.', priority: 'warning', icon: '👶' },
   { id: 'tip-28', category: 'age', title: 'Сон на улице', text: 'Спящий ребёнок не двигается — метаболизм замедляется. Добавьте плед или конверт.', priority: 'warning', icon: '💤' },
   
@@ -120,7 +143,8 @@ export const generateOutfit = (
   period: WeatherPeriodType = 'day',
 ): RecommendedOutfit => {
   const girl = gender === 'girl';
-  const eff = calculateEffectiveTemp(w.temp, w.windSpeed, w.humidity, activity, sensitivity, age);
+  const isTeen = age === '12-16y';
+  const eff = calculateRecommendationTemp(w, activity, sensitivity, age);
   const zone = zoneFromTemp(eff);
   const cold = ['arctic', 'winter', 'freeze'].includes(zone);
   const coolish = cold || ['chilly', 'cool'].includes(zone);
@@ -136,29 +160,35 @@ export const generateOutfit = (
 
   const lower: ClothingItem[] = [];
   if (zone === 'hot') {
-    lower.push(girl
-      ? it('lw-skirt', 'Лёгкая юбка', 'lower', '👗', '#B9A7E6', 2, 'Свободный крой — тело дышит в жару.')
-      : it('lw-shorts', 'Шорты', 'lower', '🩳', '#7FB069', 2, 'Лёгкие шорты для жаркой прогулки.'));
+    lower.push(isTeen
+      ? it('lw-teen-shorts', 'Лёгкие шорты', 'lower', '🩳', '#7FB069', 2, 'Свободный крой для жаркой и активной прогулки.')
+      : girl
+        ? it('lw-skirt', 'Лёгкая юбка', 'lower', '👗', '#B9A7E6', 2, 'Свободный крой — тело дышит в жару.')
+        : it('lw-shorts', 'Шорты', 'lower', '🩳', '#7FB069', 2, 'Лёгкие шорты для жаркой прогулки.'));
     lower.push(it('lw-tee-s', 'Футболка с коротким рукавом', 'lower', '👕', girl ? '#FF8FB1' : '#4ECDC4', 2, 'Светлая футболка из хлопка.'));
   } else if (zone === 'warm' || zone === 'mild') {
-    lower.push(girl
-      ? it('lw-skirt-m', 'Юбка с легинсами', 'lower', '👗', '#B9A7E6', 2, 'Юбка + тонкие легинсы — красиво и тепло.')
-      : it('lw-pants-m', 'Лёгкие брюки', 'lower', '👖', '#5A6B7F', 2, 'Дышащие брюки на каждый день.'));
+    lower.push(isTeen
+      ? it('lw-teen-pants', 'Лёгкие брюки', 'lower', '👖', '#5A6B7F', 2, 'Дышащие брюки, которые удобно сочетать с регулируемым верхним слоем.')
+      : girl
+        ? it('lw-skirt-m', 'Юбка с легинсами', 'lower', '👗', '#B9A7E6', 2, 'Юбка + тонкие легинсы — красиво и тепло.')
+        : it('lw-pants-m', 'Лёгкие брюки', 'lower', '👖', '#5A6B7F', 2, 'Дышащие брюки на каждый день.'));
     lower.push(it('lw-tee', 'Футболка', 'lower', '👕', girl ? '#FF8FB1' : '#4ECDC4', 2, 'Хлопковая футболка — базовый нижний слой.'));
   } else {
-    lower.push(it('lw-pants-c', girl ? 'Утеплённые легинсы' : 'Тёплые брюки', 'lower', '👖', '#5A6B7F', 2, 'Плотный нижний слой на ноги.'));
+    lower.push(it('lw-pants-c', isTeen ? 'Утеплённые брюки' : girl ? 'Утеплённые легинсы' : 'Тёплые брюки', 'lower', '👖', '#5A6B7F', 2, 'Плотный нижний слой на ноги.'));
     lower.push(it('lw-longsleeve', 'Лонгслив', 'lower', '👕', girl ? '#FF8FB1' : '#4ECDC4', 2, 'Футболка с длинным рукавом — второй после белья слой.'));
   }
 
   const upper: ClothingItem[] = [];
   if (zone === 'arctic' || zone === 'winter') upper.push(it('up-fleece', 'Флисовая кофта', 'upper', '🧶', '#B79CED', 3, 'Флис держит воздушную прослойку — главный утеплитель многослойности.'));
-  else if (zone === 'freeze' || zone === 'chilly') upper.push(it('up-sweater', girl ? 'Свитер' : 'Худи', 'upper', '🧥', '#B79CED', 3, 'Шерсть или плотный трикотаж — изоляция в околонулевую температуру.'));
+  else if (zone === 'freeze' || zone === 'chilly') upper.push(it('up-sweater', isTeen ? 'Свитшот' : girl ? 'Свитер' : 'Худи', 'upper', '🧥', '#B79CED', 3, 'Регулируемый утепляющий слой для прохладной погоды.'));
   else if (zone === 'cool') upper.push(it('up-hoodie', 'Толстовка', 'upper', '🧥', '#B79CED', 3, 'Лёгкий утепляющий слой для прохладной погоды.'));
-  else if (zone === 'mild') upper.push(it('up-cardigan', girl ? 'Кардиган' : 'Лёгкое худи', 'upper', '🧥', '#B79CED', 3, 'На случай вечернего похолодания — легко снять.'));
+  else if (zone === 'mild') upper.push(it('up-cardigan', isTeen ? 'Лёгкий свитшот' : girl ? 'Кардиган' : 'Лёгкое худи', 'upper', '🧥', '#B79CED', 3, 'На случай вечернего похолодания — легко снять.'));
 
   const outer: ClothingItem[] = [];
   if (w.isRainy && !cold) outer.push(it('ot-rain', 'Мембранный дождевик', 'outer', '☔', '#FFD166', 4, 'Не промокает и дышит. Обычный плащ создаст парник.', 'Ищите проклеенные швы.'));
-  else if (zone === 'arctic') outer.push(it('ot-combi', 'Зимний комбинезон', 'outer', '🧥', girl ? '#F472B6' : '#3E63DD', 4, 'Комбинезон не оставляет щелей на спине — для самых маленьких и сильных морозов.'));
+  else if (zone === 'arctic') outer.push(isTeen
+    ? it('ot-teen-winter', 'Тёплая зимняя куртка', 'outer', '🧥', girl ? '#F472B6' : '#3E63DD', 4, 'Тёплая куртка с непродуваемым верхом и регулируемыми слоями для подростка.')
+    : it('ot-combi', 'Зимний комбинезон', 'outer', '🧥', girl ? '#F472B6' : '#3E63DD', 4, 'Комбинезон не оставляет щелей на спине — для маленьких детей и сильных морозов.'));
   else if (zone === 'winter' || zone === 'freeze') outer.push(it('ot-puffer', 'Пуховик', 'outer', '🧥', girl ? '#F472B6' : '#3E63DD', 4, 'Пух/синтетический утеплитель 200+ г/м² для стабильного минуса.'));
   else if (zone === 'chilly') outer.push(it('ot-jacket', 'Утеплённая куртка', 'outer', '🧥', girl ? '#F472B6' : '#3E63DD', 4, 'Демисезонная куртка на лёгком утеплителе.'));
   else if (zone === 'cool') outer.push(it('ot-wind', 'Ветровка', 'outer', '🧥', girl ? '#F472B6' : '#3E63DD', 4, 'Блокирует ветер — главный вор тепла при +10…+15.'));
@@ -167,7 +197,7 @@ export const generateOutfit = (
   if (zone === 'hot') headwear.push(it('hw-panama', 'Панама', 'headwear', '👒', '#FFD166', 0, 'Широкие поля защищают лицо и шею от солнца.', 'Светлый цвет отражает солнце.'));
   else if (zone === 'warm' || zone === 'mild') headwear.push(it('hw-cap', girl ? 'Панамка' : 'Кепка', 'headwear', '🧢', girl ? '#FFD166' : '#2A9D8F', 0, 'Лёгкий головной убор от солнца.'));
   else if (zone === 'cool' || zone === 'chilly') headwear.push(it('hw-beanie-l', 'Тонкая шапка', 'headwear', '🧢', '#2A9D8F', 0, 'Однослойная шапка: голова потеет меньше, но не мёрзнет.'));
-  else headwear.push(it('hw-beanie-w', 'Шапка с помпоном', 'headwear', '🧶', girl ? '#F472B6' : '#2A9D8F', 0, 'Двухслойная шапка с подкладом. Помпон — дополнительная воздушная подушка.'));
+  else headwear.push(it('hw-beanie-w', isTeen ? 'Тёплая шапка-бини' : 'Шапка с помпоном', 'headwear', '🧶', girl ? '#F472B6' : '#2A9D8F', 0, isTeen ? 'Тёплая двухслойная шапка, закрывающая уши.' : 'Двухслойная шапка с подкладом для холодной погоды.'));
 
   const shoes: ClothingItem[] = [];
   if (w.isRainy && !cold) shoes.push(it('sh-rain', 'Резиновые сапоги', 'shoes', '🥾', '#FFD166', 0, 'Толстая подошва изолирует от холодной земли и луж.', 'Надевайте с тёплым носком.'));
@@ -178,12 +208,12 @@ export const generateOutfit = (
 
   const accessories: ClothingItem[] = [];
   if (cold) {
-    accessories.push(it('ac-mitt', 'Варежки', 'accessory', '🧤', girl ? '#FF6B6B' : '#5B8DEF', 0, 'Варежки теплее перчаток: пальцы греют друг друга.'));
-    accessories.push(it('ac-scarf', 'Шарф', 'accessory', '🧣', '#4ECDC4', 0, 'Закрывает шею и ворот — мостик холода.'));
+    accessories.push(it('ac-mitt', isTeen ? 'Утеплённые перчатки' : 'Варежки', 'accessory', '🧤', girl ? '#FF6B6B' : '#5B8DEF', 0, isTeen ? 'Утеплённые перчатки защищают руки и сохраняют свободу движений.' : 'Варежки теплее перчаток: пальцы греют друг друга.'));
+    accessories.push(it('ac-scarf', 'Шарф-труба', 'accessory', '🧣', '#4ECDC4', 0, 'Закрывает шею и ворот, не развязывается на ветру.'));
   } else if (coolish) {
     accessories.push(it('ac-gloves', 'Перчатки', 'accessory', '🧤', '#5B8DEF', 0, 'Лёгкие перчатки для околонулевой погоды.'));
   }
-  if (w.isWindy) accessories.push(it('ac-scarf-w', 'Шарф-труба', 'accessory', '🧣', '#4ECDC4', 0, 'При ветре шея теряет тепло первой.'));
+  if (w.isWindy && !cold) accessories.push(it('ac-scarf-w', 'Шарф-труба', 'accessory', '🧣', '#4ECDC4', 0, 'При ветре шея теряет тепло первой.'));
   if (zone === 'hot') accessories.push(it('ac-sun', 'Солнечные очки', 'accessory', '🕶️', '#0F172A', 0, 'Детские линзы с UV400 — сетчатка ребёнка вдвое чувствительнее.'));
   if (w.isRainy) accessories.push(it('ac-umb', 'Зонт', 'accessory', '☂️', '#EF4444', 0, 'Яркий зонт: ребёнка видно издалека.'));
 
@@ -220,6 +250,7 @@ export const generateOutfit = (
     '1-3y': 'tip-24',
     '3-7y': 'tip-25',
     '7-12y': 'tip-26',
+    '12-16y': 'tip-52',
   };
   addTip(ageTip[age]);
 
@@ -240,9 +271,10 @@ export const generateOutfit = (
   if (coolish) specialAdvice.push('Правило трёх слоёв: влагоотвод → изоляция → защита.');
   if (activity === 'active') specialAdvice.push('Ребёнок будет бегать: снимите верхний слой до выхода со двора, чтобы не вспотел.');
   if (activity === 'quiet') specialAdvice.push('Спокойная прогулка: тело греет меньше, добавьте изоляции.');
+  if (isTeen) specialAdvice.push('Подростку удобнее регулировать комплект самому: оставьте место в рюкзаке для снятого слоя.');
 
   return {
-    summary: `На улице ${w.temp > 0 ? '+' : ''}${w.temp}° (ощущается ${eff > 0 ? '+' : ''}${eff}°), ${w.description.toLowerCase()}. ${girl ? 'Девочке' : 'Мальчику'}: ${outer[0]?.name ?? upper[0]?.name ?? lower[0]?.name}, ${shoes[0]?.name}, ${headwear[0]?.name}.`,
+    summary: `На улице ${w.temp > 0 ? '+' : ''}${w.temp}° (по прогнозу ощущается ${w.feelsLike > 0 ? '+' : ''}${w.feelsLike}°, с учётом профиля ${eff > 0 ? '+' : ''}${eff}°), ${w.description.toLowerCase()}. В основе комплекта: ${outer[0]?.name ?? upper[0]?.name ?? lower[0]?.name}, ${shoes[0]?.name}, ${headwear[0]?.name}.`,
     underwear, lower, upper, outer, headwear, shoes, accessories, specialAdvice, parentTips,
   };
 };

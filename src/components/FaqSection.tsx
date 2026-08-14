@@ -144,9 +144,6 @@ export const FaqSection: React.FC<FaqSectionProps> = ({ weather, period, ageGrou
         })}
       </div>
 
-      <div className="rounded-2xl bg-slate-50 border border-slate-100 p-4 text-[11px] sm:text-xs text-slate-600 leading-relaxed">
-        <strong className="text-slate-800">Важно:</strong> рекомендации помогают подготовиться к обычной прогулке. При болезни, выраженном переохлаждении, перегреве или тревожном самочувствии ребёнка ориентируйтесь на состояние ребёнка и обращайтесь за медицинской помощью при необходимости.
-      </div>
     </section>
   );
 };

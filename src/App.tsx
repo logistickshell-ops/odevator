@@ -27,6 +27,7 @@ import { AnalysisSection } from './components/AnalysisSection';
 import { WalkNotes } from './components/WalkNotes';
 import { WalkChecklist } from './components/WalkChecklist';
 import { ShareInvite } from './components/ShareInvite';
+import { SharePlan } from './components/SharePlan';
 import { ChildProfileSettings } from './components/ChildProfileSettings';
 import { formatClothingHeading } from './utils/childProfile';
 import { 
@@ -768,6 +769,15 @@ export default function App() {
             isWindy={activeWeather.isWindy}
             onItemSelect={(item) => setSelectedItem(item)}
           />
+
+          <SharePlan
+            childName={activeChild.name}
+            cityName={selectedCity.name}
+            selectedDay={selectedDay}
+            selectedPeriod={selectedPeriod}
+            weather={activeWeather}
+            outfit={activeOutfit}
+          />
         </div>
           </>
         )}
@@ -855,14 +865,7 @@ export default function App() {
                 weatherCondition={manualCondition}
                 setWeatherCondition={setManualCondition}
               />
-              <ShareInvite
-                childName={activeChild.name}
-                cityName={selectedCity.name}
-                selectedDay={selectedDay}
-                selectedPeriod={selectedPeriod}
-                weather={activeWeather}
-                outfit={activeOutfit}
-              />
+              <ShareInvite />
             </div>
           )}
 

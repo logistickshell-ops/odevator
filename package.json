@@ -6,14 +6,14 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "check": "tsc --noEmit",
+    "verify:algorithm": "rm -rf .tmp-weather-check && vite build --ssr scripts/verify-weather-algorithm.ts --outDir .tmp-weather-check --emptyOutDir && node .tmp-weather-check/verify-weather-algorithm.js"
   },
   "dependencies": {
-    "clsx": "^2.1.1",
     "lucide-react": "^0.469.0",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "tailwind-merge": "^2.6.0"
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.0.0-beta.8",

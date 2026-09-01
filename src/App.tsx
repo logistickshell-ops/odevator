@@ -10,7 +10,9 @@ import {
   ClothingItem,
   AgeGroup,
   ChildProfile,
-  LAYER_LABELS
+  LAYER_LABELS,
+  OpenMeteoForecastResponse,
+  OpenMeteoGeocodingResponse,
 } from './types';
 import { 
   interpretWeatherCode, 
@@ -79,81 +81,67 @@ const saveToStorage = (key: string, value: unknown) => {
 // ============================================
 const generateMockForecast = (baseTemp: number): DayForecast[] => {
   const periods: WeatherPeriodType[] = ['morning', 'day', 'evening', 'night'];
-  const dayOffsets = [0, 1];
-  
+  const periodOffsets = [-3, 4, -1, -6];
+  const windOffsets = [0, 2, -1, 1];
+  const humidityOffsets = [0, 7, 12, 5];
+  const precipitationByPeriod = [5, 10, 5, 5];
   const monthNames = [
     'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
     'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
   ];
 
-  return dayOffsets.map(offset => {
+  return [0, 1].map((dayOffset) => {
     const date = new Date();
-    date.setDate(date.getDate() + offset);
-    const formattedDate = offset === 0 
+    date.setDate(date.getDate() + dayOffset);
+    const formattedDate = dayOffset === 0
       ? `Сегодня, ${date.getDate()} ${monthNames[date.getMonth()]}`
       : `Завтра, ${date.getDate()} ${monthNames[date.getMonth()]}`;
-    
-    const periodData: any = {};
+    const periodData = {} as DayForecast['periods'];
 
-    periods.forEach((period) => {
-      let tempMod = 0;
-      let weatherCode = 0;
-      let description = 'Ясно';
-      let icon = 'Sun';
-
-      if (period === 'morning') tempMod = -3;
-      else if (period === 'day') tempMod = 4;
-      else if (period === 'evening') tempMod = -1;
-      else if (period === 'night') tempMod = -6;
-
-      const temp = Math.round((baseTemp + tempMod) * 10) / 10;
-      const windSpeed = Math.round((8 + Math.random() * 12) * 10) / 10;
-      const humidity = Math.round(50 + Math.random() * 35);
-      const precipProb = Math.random() > 0.7 ? Math.round(30 + Math.random() * 50) : 5;
-
-      if (precipProb > 50) {
-        if (temp <= 0) {
-          weatherCode = 71;
-          description = 'Снегопад';
-          icon = 'Snowflake';
-        } else {
-          weatherCode = 61;
-          description = 'Дождь';
-          icon = 'CloudRain';
-        }
-      } else if (Math.random() > 0.5) {
-        weatherCode = 3;
-        description = 'Переменная облачность';
-        icon = 'CloudSun';
-      }
-
-      const feelsLike = Math.round(
-        (temp - (windSpeed > 10 ? (windSpeed - 10) * 0.3 : 0) + (humidity > 80 ? 1 : 0)) * 10
-      ) / 10;
+    periods.forEach((period, periodIndex) => {
+      const temp = Math.round((baseTemp + periodOffsets[periodIndex]) * 10) / 10;
+      const windSpeed = Math.round((8 + windOffsets[periodIndex]) * 10) / 10;
+      const humidity = 50 + humidityOffsets[periodIndex];
+      const precipProb = precipitationByPeriod[periodIndex];
+      const weatherCode = 0;
+      const description = 'Ясно';
+      const icon = 'Sun';
+      const feelsLike = Math.round((temp - (windSpeed > 10 ? (windSpeed - 10) * 0.3 : 0)) * 10) / 10;
 
       periodData[period] = {
-        temp,
-        feelsLike,
-        windSpeed,
-        humidity,
-        precipProb,
-        weatherCode,
-        description,
-        icon,
-        isRainy: icon === 'CloudRain' || icon === 'CloudLightning',
-        isSnowy: icon === 'Snowflake',
-        isWindy: windSpeed > 15
+        temp, feelsLike, windSpeed, humidity, precipProb, weatherCode,
+        description, icon, isRainy: false, isSnowy: false, isWindy: windSpeed > 15,
       };
     });
 
     return {
       date: date.toISOString().split('T')[0],
       formattedDate,
-      periods: periodData as DayForecast['periods']
+      periods: periodData,
     };
   });
 };
 
+const addDaysToDateKey = (dateKey: string, days: number): string => {
+  const [year, month, day] = dateKey.split('-').map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day + days));
+  return date.toISOString().slice(0, 10);
+};
+
+const getClosestHourlyIndex = (times: string[], dateKey: string, targetHour: number): number => {
+  let bestIndex = -1;
+  let bestDistance = Number.POSITIVE_INFINITY;
+  times.forEach((timestamp, index) => {
+    if (!timestamp.startsWith(dateKey)) return;
+    const hour = Number(timestamp.slice(11, 13));
+    const distance = Math.abs(hour - targetHour);
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      bestIndex = index;
+    }
+  });
+  return bestIndex;
+};
 const DEFAULT_CITY: CityData = {
   name: 'Ярославль',
   country: 'Россия',
@@ -287,69 +275,57 @@ export default function App() {
       const response = await fetch(url, { signal });
       if (!response.ok) throw new Error('Ошибка ответа сервера погоды.');
       
-      const data = await response.json();
+      const data = await response.json() as OpenMeteoForecastResponse;
       if (signal?.aborted) return;
       
-      if (!data.hourly || !data.hourly.time) {
+      if (!data.hourly || !Array.isArray(data.hourly.time) || data.hourly.time.length === 0) {
         throw new Error('Некорректный формат данных прогноза.');
       }
 
       const hourly = data.hourly;
-      
+      const firstHourlyDate = hourly.time[0]?.slice(0, 10);
+      const currentDate = data.current?.time?.slice(0, 10) ?? firstHourlyDate;
+      if (!currentDate) throw new Error('В ответе Open-Meteo отсутствует локальная дата.');
+
+      const monthNames = [
+        'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
+        'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
+      ];
+      const formatDate = (dateKey: string, dayIndex: 0 | 1) => {
+        const [, month, day] = dateKey.split('-').map(Number);
+        return dayIndex === 0
+          ? `Сегодня, ${day} ${monthNames[month - 1]}`
+          : `Завтра, ${day} ${monthNames[month - 1]}`;
+      };
+      const valueAt = (values: Array<number | null> | undefined, index: number, fallback: number) => {
+        const value = values?.[index];
+        return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+      };
+
       const parseDay = (dayIndex: 0 | 1): DayForecast => {
-        const date = new Date();
-        date.setDate(date.getDate() + dayIndex);
-        
-        const monthNames = [
-          'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
-          'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
-        ];
-
-        const formattedDate = dayIndex === 0
-          ? `Сегодня, ${date.getDate()} ${monthNames[date.getMonth()]}`
-          : `Завтра, ${date.getDate()} ${monthNames[date.getMonth()]}`;
-
-        const startOffset = dayIndex * 24;
-        
-        const morningIdx = startOffset + 8;
-        const dayIdx = startOffset + 14;
-        const eveningIdx = startOffset + 18;
-        const nightIdx = startOffset + 23;
-
-        const getPeriodData = (idx: number): WeatherData => {
-          const temp = hourly.temperature_2m[idx] !== undefined ? Math.round(hourly.temperature_2m[idx] * 10) / 10 : 10;
-          const feelsLike = hourly.apparent_temperature[idx] !== undefined ? Math.round(hourly.apparent_temperature[idx] * 10) / 10 : temp;
-          const windSpeed = hourly.wind_speed_10m[idx] !== undefined ? Math.round(hourly.wind_speed_10m[idx] * 10) / 10 : 5;
-          const humidity = hourly.relative_humidity_2m[idx] !== undefined ? Math.round(hourly.relative_humidity_2m[idx]) : 50;
-          const precipProb = hourly.precipitation_probability[idx] !== undefined ? Math.round(hourly.precipitation_probability[idx]) : 10;
-          const weatherCode = hourly.weather_code[idx] !== undefined ? hourly.weather_code[idx] : 0;
-
+        const dateKey = addDaysToDateKey(currentDate, dayIndex);
+        const getPeriodData = (targetHour: number): WeatherData => {
+          const idx = getClosestHourlyIndex(hourly.time, dateKey, targetHour);
+          const temp = Math.round(valueAt(hourly.temperature_2m, idx, 10) * 10) / 10;
+          const feelsLike = Math.round(valueAt(hourly.apparent_temperature, idx, temp) * 10) / 10;
+          const windSpeed = Math.round(valueAt(hourly.wind_speed_10m, idx, 5) * 10) / 10;
+          const humidity = Math.round(valueAt(hourly.relative_humidity_2m, idx, 50));
+          const precipProb = Math.round(valueAt(hourly.precipitation_probability, idx, 10));
+          const weatherCode = Math.round(valueAt(hourly.weather_code, idx, 0));
           const interp = interpretWeatherCode(weatherCode);
-
           return {
-            temp,
-            feelsLike,
-            windSpeed,
-            humidity,
-            precipProb,
-            weatherCode,
-            description: interp.description,
-            icon: interp.icon,
-            isRainy: interp.isRain,
-            isSnowy: interp.isSnow,
-            isWindy: windSpeed > 15
+            temp, feelsLike, windSpeed, humidity, precipProb, weatherCode,
+            description: interp.description, icon: interp.icon,
+            isRainy: interp.isRain, isSnowy: interp.isSnow, isWindy: windSpeed > 15,
           };
         };
-
         return {
-          date: date.toISOString().split('T')[0],
-          formattedDate,
+          date: dateKey,
+          formattedDate: formatDate(dateKey, dayIndex),
           periods: {
-            morning: getPeriodData(morningIdx),
-            day: getPeriodData(dayIdx),
-            evening: getPeriodData(eveningIdx),
-            night: getPeriodData(nightIdx)
-          }
+            morning: getPeriodData(8), day: getPeriodData(14),
+            evening: getPeriodData(18), night: getPeriodData(23),
+          },
         };
       };
 
@@ -361,11 +337,11 @@ export default function App() {
       const currentInterpretation = interpretWeatherCode(currentWeatherCode);
 
       setCurrentCityWeather({
-        temp: current?.temperature_2m !== undefined ? Math.round(current.temperature_2m * 10) / 10 : currentFallback.temp,
-        feelsLike: current?.apparent_temperature !== undefined ? Math.round(current.apparent_temperature * 10) / 10 : currentFallback.feelsLike,
-        windSpeed: current?.wind_speed_10m !== undefined ? Math.round(current.wind_speed_10m * 10) / 10 : currentFallback.windSpeed,
-        humidity: current?.relative_humidity_2m !== undefined ? Math.round(current.relative_humidity_2m) : currentFallback.humidity,
-        precipProb: current?.precipitation_probability !== undefined ? Math.round(current.precipitation_probability) : currentFallback.precipProb,
+        temp: Math.round((typeof current?.temperature_2m === 'number' ? current.temperature_2m : currentFallback.temp) * 10) / 10,
+        feelsLike: Math.round((typeof current?.apparent_temperature === 'number' ? current.apparent_temperature : currentFallback.feelsLike) * 10) / 10,
+        windSpeed: Math.round((typeof current?.wind_speed_10m === 'number' ? current.wind_speed_10m : currentFallback.windSpeed) * 10) / 10,
+        humidity: Math.round(typeof current?.relative_humidity_2m === 'number' ? current.relative_humidity_2m : currentFallback.humidity),
+        precipProb: Math.round(typeof current?.precipitation_probability === 'number' ? current.precipitation_probability : currentFallback.precipProb),
         weatherCode: currentWeatherCode,
         description: currentInterpretation.description,
         icon: currentInterpretation.icon,
@@ -387,8 +363,7 @@ export default function App() {
       if (signal?.aborted) return;
       console.error('Weather API Error. Using mock fallback:', error);
       setWeatherError('Не удалось связаться с сервером Open-Meteo. Используются симулированные данные погоды.');
-      const mockToday = generateMockForecast(10)[0];
-      const mockTomorrow = generateMockForecast(10)[1];
+      const [mockToday, mockTomorrow] = generateMockForecast(10);
       setTodayForecast(mockToday);
       setTomorrowForecast(mockTomorrow);
       setCurrentCityWeather(mockToday.periods.day);
@@ -415,7 +390,7 @@ export default function App() {
       const response = await fetch(searchUrl, { signal });
       if (!response.ok) throw new Error('Geocoding error');
       
-      const data = await response.json();
+      const data = await response.json() as OpenMeteoGeocodingResponse;
       if (signal?.aborted) return;
       if (data.results && data.results.length > 0) {
         const parsedCities: CityData[] = data.results.map((item: any) => ({

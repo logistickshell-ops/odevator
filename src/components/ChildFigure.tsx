@@ -1,5 +1,6 @@
 import React from 'react';
 import { ChildGender, LayerVisibility } from '../types';
+import { zoneFromTemp } from '../utils/weatherEngine';
 
 interface ChildFigureProps {
   gender: ChildGender;
@@ -9,11 +10,6 @@ interface ChildFigureProps {
   isWindy: boolean;
   show: LayerVisibility;
 }
-
-type Zone = 'arctic' | 'winter' | 'freeze' | 'chilly' | 'cool' | 'mild' | 'warm' | 'hot';
-const zoneFromTemp = (t: number): Zone =>
-  t <= -15 ? 'arctic' : t <= -5 ? 'winter' : t <= 0 ? 'freeze' : t <= 5 ? 'chilly' :
-  t <= 10 ? 'cool' : t <= 15 ? 'mild' : t <= 20 ? 'warm' : 'hot';
 
 export const ChildFigure: React.FC<ChildFigureProps> = ({
   gender, effectiveTemp, isRainy, isSnowy, isWindy, show,
@@ -275,7 +271,7 @@ export const ChildFigure: React.FC<ChildFigureProps> = ({
         )}
 
         {/* Слой 3: верхний (худи) */}
-        {(show.upper && (coolish || zone === 'mild')) && (
+        {show.upper && (
           <g filter={`url(#${uid}-soft)`}>
             <path d={armL} stroke={`url(#${gid('upper')})`} strokeWidth="26" strokeLinecap="round" fill="none" />
             <path d={armR} stroke={`url(#${gid('upper')})`} strokeWidth="26" strokeLinecap="round" fill="none" />

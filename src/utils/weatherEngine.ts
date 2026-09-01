@@ -55,7 +55,7 @@ export const calculateRecommendationTemp = (
 };
 
 type Zone = 'arctic' | 'winter' | 'freeze' | 'chilly' | 'cool' | 'mild' | 'warm' | 'hot';
-const zoneFromTemp = (t: number): Zone =>
+export const zoneFromTemp = (t: number): Zone =>
   t <= -15 ? 'arctic' : t <= -5 ? 'winter' : t <= 0 ? 'freeze' : t <= 7 ? 'chilly' :
   t <= 13 ? 'cool' : t <= 18 ? 'mild' : t <= 24 ? 'warm' : 'hot';
 

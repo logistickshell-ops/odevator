@@ -2,6 +2,46 @@
 
 export type WeatherPeriodType = 'morning' | 'day' | 'evening' | 'night';
 
+export type OpenMeteoNumberArray = Array<number | null>;
+
+export interface OpenMeteoHourlyResponse {
+  time: string[];
+  temperature_2m?: OpenMeteoNumberArray;
+  relative_humidity_2m?: OpenMeteoNumberArray;
+  apparent_temperature?: OpenMeteoNumberArray;
+  precipitation_probability?: OpenMeteoNumberArray;
+  weather_code?: OpenMeteoNumberArray;
+  wind_speed_10m?: OpenMeteoNumberArray;
+}
+
+export interface OpenMeteoCurrentResponse {
+  time?: string;
+  temperature_2m?: number | null;
+  relative_humidity_2m?: number | null;
+  apparent_temperature?: number | null;
+  precipitation_probability?: number | null;
+  weather_code?: number | null;
+  wind_speed_10m?: number | null;
+}
+
+export interface OpenMeteoForecastResponse {
+  timezone?: string;
+  current?: OpenMeteoCurrentResponse;
+  hourly?: OpenMeteoHourlyResponse;
+}
+
+export interface OpenMeteoGeocodingResult {
+  name: string;
+  country?: string;
+  admin1?: string;
+  latitude: number;
+  longitude: number;
+}
+
+export interface OpenMeteoGeocodingResponse {
+  results?: OpenMeteoGeocodingResult[];
+}
+
 export interface WeatherData {
   temp: number;
   feelsLike: number;

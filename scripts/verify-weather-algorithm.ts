@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { calculateRecommendationTemp, generateOutfit } from '../src/utils/weatherEngine';
+import { calculateRecommendationTemp, generateOutfit, zoneFromTemp } from '../src/utils/weatherEngine';
 import { formatClothingHeading } from '../src/utils/childProfile';
 import type { ActivityLevel, AgeGroup, ChildGender, ColdSensitivity, WeatherData, WeatherPeriodType } from '../src/types';
 
@@ -44,6 +44,9 @@ assert.ok(wind.parentTips.some((tip) => tip.id === 'tip-16'));
 assert.equal(calculateRecommendationTemp(weather({ feelsLike: 10 }), 'active', 'resistant', '7-12y'), 14);
 assert.equal(calculateRecommendationTemp(weather({ feelsLike: 10 }), 'quiet', 'sensitive', '0-3m'), 3);
 assert.equal(calculateRecommendationTemp(weather({ feelsLike: 10 }), 'normal', 'normal', '12-16y'), 10);
+assert.equal(zoneFromTemp(18), 'mild');
+assert.equal(zoneFromTemp(19), 'warm');
+assert.equal(outfit(weather({ temp: 19, feelsLike: 19 }), '1-3y').upper[0]?.id, 'up-cardigan');
 
 for (const period of ['morning', 'day', 'evening', 'night'] as WeatherPeriodType[]) {
   assert.ok(outfit(weather({ temp: 10, feelsLike: 10 }), '12-16y', 'active', 'normal', period).specialAdvice.length >= 1);

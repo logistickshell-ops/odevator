@@ -1,153 +1,60 @@
 import assert from 'node:assert/strict';
 import { calculateRecommendationTemp, generateOutfit } from '../src/utils/weatherEngine';
 import { formatClothingHeading } from '../src/utils/childProfile';
-import type {
-  ActivityLevel,
-  AgeGroup,
-  ChildGender,
-  ColdSensitivity,
-  WeatherData,
-  WeatherPeriodType,
-} from '../src/types';
+import type { ActivityLevel, AgeGroup, ChildGender, ColdSensitivity, WeatherData, WeatherPeriodType } from '../src/types';
 
-type Scenario = {
-  name: string;
-  weather: WeatherData;
-  gender: ChildGender;
-  activity: ActivityLevel;
-  sensitivity: ColdSensitivity;
-  age: AgeGroup;
-  period: WeatherPeriodType;
-  expectedRecommendationTemp: number;
-  includes: string[];
-  excludes?: string[];
-};
+const weather = (overrides: Partial<WeatherData> = {}): WeatherData => ({
+  temp: 10, feelsLike: 10, windSpeed: 5, humidity: 50, precipProb: 0,
+  weatherCode: 0, description: 'Ясно', icon: 'Sun', isRainy: false, isSnowy: false, isWindy: false,
+  ...overrides,
+});
 
-const weather = (
-  overrides: Pick<WeatherData, 'temp' | 'feelsLike'> & Partial<Omit<WeatherData, 'temp' | 'feelsLike'>>,
-): WeatherData => {
-  const { temp, feelsLike, ...rest } = overrides;
+const outfit = (w: WeatherData, age: AgeGroup = '1-3y', activity: ActivityLevel = 'normal', sensitivity: ColdSensitivity = 'normal', period: WeatherPeriodType = 'day') =>
+  generateOutfit('girl' as ChildGender, w, activity, sensitivity, age, period);
 
-  return {
-    temp,
-    feelsLike,
-    windSpeed: 5,
-    humidity: 50,
-    precipProb: 0,
-    weatherCode: 0,
-    description: 'Ясно',
-    icon: 'Sun',
-    isRainy: false,
-    isSnowy: false,
-    isWindy: false,
-    ...rest,
-  };
-};
-
-const scenarios: Scenario[] = [
-  {
-    name: 'Младенец в сильный мороз',
-    weather: weather({ temp: -18, feelsLike: -19, windSpeed: 12, humidity: 75, isSnowy: true, description: 'Снегопад', icon: 'Snowflake', weatherCode: 71 }),
-    gender: 'girl',
-    activity: 'quiet',
-    sensitivity: 'sensitive',
-    age: '0-3m',
-    period: 'morning',
-    expectedRecommendationTemp: -26,
-    includes: ['Термобельё (лонгслив + штаны)', 'Флисовая кофта', 'Зимний комбинезон', 'Утеплённые сапоги', 'Варежки', 'Шарф-труба'],
-  },
-  {
-    name: 'Подросток в жару',
-    weather: weather({ temp: 29, feelsLike: 30, windSpeed: 6, humidity: 45, description: 'Ясно', icon: 'Sun' }),
-    gender: 'boy',
-    activity: 'active',
-    sensitivity: 'normal',
-    age: '12-16y',
-    period: 'day',
-    expectedRecommendationTemp: 32,
-    includes: ['Лёгкие шорты', 'Футболка с коротким рукавом', 'Панама', 'Сандалии', 'Солнечные очки'],
-  },
-  {
-    name: 'Дошкольник в прохладный дождь',
-    weather: weather({ temp: 9, feelsLike: 7, windSpeed: 14, humidity: 88, precipProb: 75, weatherCode: 61, description: 'Дождь', icon: 'CloudRain', isRainy: true, isWindy: true }),
-    gender: 'girl',
-    activity: 'normal',
-    sensitivity: 'normal',
-    age: '3-7y',
-    period: 'evening',
-    expectedRecommendationTemp: 7,
-    includes: ['Мембранный дождевик', 'Резиновые сапоги', 'Тонкая шапка', 'Перчатки', 'Зонт'],
-  },
-  {
-    name: 'Подросток в арктический мороз',
-    weather: weather({ temp: -19, feelsLike: -20, windSpeed: 9, humidity: 60, isSnowy: true, weatherCode: 71, description: 'Снегопад', icon: 'Snowflake' }),
-    gender: 'girl',
-    activity: 'normal',
-    sensitivity: 'normal',
-    age: '12-16y',
-    period: 'night',
-    expectedRecommendationTemp: -20,
-    includes: ['Тёплая зимняя куртка', 'Тёплая шапка-бини', 'Утеплённые перчатки', 'Шарф-труба'],
-    excludes: ['Зимний комбинезон', 'Варежки'],
-  },
+const zones: Array<[number, string, string]> = [
+  [-20, 'Термобельё (лонгслив + штаны)', 'Зимний комбинезон'],
+  [-10, 'Термобельё (лонгслив + штаны)', 'Пуховик'],
+  [-2, 'Термобельё (лонгслив + штаны)', 'Пуховик'],
+  [5, 'Хлопковая майка и трусики', 'Утеплённая куртка'],
+  [10, 'Хлопковая майка и трусики', 'Ветровка'],
+  [16, 'Хлопковая майка и трусики', ''],
+  [22, 'Хлопковая майка и трусики', ''],
+  [28, 'Хлопковая майка и трусики', ''],
 ];
+for (const [temp, underwear, outer] of zones) {
+  const result = outfit(weather({ temp, feelsLike: temp }), '3-7y');
+  assert.equal(result.underwear[0].name, underwear, `underwear boundary at ${temp}`);
+  if (outer) assert.equal(result.outer[0]?.name, outer, `outer boundary at ${temp}`);
+}
+assert.equal(outfit(weather({ temp: 16, feelsLike: 16 }), '3-7y').upper[0]?.name, 'Кардиган');
 
-for (const scenario of scenarios) {
-  const recommendationTemp = calculateRecommendationTemp(
-    scenario.weather,
-    scenario.activity,
-    scenario.sensitivity,
-    scenario.age,
-  );
+const rain = outfit(weather({ temp: 12, feelsLike: 12, isRainy: true, weatherCode: 61, description: 'Дождь', icon: 'CloudRain' }));
+assert.equal(rain.outer[0]?.name, 'Мембранный дождевик');
+assert.equal(rain.shoes[0]?.name, 'Резиновые сапоги');
+assert.ok(rain.accessories.some((item) => item.name === 'Зонт'));
 
-  assert.equal(
-    recommendationTemp,
-    scenario.expectedRecommendationTemp,
-    `${scenario.name}: изменилась расчётная температура профиля`,
-  );
+const snow = outfit(weather({ temp: -3, feelsLike: -3, isSnowy: true, weatherCode: 71, description: 'Снегопад', icon: 'Snowflake' }));
+assert.ok(snow.accessories.some((item) => item.name === 'Варежки'));
 
-  const outfit = generateOutfit(
-    scenario.gender,
-    scenario.weather,
-    scenario.activity,
-    scenario.sensitivity,
-    scenario.age,
-    scenario.period,
-  );
-  const names = [
-    ...outfit.underwear,
-    ...outfit.lower,
-    ...outfit.upper,
-    ...outfit.outer,
-    ...outfit.headwear,
-    ...outfit.shoes,
-    ...outfit.accessories,
-  ].map((item) => item.name);
+const wind = outfit(weather({ temp: 16, feelsLike: 16, windSpeed: 18, isWindy: true }));
+assert.ok(wind.accessories.some((item) => item.name === 'Шарф-труба'));
+assert.ok(wind.parentTips.some((tip) => tip.id === 'tip-16'));
 
-  for (const itemName of scenario.includes) {
-    assert.ok(names.includes(itemName), `${scenario.name}: не найдена вещь «${itemName}»`);
-  }
+assert.equal(calculateRecommendationTemp(weather({ feelsLike: 10 }), 'active', 'resistant', '7-12y'), 14);
+assert.equal(calculateRecommendationTemp(weather({ feelsLike: 10 }), 'quiet', 'sensitive', '0-3m'), 3);
+assert.equal(calculateRecommendationTemp(weather({ feelsLike: 10 }), 'normal', 'normal', '12-16y'), 10);
 
-  for (const itemName of scenario.excludes ?? []) {
-    assert.ok(!names.includes(itemName), `${scenario.name}: лишняя вещь «${itemName}»`);
-  }
-
-  assert.ok(outfit.parentTips.length > 0, `${scenario.name}: не сформированы подсказки`);
+for (const period of ['morning', 'day', 'evening', 'night'] as WeatherPeriodType[]) {
+  assert.ok(outfit(weather({ temp: 10, feelsLike: 10 }), '12-16y', 'active', 'normal', period).specialAdvice.length >= 1);
 }
 
-const headingCases = [
-  { name: 'Маша', gender: 'girl' as const, expected: 'Одежда для Маши' },
-  { name: 'Мария', gender: 'girl' as const, expected: 'Одежда для Марии' },
-  { name: 'Илья', gender: 'boy' as const, expected: 'Одежда для Ильи' },
-  { name: 'Алексей', gender: 'boy' as const, expected: 'Одежда для Алексея' },
+const headingCases: Array<[string, ChildGender, string]> = [
+  ['Маша', 'girl', 'Одежда для Маши'],
+  ['  ', 'girl', 'Одежда для ребёнка'],
+  ['Иван', 'boy', 'Одежда для Ивана'],
+  ['  ', 'boy', 'Одежда для ребёнка'],
 ];
+for (const [name, gender, expected] of headingCases) assert.equal(formatClothingHeading(name, gender), expected);
 
-for (const headingCase of headingCases) {
-  assert.equal(
-    formatClothingHeading(headingCase.name, headingCase.gender),
-    headingCase.expected,
-    `Неверное склонение имени «${headingCase.name}»`,
-  );
-}
-
-console.log(`Weather algorithm checks passed: ${scenarios.length} scenarios; name headings: ${headingCases.length}`);
+console.log(`Weather algorithm checks passed: ${zones.length} boundaries + rain/snow/wind + profile/period cases; name headings: ${headingCases.length}`);

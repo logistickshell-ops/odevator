@@ -181,8 +181,9 @@ export const generateOutfit = (
   const upper: ClothingItem[] = [];
   if (zone === 'arctic' || zone === 'winter') upper.push(it('up-fleece', 'Флисовая кофта', 'upper', '🧶', '#B79CED', 3, 'Флис держит воздушную прослойку — главный утеплитель многослойности.'));
   else if (zone === 'freeze' || zone === 'chilly') upper.push(it('up-sweater', isTeen ? 'Свитшот' : girl ? 'Свитер' : 'Худи', 'upper', '🧥', '#B79CED', 3, 'Регулируемый утепляющий слой для прохладной погоды.'));
-  else if (zone === 'cool') upper.push(it('up-hoodie', 'Толстовка', 'upper', '🧥', '#B79CED', 3, 'Лёгкий утепляющий слой для прохладной погоды.'));
-  else if (zone === 'mild') upper.push(it('up-cardigan', isTeen ? 'Лёгкий свитшот' : girl ? 'Кардиган' : 'Лёгкое худи', 'upper', '🧥', '#B79CED', 3, 'На случай вечернего похолодания — легко снять.'));
+  else if (zone === 'cool') upper.push(it('up-hoodie', 'Толстовка', 'upper', '🧥', '#B79CED', 3, 'Лёгкий утепляющий слой для прохладной погоды. Манжеты удерживают тепло.'));
+  else if (zone === 'mild' && activity === 'active') upper.push(it('up-vest', 'Утеплённый жилет', 'upper', '🦺', '#F4A261', 3, 'Тёплый корпус и свободные руки для активной прогулки.'));
+  else if (zone === 'mild') upper.push(it('up-cardigan', isTeen ? 'Лёгкий свитшот' : girl ? 'Кардиган' : 'Лёгкое худи', 'upper', '🧥', '#B79CED', 3, 'На случай вечернего похолодания — легко снять. Мягкая окантовка и две пуговицы.'));
 
   const outer: ClothingItem[] = [];
   if (w.isRainy && !cold) outer.push(it('ot-rain', 'Мембранный дождевик', 'outer', '☔', '#FFD166', 4, 'Не промокает и дышит. Обычный плащ создаст парник.', 'Ищите проклеенные швы.'));
@@ -195,14 +196,17 @@ export const generateOutfit = (
 
   const headwear: ClothingItem[] = [];
   if (zone === 'hot') headwear.push(it('hw-panama', 'Панама', 'headwear', '👒', '#FFD166', 0, 'Широкие поля защищают лицо и шею от солнца.', 'Светлый цвет отражает солнце.'));
-  else if (zone === 'warm' || zone === 'mild') headwear.push(it('hw-cap', girl ? 'Панамка' : 'Кепка', 'headwear', '🧢', girl ? '#FFD166' : '#2A9D8F', 0, 'Лёгкий головной убор от солнца.'));
+  else if (zone === 'warm') headwear.push(it('hw-cap', girl ? 'Панамка' : 'Кепка', 'headwear', '🧢', girl ? '#FFD166' : '#2A9D8F', 0, 'Лёгкий головной убор от солнца.'));
+  else if (zone === 'mild') headwear.push(it('hw-bucket', 'Панама bucket', 'headwear', '🧢', '#E9C46A', 0, 'Мягкие поля защищают от ветра и солнца.'));
   else if (zone === 'cool' || zone === 'chilly') headwear.push(it('hw-beanie-l', 'Тонкая шапка', 'headwear', '🧢', '#2A9D8F', 0, 'Однослойная шапка: голова потеет меньше, но не мёрзнет.'));
+  else if (age === '0-3m' || age === '3-12m') headwear.push(it('hw-helmet', 'Шапка-шлем', 'headwear', '🧸', '#F5B942', 0, 'Закрывает уши и шею малыша без лишних завязок.'));
+  else if (zone === 'arctic' || zone === 'winter') headwear.push(it('hw-earflap', 'Шапка-ушанка', 'headwear', '🧶', '#C084FC', 0, 'Ушанка защищает уши и затылок от сильного холода.'));
   else headwear.push(it('hw-beanie-w', isTeen ? 'Тёплая шапка-бини' : 'Шапка с помпоном', 'headwear', '🧶', girl ? '#F472B6' : '#2A9D8F', 0, isTeen ? 'Тёплая двухслойная шапка, закрывающая уши.' : 'Двухслойная шапка с подкладом для холодной погоды.'));
 
   const shoes: ClothingItem[] = [];
   if (w.isRainy && !cold) shoes.push(it('sh-rain', 'Резиновые сапоги', 'shoes', '🥾', '#FFD166', 0, 'Толстая подошва изолирует от холодной земли и луж.', 'Надевайте с тёплым носком.'));
   else if (zone === 'hot') shoes.push(it('sh-sandals', 'Сандалии', 'shoes', '👡', '#FFFFFF', 0, 'Открытая обувь с жёстким задником.'));
-  else if (zone === 'warm' || zone === 'mild') shoes.push(it('sh-sneak', 'Кроссовки', 'shoes', '👟', '#FFFFFF', 0, 'Дышащие кроссовки для сухой погоды.'));
+  else if (zone === 'warm' || zone === 'mild') shoes.push(it('sh-sneak', 'Кроссовки', 'shoes', '👟', '#FFFFFF', 0, 'Дышащие кроссовки для сухой погоды. Контрастная подошва и мягкая фиксация.'));
   else if (zone === 'cool' || zone === 'chilly') shoes.push(it('sh-boots', 'Ботинки', 'shoes', '🥾', '#8B5E3C', 0, 'Закрытые ботинки на плотной подошве.'));
   else shoes.push(it('sh-winter', 'Утеплённые сапоги', 'shoes', '🥾', '#8B5E3C', 0, 'Мембрана или шерсть внутри, размер с запасом под носок.'));
 

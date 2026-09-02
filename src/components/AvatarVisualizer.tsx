@@ -103,14 +103,15 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
         <div className={`bg-gradient-to-b ${bgGradient} rounded-2xl sm:rounded-3xl p-3 sm:p-5 border-3 sm:border-4 border-white shadow-lg sm:shadow-xl relative flex flex-col items-center overflow-hidden`}>
           
           {/* Компонент ребенка */}
-          <div className="w-full max-w-[230px] sm:max-w-[280px] aspect-[11/20] pt-6 sm:pt-8 pb-1 sm:pb-2">
+          <div className="w-full max-w-[230px] sm:max-w-[280px] aspect-[3/5] pt-6 sm:pt-8 pb-1 sm:pb-2">
             <ChildFigure
               gender={gender}
               effectiveTemp={effectiveTemp}
               isRainy={isRainy}
               isSnowy={isSnowy}
               isWindy={isWindy}
-              show={show} // Передаем вычисленную видимость
+              show={show}
+              outfit={outfit}
             />
           </div>
 

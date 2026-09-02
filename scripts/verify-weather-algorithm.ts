@@ -47,6 +47,7 @@ assert.equal(calculateRecommendationTemp(weather({ feelsLike: 10 }), 'normal', '
 assert.equal(zoneFromTemp(18), 'mild');
 assert.equal(zoneFromTemp(19), 'warm');
 assert.equal(outfit(weather({ temp: 19, feelsLike: 19 }), '1-3y').upper[0]?.id, 'up-cardigan');
+assert.equal(outfit(weather({ temp: 15, feelsLike: 15 }), '3-7y', 'active').upper[0]?.id, 'up-vest');
 
 for (const period of ['morning', 'day', 'evening', 'night'] as WeatherPeriodType[]) {
   assert.ok(outfit(weather({ temp: 10, feelsLike: 10 }), '12-16y', 'active', 'normal', period).specialAdvice.length >= 1);

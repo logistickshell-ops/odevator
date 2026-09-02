@@ -1,5 +1,5 @@
-import React from 'react';
-import { ChildGender, LayerVisibility } from '../types';
+import React, { useId } from 'react';
+import { ChildGender, ClothingItem, LayerVisibility, RecommendedOutfit } from '../types';
 import { zoneFromTemp } from '../utils/weatherEngine';
 
 interface ChildFigureProps {
@@ -9,10 +9,11 @@ interface ChildFigureProps {
   isSnowy: boolean;
   isWindy: boolean;
   show: LayerVisibility;
+  outfit: RecommendedOutfit;
 }
 
 export const ChildFigure: React.FC<ChildFigureProps> = ({
-  gender, effectiveTemp, isRainy, isSnowy, isWindy, show,
+  gender, effectiveTemp, isRainy, isSnowy, isWindy, show, outfit,
 }) => {
   const girl = gender === 'girl';
   const zone = zoneFromTemp(effectiveTemp);
@@ -56,11 +57,21 @@ export const ChildFigure: React.FC<ChildFigureProps> = ({
   const ink = '#3B3148';
 
   const shortSleeve = hot || zone === 'warm';
-  const drawSkirt = girl && !cold && zone !== 'chilly';
-  const drawShorts = !girl && (hot || zone === 'warm');
 
-  const uid = girl ? 'g' : 'b';
+  const reactId = useId().replace(/:/g, '');
+  const uid = `${reactId}-${girl ? 'g' : 'b'}`;
   const gid = (n: string) => `${uid}-${n}`;
+  const itemIds = {
+    lower: outfit.lower.map((item: ClothingItem) => item.id),
+    upper: outfit.upper.map((item: ClothingItem) => item.id),
+    outer: outfit.outer.map((item: ClothingItem) => item.id),
+    headwear: outfit.headwear.map((item: ClothingItem) => item.id),
+    shoes: outfit.shoes.map((item: ClothingItem) => item.id),
+  };
+  const hasItem = (category: keyof typeof itemIds, id: string) => itemIds[category].includes(id);
+  const activeHeadwear = outfit.headwear[0]?.id ?? '';
+  const drawSkirt = hasItem('lower', 'lw-skirt') || hasItem('lower', 'lw-skirt-m');
+  const drawShorts = hasItem('lower', 'lw-shorts') || hasItem('lower', 'lw-teen-shorts');
 
   // Кривые для рук и ног (анатомические, не прямоугольники)
   const armL = `M ${CX - 26} ${Y_SHOULDER + 8} Q ${CX - 44} ${Y_SHOULDER + 18} ${CX - 48} ${Y_SHOULDER + 52} Q ${CX - 50} ${Y_SHOULDER + 78} ${CX - 50} ${Y_SHOULDER + 92}`;
@@ -273,15 +284,23 @@ export const ChildFigure: React.FC<ChildFigureProps> = ({
         {/* Слой 3: верхний (худи) */}
         {show.upper && (
           <g filter={`url(#${uid}-soft)`}>
-            <path d={armL} stroke={`url(#${gid('upper')})`} strokeWidth="26" strokeLinecap="round" fill="none" />
-            <path d={armR} stroke={`url(#${gid('upper')})`} strokeWidth="26" strokeLinecap="round" fill="none" />
+            {!hasItem('upper', 'up-vest') && <>
+              <path d={armL} stroke={`url(#${gid('upper')})`} strokeWidth="26" strokeLinecap="round" fill="none" />
+              <path d={armR} stroke={`url(#${gid('upper')})`} strokeWidth="26" strokeLinecap="round" fill="none" />
+            </>}
             <rect x={CX - 28} y={Y_SHOULDER - 8} width="56" height="96" rx="24" fill={`url(#${gid('upper')})`} />
             <rect x={CX - 28} y={Y_SHOULDER - 8} width="56" height="96" rx="24" fill={`url(#${gid('hi')})`} />
             <path d={`M ${CX - 15} ${Y_SHOULDER - 8} Q ${CX} ${Y_SHOULDER + 16} ${CX + 15} ${Y_SHOULDER - 8}`} fill={`url(#${gid('top')})`} />
             <path d={`M ${CX - 18} ${Y_WAIST - 12} L ${CX + 18} ${Y_WAIST - 12} L ${CX + 24} ${Y_WAIST + 12} L ${CX - 24} ${Y_WAIST + 12} Z`} fill="#FFFFFF" opacity="0.16" />
             <rect x={CX - 26} y={Y_WAIST + 16} width="52" height="6" rx="3" fill="#000000" opacity="0.12" />
-            <line x1={CX - 6} y1={Y_SHOULDER + 8} x2={CX - 6} y2={Y_SHOULDER + 26} stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" opacity="0.75" />
-            <line x1={CX + 6} y1={Y_SHOULDER + 8} x2={CX + 6} y2={Y_SHOULDER + 26} stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" opacity="0.75" />
+            {hasItem('upper', 'up-vest') ? <>
+              <line x1={CX} y1={Y_SHOULDER + 2} x2={CX} y2={Y_WAIST + 12} stroke={`url(#${gid('hatD')})`} strokeWidth="3" strokeLinecap="round" />
+              <path d={`M ${CX - 22} ${Y_SHOULDER + 40} L ${CX - 7} ${Y_SHOULDER + 46} L ${CX - 7} ${Y_SHOULDER + 58} L ${CX - 22} ${Y_SHOULDER + 52} Z`} fill="#000000" opacity="0.12" />
+              <path d={`M ${CX + 22} ${Y_SHOULDER + 40} L ${CX + 7} ${Y_SHOULDER + 46} L ${CX + 7} ${Y_SHOULDER + 58} L ${CX + 22} ${Y_SHOULDER + 52} Z`} fill="#000000" opacity="0.12" />
+            </> : <>
+              <line x1={CX - 6} y1={Y_SHOULDER + 8} x2={CX - 6} y2={Y_SHOULDER + 26} stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" opacity="0.75" />
+              <line x1={CX + 6} y1={Y_SHOULDER + 8} x2={CX + 6} y2={Y_SHOULDER + 26} stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" opacity="0.75" />
+            </>}
           </g>
         )}
 
@@ -416,26 +435,42 @@ export const ChildFigure: React.FC<ChildFigureProps> = ({
           {/* Головной убор */}
           {show.headwear && (
             <g filter={`url(#${uid}-soft)`}>
-              {hot ? (
+              {activeHeadwear === 'hw-panama' || activeHeadwear === 'hw-sunhat' ? (
                 <>
                   <ellipse cx={CX} cy={Y_HEAD - 24} rx="46" ry="12" fill={`url(#${gid('hat')})`} />
                   <path d={`M ${CX - 28} ${Y_HEAD - 24} Q ${CX} ${Y_HEAD - 56} ${CX + 28} ${Y_HEAD - 24} Z`} fill={`url(#${gid('hat')})`} />
                   <path d={`M ${CX - 28} ${Y_HEAD - 24} Q ${CX} ${Y_HEAD - 56} ${CX + 28} ${Y_HEAD - 24} Z`} fill={`url(#${gid('hi')})`} />
                   <rect x={CX - 28} y={Y_HEAD - 30} width="56" height="7" rx="3.5" fill={`url(#${gid('hatD')})`} />
                 </>
-              ) : zone === 'warm' || zone === 'mild' ? (
+              ) : activeHeadwear === 'hw-cap' ? (
                 <>
-                  <path d={`M ${CX - 34} ${Y_HEAD - 14} Q ${CX} ${Y_HEAD - 52} ${CX + 34} ${Y_HEAD - 14} Z`} fill={`url(#${gid('hat')})`} />
-                  <path d={`M ${CX - 34} ${Y_HEAD - 14} Q ${CX} ${Y_HEAD - 52} ${CX + 34} ${Y_HEAD - 14} Z`} fill={`url(#${gid('hi')})`} />
-                  <path d={`M ${CX + 4} ${Y_HEAD - 22} Q ${CX + 30} ${Y_HEAD - 26} ${CX + 44} ${Y_HEAD - 14} Q ${CX + 26} ${Y_HEAD - 8} ${CX + 6} ${Y_HEAD - 12} Z`} fill={`url(#${gid('hatD')})`} />
-                  <circle cx={CX} cy={Y_HEAD - 40} r="3" fill={`url(#${gid('hatD')})`} />
+                  <path d={`M ${CX - 34} ${Y_HEAD - 14} Q ${CX} ${Y_HEAD - 52} ${CX + 30} ${Y_HEAD - 14} Z`} fill={`url(#${gid('hat')})`} />
+                  <path d={`M ${CX + 4} ${Y_HEAD - 17} Q ${CX + 30} ${Y_HEAD - 17} ${CX + 46} ${Y_HEAD - 10} Q ${CX + 25} ${Y_HEAD - 3} ${CX + 2} ${Y_HEAD - 9} Z`} fill={`url(#${gid('hatD')})`} />
+                </>
+              ) : activeHeadwear === 'hw-bucket' ? (
+                <>
+                  <path d={`M ${CX - 30} ${Y_HEAD - 14} Q ${CX} ${Y_HEAD - 48} ${CX + 30} ${Y_HEAD - 14} L ${CX + 25} ${Y_HEAD - 2} L ${CX - 25} ${Y_HEAD - 2} Z`} fill={`url(#${gid('hat')})`} />
+                  <ellipse cx={CX} cy={Y_HEAD - 3} rx="40" ry="8" fill={`url(#${gid('hatD')})`} />
+                </>
+              ) : activeHeadwear === 'hw-helmet' ? (
+                <>
+                  <path d={`M ${CX - 34} ${Y_HEAD - 10} Q ${CX - 32} ${Y_HEAD - 54} ${CX} ${Y_HEAD - 58} Q ${CX + 32} ${Y_HEAD - 54} ${CX + 34} ${Y_HEAD - 10} Z`} fill={`url(#${gid('hat')})`} />
+                  <path d={`M ${CX - 34} ${Y_HEAD - 8} Q ${CX - 46} ${Y_HEAD + 4} ${CX - 30} ${Y_HEAD + 12} L ${CX - 20} ${Y_HEAD + 3} Z`} fill={`url(#${gid('hatD')})`} />
+                  <path d={`M ${CX + 34} ${Y_HEAD - 8} Q ${CX + 46} ${Y_HEAD + 4} ${CX + 30} ${Y_HEAD + 12} L ${CX + 20} ${Y_HEAD + 3} Z`} fill={`url(#${gid('hatD')})`} />
+                </>
+              ) : activeHeadwear === 'hw-earflap' ? (
+                <>
+                  <path d={`M ${CX - 34} ${Y_HEAD - 14} Q ${CX} ${Y_HEAD - 58} ${CX + 34} ${Y_HEAD - 14} Z`} fill={`url(#${gid('hat')})`} />
+                  <rect x={CX - 38} y={Y_HEAD - 18} width="76" height="14" rx="7" fill={`url(#${gid('hatD')})`} />
+                  <path d={`M ${CX - 34} ${Y_HEAD - 6} L ${CX - 42} ${Y_HEAD + 22} L ${CX - 25} ${Y_HEAD + 14} L ${CX - 24} ${Y_HEAD - 3} Z`} fill={`url(#${gid('hatD')})`} />
+                  <path d={`M ${CX + 34} ${Y_HEAD - 6} L ${CX + 42} ${Y_HEAD + 22} L ${CX + 25} ${Y_HEAD + 14} L ${CX + 24} ${Y_HEAD - 3} Z`} fill={`url(#${gid('hatD')})`} />
                 </>
               ) : (
                 <>
                   <path d={`M ${CX - 34} ${Y_HEAD - 14} Q ${CX} ${Y_HEAD - 56} ${CX + 34} ${Y_HEAD - 14} Z`} fill={`url(#${gid('hat')})`} />
                   <path d={`M ${CX - 34} ${Y_HEAD - 14} Q ${CX} ${Y_HEAD - 56} ${CX + 34} ${Y_HEAD - 14} Z`} fill={`url(#${gid('hi')})`} />
                   <rect x={CX - 36} y={Y_HEAD - 18} width="72" height="14" rx="7" fill={`url(#${gid('hatD')})`} />
-                  {(zone === 'arctic' || zone === 'winter') && <circle cx={CX} cy={Y_HEAD - 50} r="11" fill="#FFFFFF" />}
+                  {activeHeadwear === 'hw-beanie-w' && <circle cx={CX} cy={Y_HEAD - 50} r="11" fill="#FFFFFF" />}
                 </>
               )}
             </g>

@@ -601,6 +601,18 @@ export default function App() {
               <span>{tr('Подсказки')}</span>
             </button>
             <button
+<<<<<<< HEAD
+=======
+              onClick={() => setActiveTab('premium')}
+              className={`py-2 px-1 font-extrabold text-[9px] xs:text-[11px] sm:text-sm border-b-2 transition flex flex-col xs:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-1.5 whitespace-nowrap ${
+                activeTab === 'premium' ? 'border-violet-400 text-violet-700' : 'border-transparent text-slate-400 hover:text-slate-600'
+              }`}
+            >
+              <span>⭐</span>
+              <span>{tr('Неделя')}</span>
+            </button>
+            <button
+>>>>>>> 718e664c420f880b434b9517e3b262a1b4bf8824
               onClick={() => setActiveTab('notes')}
               className={`py-2 px-1 font-extrabold text-[9px] xs:text-[11px] sm:text-sm border-b-2 transition flex flex-col xs:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-1.5 whitespace-nowrap ${
                 activeTab === 'notes' ? 'border-sky-400 text-sky-700' : 'border-transparent text-slate-400 hover:text-slate-600'

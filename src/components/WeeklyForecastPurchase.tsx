@@ -1,4 +1,4 @@
-import { tr } from '../i18n';
+import { getLanguage, tr } from '../i18n';
 import { useEffect, useState } from 'react';
 import { CalendarDays, CheckCircle2, LockKeyhole, RefreshCw, Sparkles, Star } from 'lucide-react';
 import {
@@ -77,7 +77,7 @@ export function WeeklyForecastPurchase() {
                 </span>
               </div>
               <p className="max-w-2xl text-xs leading-relaxed text-slate-500 sm:text-sm">
-                {tr("Полный план одежды для активного ребёнка на неделю: утро, день, вечер, осадки,\n                ветер, запасные слои и родительские подсказки.")}
+                {tr("Полный план одежды для активного ребёнка на неделю:")} {tr("утро, день, вечер, осадки, ветер, запасные слои и родительские подсказки.")}
               </p>
             </div>
           </div>
@@ -112,7 +112,7 @@ export function WeeklyForecastPurchase() {
           </button>
           {validUntil && active && (
             <p className="mt-2 text-[10px] font-bold text-emerald-600">
-              {tr("Доступ до")} {new Date(validUntil).toLocaleDateString('ru-RU')}
+              {tr("Доступ до")} {new Intl.DateTimeFormat(getLanguage() === 'en' ? 'en-US' : 'ru-RU').format(new Date(validUntil))}
             </p>
           )}
         </div>

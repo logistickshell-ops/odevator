@@ -1,4 +1,4 @@
-import { tr } from '../i18n';
+import { getLanguage, tr } from '../i18n';
 import { ActivityLevel, AgeGroup, ChildGender, ColdSensitivity } from '../types';
 
 export const AGE_GROUP_OPTIONS: { value: AgeGroup; label: string; icon: string; description: string }[] = [
@@ -40,17 +40,17 @@ function declineFirstNameToGenitive(firstName: string, gender: ChildGender) {
   const lower = firstName.toLowerCase();
 
   if (gender === 'girl') {
-    if (lower.endsWith(tr("ия")) || lower.endsWith(tr("я"))) return `${firstName.slice(0, -1)}и`;
-    if (lower.endsWith(tr("а"))) {
+    if (lower.endsWith("ия") || lower.endsWith("я")) return `${firstName.slice(0, -1)}и`;
+    if (lower.endsWith("а")) {
       const stem = firstName.slice(0, -1);
       return /[гкхжчшщ]$/i.test(stem) ? `${stem}и` : `${stem}ы`;
     }
     return firstName;
   }
 
-  if (lower.endsWith(tr("й")) || lower.endsWith(tr("ь"))) return `${firstName.slice(0, -1)}я`;
-  if (lower.endsWith(tr("я"))) return `${firstName.slice(0, -1)}и`;
-  if (lower.endsWith(tr("а"))) {
+  if (lower.endsWith("й") || lower.endsWith("ь")) return `${firstName.slice(0, -1)}я`;
+  if (lower.endsWith("я")) return `${firstName.slice(0, -1)}и`;
+  if (lower.endsWith("а")) {
     const stem = firstName.slice(0, -1);
     return /[гкхжчшщ]$/i.test(stem) ? `${stem}и` : `${stem}ы`;
   }
@@ -62,7 +62,8 @@ export function formatClothingHeading(name: string, gender: ChildGender) {
   const displayName = getChildDisplayName(name);
   if (!displayName) return tr("Одежда для ребёнка");
 
+  if (getLanguage() === 'en') return `${tr('Одежда для')} ${displayName}`;
   const words = displayName.split(' ');
   words[0] = declineFirstNameToGenitive(words[0], gender);
-  return `Одежда для ${words.join(' ')}`;
+  return `${tr('Одежда для')} ${words.join(' ')}`;
 }

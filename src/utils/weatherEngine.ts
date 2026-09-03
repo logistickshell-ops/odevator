@@ -279,7 +279,7 @@ export const generateOutfit = (
   if (isTeen) specialAdvice.push(tr("Подростку удобнее регулировать комплект самому: оставьте место в рюкзаке для снятого слоя."));
 
   return {
-    summary: `На улице ${w.temp > 0 ? '+' : ''}${w.temp}° (по прогнозу ощущается ${w.feelsLike > 0 ? '+' : ''}${w.feelsLike}°, с учётом профиля ${eff > 0 ? '+' : ''}${eff}°), ${w.description.toLowerCase()}. В основе комплекта: ${outer[0]?.name ?? upper[0]?.name ?? lower[0]?.name}, ${shoes[0]?.name}, ${headwear[0]?.name}.`,
+    summary: `${tr('На улице')} ${w.temp > 0 ? '+' : ''}${w.temp}° (${tr('по прогнозу ощущается')} ${w.feelsLike > 0 ? '+' : ''}${w.feelsLike}°, ${tr('с учётом профиля')} ${eff > 0 ? '+' : ''}${eff}°), ${w.description.toLowerCase()}. ${tr('В основе комплекта')}: ${outer[0]?.name ?? upper[0]?.name ?? lower[0]?.name}, ${shoes[0]?.name}, ${headwear[0]?.name}.`,
     underwear, lower, upper, outer, headwear, shoes, accessories, specialAdvice, parentTips,
   };
 };

@@ -70,7 +70,9 @@ export const FaqSection: React.FC<FaqSectionProps> = ({ weather, period, ageGrou
       category: 'weather',
       question: tr("Почему при ветре нужен другой комплект?"),
       answer: tr("Ветер уносит тёплый воздух вокруг тела. Лучше добавить непродуваемый внешний слой, закрыть шею и уши, но не перекрывать обзор ребёнку капюшоном."),
-      action: weather.windSpeed >= 15 ? `Сейчас ветер ${weather.windSpeed} км/ч: приоритет — ветровка или мембрана, шапка и защита шеи.` : `Сейчас ветер ${weather.windSpeed} км/ч: достаточно обычной защиты по температуре.`,
+      action: weather.windSpeed >= 15
+        ? `${tr('Сейчас ветер')} ${weather.windSpeed} ${tr('км/ч')}: ${tr('приоритет — ветровка или мембрана, шапка и защита шеи.')}`
+        : `${tr('Сейчас ветер')} ${weather.windSpeed} ${tr('км/ч')}: ${tr('достаточно обычной защиты по температуре.')}`,
     },
     {
       id: 'layers-rule',
@@ -91,7 +93,7 @@ export const FaqSection: React.FC<FaqSectionProps> = ({ weather, period, ageGrou
       category: 'layers',
       question: tr("Почему комплект может отличаться для детей при одинаковой погоде?"),
       answer: tr("Сервис учитывает возраст, активность и индивидуальную реакцию на прохладу. Это меняет регулирующие слои, но не отменяет наблюдение за тем, как ребёнок себя чувствует."),
-      action: `Сейчас выбран профиль: ${profileSummary}.`,
+      action: `${tr('Сейчас выбран профиль:')} ${profileSummary}.`,
     },
   ], [period, profileSummary, weather]);
 

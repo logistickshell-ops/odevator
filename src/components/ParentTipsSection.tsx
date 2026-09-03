@@ -86,7 +86,7 @@ export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({
     weather.isRainy ? tr("осадки") : null,
     weather.isSnowy ? tr("снег") : null,
     weather.windSpeed >= 15 ? tr("сильный ветер") : null,
-    weather.precipProb >= 50 ? `${weather.precipProb}% осадков` : null,
+    weather.precipProb >= 50 ? `${weather.precipProb}% ${tr('осадков')}` : null,
   ].filter(Boolean).join(' · ');
   const displayName = getChildDisplayName(childName);
   const profileLabel = `${AGE_GROUP_LABELS[ageGroup]} · ${ACTIVITY_LABELS[activity].toLowerCase()} · ${SENSITIVITY_LABELS[sensitivity].toLowerCase()}`;
@@ -101,7 +101,7 @@ export const ParentTipsSection: React.FC<ParentTipsSectionProps> = ({
             <h3 className="text-base sm:text-xl font-black text-slate-800">{tr("Подсказки к этой прогулке")}</h3>
             <p className="mt-0.5 text-[11px] sm:text-xs leading-relaxed text-slate-500">
               {PERIOD_LABELS[period]} {tr("· ощущается как")} {formatTemperature(weather.feelsLike)} · {weather.description.toLowerCase()}
-              {displayName ? ` · для ${displayName}` : ''}
+              {displayName ? ` · ${tr('для')} ${displayName}` : ''}
             </p>
           </div>
         </div>

@@ -1,4 +1,4 @@
-import { tr } from '../i18n';
+import { formatDate, tr } from '../i18n';
 import React, { useEffect, useMemo, useState } from 'react';
 import { BellRing, BookmarkPlus, Check, ClipboardList, Trash2 } from 'lucide-react';
 import { CityData, WeatherData, WeatherPeriodType } from '../types';
@@ -59,7 +59,7 @@ export const WalkNotes: React.FC<WalkNotesProps> = ({ city, weather, period }) =
 
   const currentContext = useMemo(() => {
     const temperature = `${weather.feelsLike > 0 ? '+' : ''}${weather.feelsLike}°C`;
-    return `${city.name} · ${PERIOD_LABELS[period]} · ощущается ${temperature}`;
+    return `${city.name} · ${PERIOD_LABELS[period]} · ${tr('ощущается')} ${temperature}`;
   }, [city.name, period, weather.feelsLike]);
 
   const addNote = () => {
@@ -68,7 +68,7 @@ export const WalkNotes: React.FC<WalkNotesProps> = ({ city, weather, period }) =
     const note: WalkNote = {
       id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
       text,
-      createdAt: new Intl.DateTimeFormat('ru-RU', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date()),
+      createdAt: formatDate(new Date(), { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }),
       context: currentContext,
     };
     setNotes((previous) => [note, ...previous].slice(0, MAX_NOTES));

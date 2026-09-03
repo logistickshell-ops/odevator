@@ -73,12 +73,12 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
         <div className="flex items-center justify-between gap-2 mb-2">
           <div className="flex items-center gap-2 min-w-0">
             <span className="text-base">{LAYER_EMOJI[layer]}</span>
-            <h3 className="text-[11px] sm:text-sm font-black text-slate-800 truncate">{LAYER_LABELS[layer]}</h3>
+            <h3 className="text-[11px] sm:text-sm font-black text-slate-800 truncate">{tr(LAYER_LABELS[layer])}</h3>
             {layerNum > 0 && (
               <span className="text-[9px] font-black text-indigo-600 bg-indigo-50 border border-indigo-100 px-1.5 py-0.5 rounded-md shrink-0">{tr("СЛОЙ")} {layerNum}</span>
             )}
           </div>
-          <button onClick={() => toggle(layer)} className="p-1.5 rounded-lg bg-slate-50 text-slate-500 hover:text-indigo-600 transition shrink-0" aria-label={`Переключить: ${LAYER_LABELS[layer]}`}>
+          <button onClick={() => toggle(layer)} className="p-1.5 rounded-lg bg-slate-50 text-slate-500 hover:text-indigo-600 transition shrink-0" aria-label={`${tr('Переключить: ')}${tr(LAYER_LABELS[layer])}`}>
             {visible ? <Eye size={13} /> : <EyeOff size={13} />}
           </button>
         </div>
@@ -131,7 +131,7 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
                   }`}
                 >
                   <span>{LAYER_EMOJI[l]}</span>
-                  <span className="hidden sm:inline">{LAYER_LABELS[l]}</span>
+                  <span className="hidden sm:inline">{tr(LAYER_LABELS[l])}</span>
                   <span className="sm:hidden">{show[l] ? '✓' : '✗'}</span>
                 </button>
               ))}

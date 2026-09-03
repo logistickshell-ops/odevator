@@ -31,6 +31,7 @@ import { WalkChecklist } from './components/WalkChecklist';
 import { ShareInvite } from './components/ShareInvite';
 import { SharePlan } from './components/SharePlan';
 import { WeeklyForecastPurchase } from './components/WeeklyForecastPurchase';
+import { WeeklyForecast } from './components/WeeklyForecast';
 import { LanguageSwitcher } from './components/LanguageSwitcher';
 import { tr, useLanguage } from './i18n';
 import { ChildProfileSettings } from './components/ChildProfileSettings';
@@ -97,8 +98,8 @@ const generateMockForecast = (baseTemp: number): DayForecast[] => {
     const date = new Date();
     date.setDate(date.getDate() + dayOffset);
     const formattedDate = dayOffset === 0
-      ? `Сегодня, ${date.getDate()} ${monthNames[date.getMonth()]}`
-      : `Завтра, ${date.getDate()} ${monthNames[date.getMonth()]}`;
+      ? `${tr('Сегодня,')} ${date.getDate()} ${monthNames[date.getMonth()]}`
+      : `${tr('Завтра,')} ${date.getDate()} ${monthNames[date.getMonth()]}`;
     const periodData = {} as DayForecast['periods'];
 
     periods.forEach((period, periodIndex) => {
@@ -244,7 +245,7 @@ export default function App() {
   const addChildProfile = () => {
     const profile: ChildProfile = {
       id: createChildId(),
-      name: `Ребёнок ${children.length + 1}`,
+      name: `${tr('Ребёнок')} ${children.length + 1}`,
       gender: 'girl',
       ageGroup: '1-3y',
       activityLevel: 'normal',
@@ -298,8 +299,8 @@ export default function App() {
       const formatDate = (dateKey: string, dayIndex: 0 | 1) => {
         const [, month, day] = dateKey.split('-').map(Number);
         return dayIndex === 0
-          ? `Сегодня, ${day} ${monthNames[month - 1]}`
-          : `Завтра, ${day} ${monthNames[month - 1]}`;
+          ? `${tr('Сегодня,')} ${day} ${monthNames[month - 1]}`
+          : `${tr('Завтра,')} ${day} ${monthNames[month - 1]}`;
       };
       const valueAt = (values: Array<number | null> | undefined, index: number, fallback: number) => {
         const value = values?.[index];
@@ -513,12 +514,15 @@ export default function App() {
               <span className="text-lg sm:text-2xl select-none font-extrabold">🌤️</span>
             </div>
             <div className="min-w-0">
-              <h1 className="text-lg sm:text-2xl font-black tracking-tight text-sky-800 flex items-center gap-1">
-                <span className="truncate">{tr('МетеоОдевайка')}</span>
-                <span className="hidden xs:inline text-[9px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 font-extrabold border border-sky-100 whitespace-nowrap">
-                  {tr('Умный гид')}
-                </span>
-              </h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-lg sm:text-2xl font-black tracking-tight text-sky-800 flex items-center gap-1">
+                  <span className="truncate">{tr('МетеоОдевайка')}</span>
+                  <span className="hidden xs:inline text-[9px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 font-extrabold border border-sky-100 whitespace-nowrap">
+                    {tr('Умный гид')}
+                  </span>
+                </h1>
+                <LanguageSwitcher />
+              </div>
               <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate">
                 {tr('одеваем детей идеально по погоде')}
               </p>
@@ -567,7 +571,6 @@ export default function App() {
               </div>
             )}
           </div>
-          <LanguageSwitcher />
         </div>
         <nav className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 border-t border-slate-100/70">
           <div className="grid grid-cols-5 gap-1 py-1 sm:flex sm:items-center sm:justify-start sm:gap-6">
@@ -873,7 +876,7 @@ export default function App() {
 
           {activeTab === 'premium' && (
             <div className="space-y-6">
-              <WeeklyForecastPurchase />
+              <WeeklyForecast city={selectedCity} child={activeChild} />
             </div>
           )}
 
@@ -907,7 +910,7 @@ export default function App() {
                             ? tr("Слой 2. Основной слой")
                             : selectedItem.category === 'underwear'
                               ? tr("Слой 1. Влагоотвод")
-                              : LAYER_LABELS[selectedItem.category]}
+                              : tr(LAYER_LABELS[selectedItem.category])}
                     </span>
                     <h3 className="text-sm font-extrabold text-slate-800 mt-1.5">{selectedItem.name}</h3>
                   </div>

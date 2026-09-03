@@ -45,12 +45,12 @@ export function SharePlan({ childName, cityName, selectedDay, selectedPeriod, we
   const childLabel = childName.trim() || tr("ребёнка");
   const shareText = useMemo(() => {
     const clothingList = clothingNames.length > 0 ? clothingNames.map((name) => `• ${name}`).join('\n') : tr("• Комплект формируется");
-    const precipitation = weather.precipProb > 0 ? ` · осадки ${weather.precipProb}%` : '';
+    const precipitation = weather.precipProb > 0 ? ` · ${tr('осадки')} ${weather.precipProb}%` : '';
 
     return [
-      `🌤️ План прогулки для ${childLabel}`,
+      `🌤️ ${tr('План прогулки для')} ${childLabel}`,
       `📍 ${cityName} · ${dayLabel}, ${periodLabels[selectedPeriod]}`,
-      `🌡️ ${formatTemperature(weather.temp)}, ощущается как ${formatTemperature(weather.feelsLike)} · ${weather.description}${precipitation}`,
+      `🌡️ ${formatTemperature(weather.temp)}, ${tr('ощущается как')} ${formatTemperature(weather.feelsLike)} · ${weather.description}${precipitation}`,
       '',
       tr("👕 Что надеть:"),
       clothingList,
@@ -58,14 +58,14 @@ export function SharePlan({ childName, cityName, selectedDay, selectedPeriod, we
   }, [childLabel, cityName, clothingNames, dayLabel, selectedPeriod, weather.description, weather.feelsLike, weather.precipProb, weather.temp]);
 
   const copyPlan = async () => {
-    const fullPlan = `${shareText}\n\nОткрыть «МетеоОдевайку»: ${inviteUrl}`;
+    const fullPlan = `${shareText}\n\n${tr('Открыть приложение')}: ${inviteUrl}`;
     const copied = await copyText(fullPlan);
     setIsCopied(copied);
     if (copied) window.setTimeout(() => setIsCopied(false), 2200);
   };
 
   const sharePlan = () => shareViaTelegram({
-    title: `План прогулки для ${childLabel}`,
+    title: `${tr('План прогулки для')} ${childLabel}`,
     text: shareText,
     url: inviteUrl,
   });

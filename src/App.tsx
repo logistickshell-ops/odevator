@@ -30,7 +30,6 @@ import { WalkNotes } from './components/WalkNotes';
 import { WalkChecklist } from './components/WalkChecklist';
 import { ShareInvite } from './components/ShareInvite';
 import { SharePlan } from './components/SharePlan';
-import { WeeklyForecastPurchase } from './components/WeeklyForecastPurchase';
 import { WeeklyForecast } from './components/WeeklyForecast';
 import { LanguageSwitcher } from './components/LanguageSwitcher';
 import { tr, useLanguage } from './i18n';
@@ -212,7 +211,7 @@ export default function App() {
   const activeChild = children.find((profile) => profile.id === activeChildId) ?? children[0];
   const { gender, ageGroup, activityLevel, coldSensitivity } = activeChild;
   
-  const [activeTab, setActiveTab] = useState<'clothing' | 'parameters' | 'tips' | 'notes' | 'premium'>('clothing');
+  const [activeTab, setActiveTab] = useState<'clothing' | 'parameters' | 'tips' | 'notes'>('clothing');
 
   const [isManual, setIsManual] = useState(false);
   const [manualTemp, setManualTemp] = useState(12);
@@ -573,7 +572,7 @@ export default function App() {
           </div>
         </div>
         <nav className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 border-t border-slate-100/70">
-          <div className="grid grid-cols-5 gap-1 py-1 sm:flex sm:items-center sm:justify-start sm:gap-6">
+          <div className="grid grid-cols-4 gap-1 py-1 sm:flex sm:items-center sm:justify-start sm:gap-6">
             <button
               onClick={() => setActiveTab('clothing')}
               className={`py-2 px-1 font-extrabold text-[9px] xs:text-[11px] sm:text-sm border-b-2 transition flex flex-col xs:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-1.5 whitespace-nowrap ${
@@ -600,15 +599,6 @@ export default function App() {
             >
               <span>💡</span>
               <span>{tr('Подсказки')}</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('premium')}
-              className={`py-2 px-1 font-extrabold text-[9px] xs:text-[11px] sm:text-sm border-b-2 transition flex flex-col xs:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-1.5 whitespace-nowrap ${
-                activeTab === 'premium' ? 'border-violet-400 text-violet-700' : 'border-transparent text-slate-400 hover:text-slate-600'
-              }`}
-            >
-              <span>⭐</span>
-              <span>{tr('На неделю')}</span>
             </button>
             <button
               onClick={() => setActiveTab('notes')}
@@ -783,6 +773,8 @@ export default function App() {
             weather={activeWeather}
             outfit={activeOutfit}
           />
+
+          <WeeklyForecast city={selectedCity} child={activeChild} />
         </div>
           </>
         )}
@@ -874,11 +866,6 @@ export default function App() {
             </div>
           )}
 
-          {activeTab === 'premium' && (
-            <div className="space-y-6">
-              <WeeklyForecast city={selectedCity} child={activeChild} />
-            </div>
-          )}
 
           {activeTab === 'notes' && (
             <div className="space-y-6">

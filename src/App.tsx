@@ -608,7 +608,7 @@ export default function App() {
               }`}
             >
               <span>⭐</span>
-              <span>{tr('На неделю')}</span>
+              <span>{tr('Неделя')}</span>
             </button>
             <button
               onClick={() => setActiveTab('notes')}

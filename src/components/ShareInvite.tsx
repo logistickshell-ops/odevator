@@ -1,3 +1,4 @@
+import { tr } from '../i18n';
 import { useMemo, useState } from 'react';
 import { Check, Copy, Send, Share2 } from 'lucide-react';
 import { copyText, getBotInviteUrl, shareViaTelegram } from '../utils/telegramShare';
@@ -7,10 +8,10 @@ export function ShareInvite() {
   const inviteUrl = useMemo(getBotInviteUrl, []);
 
   const inviteText = [
-    '🌤️ «МетеоОдевайка» — помощник для прогулок с ребёнком.',
-    'Подбирает комплект по погоде, времени прогулки, возрасту и активности ребёнка.',
+    tr("🌤️ «МетеоОдевайка» — помощник для прогулок с ребёнком."),
+    tr("Подбирает комплект по погоде, времени прогулки, возрасту и активности ребёнка."),
     '',
-    'Попробовать в Telegram:',
+    tr("Попробовать в Telegram:"),
   ].join('\n');
 
   const copyInvite = async () => {
@@ -20,7 +21,7 @@ export function ShareInvite() {
   };
 
   const shareInvite = () => shareViaTelegram({
-    title: 'МетеоОдевайка',
+    title: tr("МетеоОдевайка"),
     text: inviteText,
     url: inviteUrl,
   });
@@ -32,16 +33,16 @@ export function ShareInvite() {
           <Share2 size={19} />
         </div>
         <div className="min-w-0">
-          <h3 className="text-sm sm:text-base font-black text-slate-800">Пригласить близких</h3>
+          <h3 className="text-sm sm:text-base font-black text-slate-800">{tr("Пригласить близких")}</h3>
           <p className="mt-1 text-[11px] sm:text-xs leading-relaxed text-slate-500">
-            Отправьте ссылку на @meteo_odevaika_bot — близкие смогут открыть «МетеоОдевайку» в Telegram и настроить свой профиль ребёнка.
+            {tr("Отправьте ссылку на @meteo_odevaika_bot — близкие смогут открыть «МетеоОдевайку» в Telegram и настроить свой профиль ребёнка.")}
           </p>
         </div>
       </div>
 
       <div className="mt-4 rounded-2xl border border-white bg-white/85 p-3 sm:p-4">
         <p className="text-[10px] sm:text-xs font-semibold leading-relaxed text-slate-600">
-          Погода, одежда, подсказки и личные заметки — в одном спокойном помощнике для семейных прогулок.
+          {tr("Погода, одежда, подсказки и личные заметки — в одном спокойном помощнике для семейных прогулок.")}
         </p>
       </div>
 
@@ -51,18 +52,18 @@ export function ShareInvite() {
           onClick={shareInvite}
           className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-sky-200 bg-sky-100 px-3 py-2.5 text-[10px] sm:text-xs font-extrabold text-sky-800 transition hover:bg-sky-200 active:scale-[0.98]"
         >
-          <Send size={14} /> Пригласить
+          <Send size={14} /> {tr("Пригласить")}
         </button>
         <button
           type="button"
           onClick={copyInvite}
           className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-rose-100 bg-white px-3 py-2.5 text-[10px] sm:text-xs font-extrabold text-rose-700 transition hover:bg-rose-50 active:scale-[0.98]"
         >
-          {isCopied ? <><Check size={14} /> Скопировано</> : <><Copy size={14} /> Скопировать</>}
+          {isCopied ? <><Check size={14} /> {tr("Скопировано")}</> : <><Copy size={14} /> {tr("Скопировать")}</>}
         </button>
       </div>
       <p className="mt-3 text-[9px] sm:text-[10px] leading-relaxed text-slate-400" aria-live="polite">
-        Ссылка добавится к сообщению автоматически — отдельно показывать её не нужно.
+        {tr("Ссылка добавится к сообщению автоматически — отдельно показывать её не нужно.")}
       </p>
     </section>
   );

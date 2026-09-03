@@ -1,3 +1,4 @@
+import { tr } from '../i18n';
 import React from 'react';
 import { DayForecast, WeatherPeriodType, WeatherData } from '../types';
 import {
@@ -48,10 +49,10 @@ export const WeatherSelector: React.FC<WeatherSelectorProps> = ({
 
   // Period key mappings
   const periodNames: { [key in WeatherPeriodType]: { label: string; time: string; color: string } } = {
-    morning: { label: 'Утро', time: '08:00', color: 'from-amber-400/10 to-sky-400/10 text-amber-700 border-amber-100' },
-    day: { label: 'День', time: '14:00', color: 'from-sky-400/15 to-blue-400/10 text-sky-700 border-sky-200' },
-    evening: { label: 'Вечер', time: '18:00', color: 'from-indigo-400/10 to-purple-400/10 text-indigo-700 border-indigo-100' },
-    night: { label: 'Ночь', time: '23:00', color: 'from-slate-700/10 to-slate-900/10 text-slate-700 border-slate-200' }
+    morning: { label: tr("Утро"), time: '08:00', color: 'from-amber-400/10 to-sky-400/10 text-amber-700 border-amber-100' },
+    day: { label: tr("День"), time: '14:00', color: 'from-sky-400/15 to-blue-400/10 text-sky-700 border-sky-200' },
+    evening: { label: tr("Вечер"), time: '18:00', color: 'from-indigo-400/10 to-purple-400/10 text-indigo-700 border-indigo-100' },
+    night: { label: tr("Ночь"), time: '23:00', color: 'from-slate-700/10 to-slate-900/10 text-slate-700 border-slate-200' }
   };
 
   const renderPeriodCard = (dayKey: 'today' | 'tomorrow', periodKey: WeatherPeriodType, data: WeatherData) => {
@@ -81,7 +82,7 @@ export const WeatherSelector: React.FC<WeatherSelectorProps> = ({
               {data.temp > 0 ? `+${data.temp}` : data.temp}°C
             </h4>
             <p className="text-[9px] sm:text-[11px] font-medium text-slate-400 mt-0.5 truncate">
-              Ощущ. <span className="text-slate-600 font-semibold">{data.feelsLike > 0 ? `+${data.feelsLike}` : data.feelsLike}°</span>
+              {tr("Ощущ.")} <span className="text-slate-600 font-semibold">{data.feelsLike > 0 ? `+${data.feelsLike}` : data.feelsLike}°</span>
             </p>
           </div>
 
@@ -122,7 +123,7 @@ export const WeatherSelector: React.FC<WeatherSelectorProps> = ({
     return (
       <div className="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm text-center flex flex-col items-center">
         <div className="animate-spin rounded-full h-10 w-10 border-4 border-indigo-500 border-t-transparent mb-3" />
-        <p className="text-slate-500 font-semibold">Загружаем прогноз погоды...</p>
+        <p className="text-slate-500 font-semibold">{tr("Загружаем прогноз погоды...")}</p>
       </div>
     );
   }
@@ -141,7 +142,7 @@ export const WeatherSelector: React.FC<WeatherSelectorProps> = ({
         >
           <CalendarDays size={14} />
           <div>
-            <span>Сегодня</span>
+            <span>{tr("Сегодня")}</span>
             <span className="block text-[8px] sm:text-[10px] font-normal text-slate-400 mt-0.5 truncate max-w-[80px] sm:max-w-none">
               {todayForecast.formattedDate}
             </span>
@@ -158,7 +159,7 @@ export const WeatherSelector: React.FC<WeatherSelectorProps> = ({
         >
           <CalendarDays size={14} />
           <div>
-            <span>Завтра</span>
+            <span>{tr("Завтра")}</span>
             <span className="block text-[8px] sm:text-[10px] font-normal text-slate-400 mt-0.5 truncate max-w-[80px] sm:max-w-none">
               {tomorrowForecast.formattedDate}
             </span>
@@ -170,7 +171,7 @@ export const WeatherSelector: React.FC<WeatherSelectorProps> = ({
       <div>
         <h3 className="text-[10px] sm:text-sm font-black text-slate-500 uppercase tracking-wider mb-2 sm:mb-3 flex items-center gap-1 sm:gap-1.5">
           <Clock size={12} />
-          <span>Выберите время для прогулки</span>
+          <span>{tr("Выберите время для прогулки")}</span>
         </h3>
         
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">

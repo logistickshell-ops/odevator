@@ -1,3 +1,4 @@
+import { tr } from '../i18n';
 import React, { useState } from 'react';
 // Импортируем типы и константы из актуального types.ts
 import { RecommendedOutfit, ClothingItem, ChildGender, LayerId, LayerVisibility, LAYER_ORDER, LAYER_LABELS } from '../types';
@@ -74,7 +75,7 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
             <span className="text-base">{LAYER_EMOJI[layer]}</span>
             <h3 className="text-[11px] sm:text-sm font-black text-slate-800 truncate">{LAYER_LABELS[layer]}</h3>
             {layerNum > 0 && (
-              <span className="text-[9px] font-black text-indigo-600 bg-indigo-50 border border-indigo-100 px-1.5 py-0.5 rounded-md shrink-0">СЛОЙ {layerNum}</span>
+              <span className="text-[9px] font-black text-indigo-600 bg-indigo-50 border border-indigo-100 px-1.5 py-0.5 rounded-md shrink-0">{tr("СЛОЙ")} {layerNum}</span>
             )}
           </div>
           <button onClick={() => toggle(layer)} className="p-1.5 rounded-lg bg-slate-50 text-slate-500 hover:text-indigo-600 transition shrink-0" aria-label={`Переключить: ${LAYER_LABELS[layer]}`}>
@@ -138,7 +139,7 @@ export const AvatarVisualizer: React.FC<AvatarVisualizerProps> = ({
             
             {/* Индикаторы основных слоев одежды */}
             <div className="flex items-center justify-center gap-1 pt-2">
-              <span className="text-[9px] font-bold text-slate-400">Слои:</span>
+              <span className="text-[9px] font-bold text-slate-400">{tr("Слои:")}</span>
               {(['outer', 'upper', 'lower', 'underwear'] as LayerId[]).map((l, i) =>
                 has(l) ? (
                   <span key={l} className={`px-1.5 py-0.5 rounded text-[9px] font-bold transition ${show[l] ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-400 line-through'}`}>

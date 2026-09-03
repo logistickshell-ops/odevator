@@ -1,3 +1,4 @@
+import { tr } from '../i18n';
 import { useEffect, useState } from 'react';
 import { ChevronDown, ChevronUp, Plus, Save, Trash2, UserRound } from 'lucide-react';
 import { ActivityLevel, ChildGender, ChildProfile, ColdSensitivity } from '../types';
@@ -31,15 +32,15 @@ const saveExpandedState = (expanded: boolean) => {
 };
 
 const activityOptions: { value: ActivityLevel; label: string; icon: string; desc: string }[] = [
-  { value: 'quiet', label: 'Спокойный', icon: '👶', desc: 'Коляска, спокойная игра' },
-  { value: 'normal', label: 'Обычный', icon: '🚶', desc: 'Прогулка и движение' },
-  { value: 'active', label: 'Активный', icon: '🏃', desc: 'Бег, площадка, спорт' },
+  { value: 'quiet', label: tr("Спокойный"), icon: '👶', desc: tr("Коляска, спокойная игра") },
+  { value: 'normal', label: tr("Обычный"), icon: '🚶', desc: tr("Прогулка и движение") },
+  { value: 'active', label: tr("Активный"), icon: '🏃', desc: tr("Бег, площадка, спорт") },
 ];
 
 const sensitivityOptions: { value: ColdSensitivity; label: string; icon: string; desc: string }[] = [
-  { value: 'sensitive', label: 'Часто мёрзнет', icon: '❄️', desc: 'Быстрее охлаждается' },
-  { value: 'normal', label: 'Обычное', icon: '😊', desc: 'Стандартная реакция' },
-  { value: 'resistant', label: 'Легко перегревается', icon: '🔥', desc: 'Редко мёрзнет' },
+  { value: 'sensitive', label: tr("Часто мёрзнет"), icon: '❄️', desc: tr("Быстрее охлаждается") },
+  { value: 'normal', label: tr("Обычное"), icon: '😊', desc: tr("Стандартная реакция") },
+  { value: 'resistant', label: tr("Легко перегревается"), icon: '🔥', desc: tr("Редко мёрзнет") },
 ];
 
 export function ChildProfileSettings({
@@ -84,9 +85,9 @@ export function ChildProfileSettings({
             <UserRound size={19} />
           </div>
           <div className="min-w-0">
-            <h2 className="text-sm sm:text-base font-black text-slate-800">Ребёнок</h2>
+            <h2 className="text-sm sm:text-base font-black text-slate-800">{tr("Ребёнок")}</h2>
             <p className="mt-0.5 text-[10px] sm:text-xs leading-relaxed text-slate-500">
-              Сохраните параметры один раз — рекомендации будут подбираться для выбранного профиля.
+              {tr("Сохраните параметры один раз — рекомендации будут подбираться для выбранного профиля.")}
             </p>
           </div>
         </div>
@@ -96,14 +97,14 @@ export function ChildProfileSettings({
           className="flex shrink-0 items-center gap-1 rounded-xl border border-sky-100 bg-white/85 px-2.5 py-2 text-[10px] sm:text-xs font-extrabold text-sky-700 transition hover:bg-sky-50"
           aria-expanded={isExpanded}
         >
-          {isExpanded ? <>Свернуть <ChevronUp size={14} /></> : <>Настроить <ChevronDown size={14} /></>}
+          {isExpanded ? <>{tr("Свернуть")} <ChevronUp size={14} /></> : <>{tr("Настроить")} <ChevronDown size={14} /></>}
         </button>
       </div>
 
-      <div className="mt-4 flex gap-2 overflow-x-auto pb-1 scrollbar-none" aria-label="Выбор ребёнка">
+      <div className="mt-4 flex gap-2 overflow-x-auto pb-1 scrollbar-none" aria-label={tr("Выбор ребёнка")}>
         {profiles.map((profile) => {
           const isActive = profile.id === activeProfile.id;
-          const label = profile.name.trim() || 'Ребёнок';
+          const label = profile.name.trim() || tr("Ребёнок");
           return (
             <button
               type="button"
@@ -128,30 +129,30 @@ export function ChildProfileSettings({
           onClick={handleAddChild}
           className="shrink-0 rounded-xl border border-dashed border-sky-200 bg-white/75 px-3 py-2 text-[10px] sm:text-xs font-extrabold text-sky-700 transition hover:bg-sky-50"
         >
-          <span className="inline-flex items-center gap-1"><Plus size={14} /> Ребёнок</span>
+          <span className="inline-flex items-center gap-1"><Plus size={14} /> {tr("Ребёнок")}</span>
         </button>
       </div>
 
       {isExpanded && (
         <div className="mt-4 space-y-5 border-t border-sky-100/80 pt-4 animate-fadeIn">
           <label className="block">
-            <span className="mb-1.5 block text-[10px] font-black uppercase tracking-wider text-slate-500">Имя</span>
+            <span className="mb-1.5 block text-[10px] font-black uppercase tracking-wider text-slate-500">{tr("Имя")}</span>
             <input
               type="text"
               maxLength={28}
               value={draft.name}
               onChange={(event) => updateDraft('name', event.target.value)}
-              placeholder="Например, Маша"
+              placeholder={tr("Например, Маша")}
               className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs sm:text-sm font-semibold text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-sky-300 focus:ring-2 focus:ring-sky-100"
             />
           </label>
 
           <div>
-            <span className="mb-1.5 block text-[10px] font-black uppercase tracking-wider text-slate-500">Пол</span>
+            <span className="mb-1.5 block text-[10px] font-black uppercase tracking-wider text-slate-500">{tr("Пол")}</span>
             <div className="grid grid-cols-2 gap-2">
               {([
-                { value: 'girl' as ChildGender, label: 'Девочка', icon: '👧' },
-                { value: 'boy' as ChildGender, label: 'Мальчик', icon: '👦' },
+                { value: 'girl' as ChildGender, label: tr("Девочка"), icon: '👧' },
+                { value: 'boy' as ChildGender, label: tr("Мальчик"), icon: '👦' },
               ]).map((option) => (
                 <button
                   type="button"
@@ -170,7 +171,7 @@ export function ChildProfileSettings({
           </div>
 
           <div>
-            <span className="mb-2 block text-[10px] font-black uppercase tracking-wider text-slate-500">Возрастная группа</span>
+            <span className="mb-2 block text-[10px] font-black uppercase tracking-wider text-slate-500">{tr("Возрастная группа")}</span>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
               {AGE_GROUP_OPTIONS.map((option) => (
                 <button
@@ -193,7 +194,7 @@ export function ChildProfileSettings({
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <span className="mb-2 block text-[10px] font-black uppercase tracking-wider text-slate-500">Активность на прогулке</span>
+              <span className="mb-2 block text-[10px] font-black uppercase tracking-wider text-slate-500">{tr("Активность на прогулке")}</span>
               <div className="space-y-2">
                 {activityOptions.map((option) => (
                   <button
@@ -213,7 +214,7 @@ export function ChildProfileSettings({
               </div>
             </div>
             <div>
-              <span className="mb-2 block text-[10px] font-black uppercase tracking-wider text-slate-500">Реакция на прохладу</span>
+              <span className="mb-2 block text-[10px] font-black uppercase tracking-wider text-slate-500">{tr("Реакция на прохладу")}</span>
               <div className="space-y-2">
                 {sensitivityOptions.map((option) => (
                   <button
@@ -238,13 +239,13 @@ export function ChildProfileSettings({
             <button
               type="button"
               onClick={() => {
-                onSaveChild({ ...draft, name: draft.name.trim() || 'Ребёнок' });
+                onSaveChild({ ...draft, name: draft.name.trim() || tr("Ребёнок") });
                 setProfileExpanded(false);
                 setIsDeleteConfirmOpen(false);
               }}
               className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-sky-200 bg-sky-100 px-4 py-3 text-xs font-black text-sky-800 transition hover:bg-sky-200 active:scale-[0.99] sm:w-auto"
             >
-              <Save size={15} /> Сохранить параметры
+              <Save size={15} /> {tr("Сохранить параметры")}
             </button>
             {profiles.length > 1 ? (
               <button
@@ -252,24 +253,24 @@ export function ChildProfileSettings({
                 onClick={() => setIsDeleteConfirmOpen(true)}
                 className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-rose-100 bg-white px-3 py-2.5 text-[10px] sm:text-xs font-extrabold text-rose-700 transition hover:bg-rose-50 active:scale-[0.99] sm:w-auto"
               >
-                <Trash2 size={14} /> Удалить профиль
+                <Trash2 size={14} /> {tr("Удалить профиль")}
               </button>
             ) : (
-              <p className="text-center text-[9px] sm:text-[10px] leading-relaxed text-slate-400 sm:text-right">Последний профиль защищён от удаления.</p>
+              <p className="text-center text-[9px] sm:text-[10px] leading-relaxed text-slate-400 sm:text-right">{tr("Последний профиль защищён от удаления.")}</p>
             )}
           </div>
 
           {isDeleteConfirmOpen && profiles.length > 1 && (
             <div className="rounded-2xl border border-rose-200 bg-rose-50/80 p-3 sm:p-4 animate-fadeIn" role="alert">
-              <p className="text-[11px] sm:text-xs font-black text-rose-800">Удалить профиль «{activeProfile.name.trim() || 'Ребёнок'}»?</p>
-              <p className="mt-1 text-[10px] sm:text-xs leading-relaxed text-rose-700">Параметры этого ребёнка на устройстве будут удалены. Это действие нельзя отменить.</p>
+              <p className="text-[11px] sm:text-xs font-black text-rose-800">{tr("Удалить профиль «")}{activeProfile.name.trim() || tr("Ребёнок")}»?</p>
+              <p className="mt-1 text-[10px] sm:text-xs leading-relaxed text-rose-700">{tr("Параметры этого ребёнка на устройстве будут удалены. Это действие нельзя отменить.")}</p>
               <div className="mt-3 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                 <button
                   type="button"
                   onClick={() => setIsDeleteConfirmOpen(false)}
                   className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-[10px] sm:text-xs font-extrabold text-slate-600 transition hover:bg-slate-50"
                 >
-                  Отмена
+                  {tr("Отмена")}
                 </button>
                 <button
                   type="button"
@@ -280,7 +281,7 @@ export function ChildProfileSettings({
                   }}
                   className="rounded-xl border border-rose-200 bg-rose-100 px-3 py-2 text-[10px] sm:text-xs font-extrabold text-rose-800 transition hover:bg-rose-200"
                 >
-                  Да, удалить
+                  {tr("Да, удалить")}
                 </button>
               </div>
             </div>

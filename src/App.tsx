@@ -30,6 +30,9 @@ import { WalkNotes } from './components/WalkNotes';
 import { WalkChecklist } from './components/WalkChecklist';
 import { ShareInvite } from './components/ShareInvite';
 import { SharePlan } from './components/SharePlan';
+import { WeeklyForecastPurchase } from './components/WeeklyForecastPurchase';
+import { LanguageSwitcher } from './components/LanguageSwitcher';
+import { tr, useLanguage } from './i18n';
 import { ChildProfileSettings } from './components/ChildProfileSettings';
 import { formatClothingHeading } from './utils/childProfile';
 import { 
@@ -86,8 +89,8 @@ const generateMockForecast = (baseTemp: number): DayForecast[] => {
   const humidityOffsets = [0, 7, 12, 5];
   const precipitationByPeriod = [5, 10, 5, 5];
   const monthNames = [
-    'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
-    'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
+    tr("января"), tr("февраля"), tr("марта"), tr("апреля"), tr("мая"), tr("июня"),
+    tr("июля"), tr("августа"), tr("сентября"), tr("октября"), tr("ноября"), tr("декабря")
   ];
 
   return [0, 1].map((dayOffset) => {
@@ -104,7 +107,7 @@ const generateMockForecast = (baseTemp: number): DayForecast[] => {
       const humidity = 50 + humidityOffsets[periodIndex];
       const precipProb = precipitationByPeriod[periodIndex];
       const weatherCode = 0;
-      const description = 'Ясно';
+      const description = tr("Ясно");
       const icon = 'Sun';
       const feelsLike = Math.round((temp - (windSpeed > 10 ? (windSpeed - 10) * 0.3 : 0)) * 10) / 10;
 
@@ -143,9 +146,9 @@ const getClosestHourlyIndex = (times: string[], dateKey: string, targetHour: num
   return bestIndex;
 };
 const DEFAULT_CITY: CityData = {
-  name: 'Ярославль',
-  country: 'Россия',
-  region: 'Ярославская область',
+  name: tr("Ярославль"),
+  country: tr("Россия"),
+  region: tr("Ярославская область"),
   lat: 57.6299,
   lon: 39.8737
 };
@@ -154,7 +157,7 @@ const createChildId = () => window.crypto?.randomUUID?.() ?? `child-${Date.now()
 
 const createDefaultChild = (): ChildProfile => ({
   id: createChildId(),
-  name: 'Ребёнок',
+  name: tr("Ребёнок"),
   gender: loadFromStorage<ChildGender>(STORAGE_KEYS.GENDER, 'girl'),
   ageGroup: loadFromStorage<AgeGroup>(STORAGE_KEYS.AGE, '1-3y'),
   activityLevel: loadFromStorage<ActivityLevel>(STORAGE_KEYS.ACTIVITY, 'normal'),
@@ -179,6 +182,7 @@ const loadChildProfileState = () => {
 };
 
 export default function App() {
+  useLanguage();
   // Telegram SDK инициализируется один раз в index.html до монтирования React.
 
   // ============================================
@@ -207,7 +211,7 @@ export default function App() {
   const activeChild = children.find((profile) => profile.id === activeChildId) ?? children[0];
   const { gender, ageGroup, activityLevel, coldSensitivity } = activeChild;
   
-  const [activeTab, setActiveTab] = useState<'clothing' | 'parameters' | 'tips' | 'notes'>('clothing');
+  const [activeTab, setActiveTab] = useState<'clothing' | 'parameters' | 'tips' | 'notes' | 'premium'>('clothing');
 
   const [isManual, setIsManual] = useState(false);
   const [manualTemp, setManualTemp] = useState(12);
@@ -273,23 +277,23 @@ export default function App() {
       const url = `https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation_probability,weather_code,wind_speed_10m&hourly=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation_probability,weather_code,wind_speed_10m&timezone=auto`;
       
       const response = await fetch(url, { signal });
-      if (!response.ok) throw new Error('Ошибка ответа сервера погоды.');
+      if (!response.ok) throw new Error(tr("Ошибка ответа сервера погоды."));
       
       const data = await response.json() as OpenMeteoForecastResponse;
       if (signal?.aborted) return;
       
       if (!data.hourly || !Array.isArray(data.hourly.time) || data.hourly.time.length === 0) {
-        throw new Error('Некорректный формат данных прогноза.');
+        throw new Error(tr("Некорректный формат данных прогноза."));
       }
 
       const hourly = data.hourly;
       const firstHourlyDate = hourly.time[0]?.slice(0, 10);
       const currentDate = data.current?.time?.slice(0, 10) ?? firstHourlyDate;
-      if (!currentDate) throw new Error('В ответе Open-Meteo отсутствует локальная дата.');
+      if (!currentDate) throw new Error(tr("В ответе Open-Meteo отсутствует локальная дата."));
 
       const monthNames = [
-        'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
-        'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
+        tr("января"), tr("февраля"), tr("марта"), tr("апреля"), tr("мая"), tr("июня"),
+        tr("июля"), tr("августа"), tr("сентября"), tr("октября"), tr("ноября"), tr("декабря")
       ];
       const formatDate = (dateKey: string, dayIndex: 0 | 1) => {
         const [, month, day] = dateKey.split('-').map(Number);
@@ -362,7 +366,7 @@ export default function App() {
     } catch (error) {
       if (signal?.aborted) return;
       console.error('Weather API Error. Using mock fallback:', error);
-      setWeatherError('Не удалось связаться с сервером Open-Meteo. Используются симулированные данные погоды.');
+      setWeatherError(tr("Не удалось связаться с сервером Open-Meteo. Используются симулированные данные погоды."));
       const [mockToday, mockTomorrow] = generateMockForecast(10);
       setTodayForecast(mockToday);
       setTomorrowForecast(mockTomorrow);
@@ -435,7 +439,7 @@ export default function App() {
   const getActiveWeatherData = (): WeatherData => {
     if (isManual) {
       const codeMap = { sunny: 0, cloudy: 3, rainy: 61, snowy: 71 };
-      const descMap = { sunny: 'Ясно', cloudy: 'Облачно', rainy: 'Дождь', snowy: 'Снегопад' };
+      const descMap = { sunny: tr("Ясно"), cloudy: tr("Облачно"), rainy: tr("Дождь"), snowy: tr("Снегопад") };
       const iconMap = { sunny: 'Sun', cloudy: 'Cloud', rainy: 'CloudRain', snowy: 'Snowflake' };
 
       return {
@@ -465,7 +469,7 @@ export default function App() {
       humidity: 50,
       precipProb: 0,
       weatherCode: 0,
-      description: 'Ясно',
+      description: tr("Ясно"),
       icon: 'Sun',
       isRainy: false,
       isSnowy: false,
@@ -488,7 +492,7 @@ export default function App() {
     humidity: 50,
     precipProb: 0,
     weatherCode: 0,
-    description: 'Загружаем данные',
+    description: tr('Загружаем данные'),
     icon: 'Cloud',
     isRainy: false,
     isSnowy: false,
@@ -510,13 +514,13 @@ export default function App() {
             </div>
             <div className="min-w-0">
               <h1 className="text-lg sm:text-2xl font-black tracking-tight text-sky-800 flex items-center gap-1">
-                <span className="truncate">МетеоОдевайка</span>
+                <span className="truncate">{tr('МетеоОдевайка')}</span>
                 <span className="hidden xs:inline text-[9px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 font-extrabold border border-sky-100 whitespace-nowrap">
-                  Умный гид
+                  {tr('Умный гид')}
                 </span>
               </h1>
               <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate">
-                одеваем детей идеально по погоде
+                {tr('одеваем детей идеально по погоде')}
               </p>
             </div>
           </div>
@@ -526,7 +530,7 @@ export default function App() {
               <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-indigo-500" size={15} />
               <input
                 type="text"
-                placeholder="Поиск города..."
+                placeholder={tr('Поиск города...')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setIsSearchFocused(true)}
@@ -563,9 +567,10 @@ export default function App() {
               </div>
             )}
           </div>
+          <LanguageSwitcher />
         </div>
         <nav className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 border-t border-slate-100/70">
-          <div className="grid grid-cols-4 gap-1 py-1 sm:flex sm:items-center sm:justify-start sm:gap-6">
+          <div className="grid grid-cols-5 gap-1 py-1 sm:flex sm:items-center sm:justify-start sm:gap-6">
             <button
               onClick={() => setActiveTab('clothing')}
               className={`py-2 px-1 font-extrabold text-[9px] xs:text-[11px] sm:text-sm border-b-2 transition flex flex-col xs:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-1.5 whitespace-nowrap ${
@@ -573,7 +578,7 @@ export default function App() {
               }`}
             >
               <span>👕</span>
-              <span>Одежда</span>
+              <span>{tr('Одежда')}</span>
             </button>
             <button
               onClick={() => setActiveTab('parameters')}
@@ -582,7 +587,7 @@ export default function App() {
               }`}
             >
               <Settings size={14} className="shrink-0" />
-              <span>Параметры</span>
+              <span>{tr('Параметры')}</span>
             </button>
             <button
               onClick={() => setActiveTab('tips')}
@@ -591,7 +596,16 @@ export default function App() {
               }`}
             >
               <span>💡</span>
-              <span>Подсказки</span>
+              <span>{tr('Подсказки')}</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('premium')}
+              className={`py-2 px-1 font-extrabold text-[9px] xs:text-[11px] sm:text-sm border-b-2 transition flex flex-col xs:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-1.5 whitespace-nowrap ${
+                activeTab === 'premium' ? 'border-violet-400 text-violet-700' : 'border-transparent text-slate-400 hover:text-slate-600'
+              }`}
+            >
+              <span>⭐</span>
+              <span>{tr('На неделю')}</span>
             </button>
             <button
               onClick={() => setActiveTab('notes')}
@@ -600,7 +614,7 @@ export default function App() {
               }`}
             >
               <span>📝</span>
-              <span>Заметки</span>
+              <span>{tr('Заметки')}</span>
             </button>
           </div>
         </nav>
@@ -618,7 +632,7 @@ export default function App() {
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5 flex-wrap">
                 <h2 className="text-base sm:text-xl font-black text-slate-800 tracking-tight truncate">
-                  Сейчас в г. {selectedCity.name}
+                  {tr('Сейчас в г.')} {selectedCity.name}
                 </h2>
                 <span className="text-[10px] sm:text-xs font-bold text-slate-400 whitespace-nowrap">
                   ({selectedCity.region ? `${selectedCity.region}, ` : ''}{selectedCity.country})
@@ -628,7 +642,7 @@ export default function App() {
               <div className="flex items-center gap-1.5 mt-0.5">
                 <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full shrink-0 bg-emerald-500" />
                 <span className="text-[10px] sm:text-xs text-slate-500 font-medium truncate">
-                  Текущая погода · не зависит от времени прогулки
+                  {tr('Текущая погода · не зависит от времени прогулки')}
                 </span>
               </div>
 
@@ -645,7 +659,7 @@ export default function App() {
             <div className="bg-slate-50/70 rounded-xl sm:rounded-2xl px-3 sm:px-4 py-1.5 sm:py-2 border border-slate-100/60 flex items-center gap-2 sm:gap-2.5">
               <Thermometer className="text-rose-500 shrink-0" size={16} />
               <div className="min-w-0">
-                <span className="text-[8px] sm:text-[10px] text-slate-400 block font-bold uppercase">На улице</span>
+                <span className="text-[8px] sm:text-[10px] text-slate-400 block font-bold uppercase">{tr('На улице')}</span>
                 <span className="text-xs sm:text-sm font-black text-slate-800">
                   {displayedCurrentWeather.temp > 0 ? `+${displayedCurrentWeather.temp}` : displayedCurrentWeather.temp}°C
                 </span>
@@ -655,7 +669,7 @@ export default function App() {
             <div className="bg-indigo-50/60 rounded-xl sm:rounded-2xl px-3 sm:px-4 py-1.5 sm:py-2 border border-indigo-100/40 flex items-center gap-2 sm:gap-2.5">
               <Baby className="text-indigo-600 shrink-0" size={16} />
               <div className="min-w-0">
-                <span className="text-[8px] sm:text-[10px] text-indigo-500 block font-bold uppercase">Ощущается</span>
+                <span className="text-[8px] sm:text-[10px] text-indigo-500 block font-bold uppercase">{tr('Ощущается')}</span>
                 <span className="text-xs sm:text-sm font-black text-slate-800">
                   {displayedCurrentWeather.feelsLike > 0 ? `+${displayedCurrentWeather.feelsLike}` : displayedCurrentWeather.feelsLike}°C
                 </span>
@@ -665,15 +679,15 @@ export default function App() {
             <div className="bg-slate-50/70 rounded-xl sm:rounded-2xl px-3 sm:px-4 py-1.5 sm:py-2 border border-slate-100/60 flex items-center gap-2 sm:gap-2.5">
               <Wind className="text-slate-400 shrink-0" size={16} />
               <div className="min-w-0">
-                <span className="text-[8px] sm:text-[10px] text-slate-400 block font-bold uppercase">Ветер</span>
-                <span className="text-xs sm:text-sm font-black text-slate-800">{displayedCurrentWeather.windSpeed} км/ч</span>
+                <span className="text-[8px] sm:text-[10px] text-slate-400 block font-bold uppercase">{tr('Ветер')}</span>
+                <span className="text-xs sm:text-sm font-black text-slate-800">{displayedCurrentWeather.windSpeed} {tr("км/ч")}</span>
               </div>
             </div>
 
             <div className="bg-slate-50/70 rounded-xl sm:rounded-2xl px-3 sm:px-4 py-1.5 sm:py-2 border border-slate-100/60 flex items-center gap-2 sm:gap-2.5">
               <Droplets className="text-blue-400 shrink-0" size={16} />
               <div className="min-w-0">
-                <span className="text-[8px] sm:text-[10px] text-slate-400 block font-bold uppercase">Влажность</span>
+                <span className="text-[8px] sm:text-[10px] text-slate-400 block font-bold uppercase">{tr('Влажность')}</span>
                 <span className="text-xs sm:text-sm font-black text-slate-800">{displayedCurrentWeather.humidity}%</span>
               </div>
             </div>
@@ -686,7 +700,7 @@ export default function App() {
               <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] rounded-3xl flex items-center justify-center z-10">
                 <div className="flex items-center gap-3 bg-white px-6 py-3 rounded-2xl shadow border border-slate-100">
                   <div className="animate-spin rounded-full h-5 w-5 border-3 border-indigo-600 border-t-transparent" />
-                  <span className="text-xs font-extrabold text-indigo-600">Синхронизация с метеостанцией...</span>
+                  <span className="text-xs font-extrabold text-indigo-600">{tr("Синхронизация с метеостанцией...")}</span>
                 </div>
               </div>
             )}
@@ -706,7 +720,7 @@ export default function App() {
         {children.length > 1 && (
           <div className="rounded-2xl border border-sky-100 bg-sky-50/70 p-3 sm:p-4">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="mr-1 text-[10px] font-black uppercase tracking-wider text-slate-500">Кому подбираем</span>
+              <span className="mr-1 text-[10px] font-black uppercase tracking-wider text-slate-500">{tr("Кому подбираем")}</span>
               {children.map((child) => (
                 <button
                   type="button"
@@ -733,17 +747,17 @@ export default function App() {
                 <span>{formatClothingHeading(activeChild.name, activeChild.gender)}</span>
                 <span className="px-2 sm:px-3 py-0.5 sm:py-1 bg-indigo-50 text-indigo-600 font-extrabold text-[11px] sm:text-sm rounded-xl border border-indigo-100">
                   {isManual 
-                    ? 'Тестовые настройки' 
-                    : `${selectedDay === 'today' ? 'Сегодня' : 'Завтра'} — ${
-                        selectedPeriod === 'morning' ? 'Утро' :
-                        selectedPeriod === 'day' ? 'День' :
-                        selectedPeriod === 'evening' ? 'Вечер' : 'Ночь'
+                    ? tr("Тестовые настройки") 
+                    : `${selectedDay === 'today' ? tr("Сегодня") : tr("Завтра")} — ${
+                        selectedPeriod === 'morning' ? tr("Утро") :
+                        selectedPeriod === 'day' ? tr("День") :
+                        selectedPeriod === 'evening' ? tr("Вечер") : tr("Ночь")
                       }`
                   }
                 </span>
               </h2>
               <p className="text-[10px] sm:text-xs text-slate-400 font-medium mt-0.5 hidden sm:block">
-                Комплект учитывает погоду выбранного времени, возраст, активность и индивидуальную реакцию на прохладу.
+                {tr("Комплект учитывает погоду выбранного времени, возраст, активность и индивидуальную реакцию на прохладу.")}
               </p>
             </div>
           </div>
@@ -817,26 +831,26 @@ export default function App() {
               />
 
               <div className="space-y-3 rounded-2xl sm:rounded-3xl border border-amber-100 bg-amber-50/55 p-4 sm:p-6">
-                <h3 className="text-sm sm:text-base font-black text-slate-800">Проверить другую погоду</h3>
+                <h3 className="text-sm sm:text-base font-black text-slate-800">{tr("Проверить другую погоду")}</h3>
                 <p className="text-[10px] sm:text-xs leading-relaxed text-slate-500">
-                  Выберите вариант, если хотите посмотреть, как изменится комплект в другой ситуации.
+                  {tr("Выберите вариант, если хотите посмотреть, как изменится комплект в другой ситуации.")}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <button onClick={() => { setIsManual(true); setManualTemp(-20); setManualWindSpeed(25); setManualCondition('snowy'); }}
                     className="px-3 py-1.5 bg-blue-100 text-blue-700 border border-blue-200 rounded-xl text-[10px] sm:text-xs font-bold active:bg-blue-200 transition">
-                    ❄️ Мороз -20°С
+                    {tr("❄️ Мороз -20°С")}
                   </button>
                   <button onClick={() => { setIsManual(true); setManualTemp(3); setManualWindSpeed(15); setManualCondition('rainy'); }}
                     className="px-3 py-1.5 bg-teal-100 text-teal-700 border border-teal-200 rounded-xl text-[10px] sm:text-xs font-bold active:bg-teal-200 transition">
-                    🌧️ Слякоть +3°С
+                    {tr("🌧️ Слякоть +3°С")}
                   </button>
                   <button onClick={() => { setIsManual(true); setManualTemp(28); setManualWindSpeed(5); setManualCondition('sunny'); }}
                     className="px-3 py-1.5 bg-amber-100 text-amber-700 border border-amber-200 rounded-xl text-[10px] sm:text-xs font-bold active:bg-amber-200 transition">
-                    ☀️ Жара +28°С
+                    {tr("☀️ Жара +28°С")}
                   </button>
                   <button onClick={() => { setIsManual(false); }}
                     className="px-3 py-1.5 bg-sky-100 text-sky-800 border border-sky-200 rounded-xl text-[10px] sm:text-xs font-bold active:bg-sky-200 transition">
-                    🌐 Погода города
+                    {tr("🌐 Погода города")}
                   </button>
                 </div>
               </div>
@@ -857,11 +871,17 @@ export default function App() {
             </div>
           )}
 
+          {activeTab === 'premium' && (
+            <div className="space-y-6">
+              <WeeklyForecastPurchase />
+            </div>
+          )}
+
           {activeTab === 'notes' && (
             <div className="space-y-6">
               <div className="rounded-2xl sm:rounded-3xl border border-sky-100 bg-gradient-to-br from-sky-100 via-white to-rose-100/70 p-5 sm:p-7 text-slate-800 shadow-sm">
-                <h2 className="text-lg sm:text-2xl font-black">Заметки и чек-листы</h2>
-                <p className="mt-1 text-[12px] sm:text-sm text-slate-500 leading-relaxed">Соберите важное к прогулке, сохраните личную заметку и отмечайте готовность по шагам. Всё хранится только на этом устройстве.</p>
+                <h2 className="text-lg sm:text-2xl font-black">{tr("Заметки и чек-листы")}</h2>
+                <p className="mt-1 text-[12px] sm:text-sm text-slate-500 leading-relaxed">{tr("Соберите важное к прогулке, сохраните личную заметку и отмечайте готовность по шагам. Всё хранится только на этом устройстве.")}</p>
               </div>
               <WalkNotes city={selectedCity} weather={activeWeather} period={selectedPeriod} />
               <WalkChecklist weather={activeWeather} period={selectedPeriod} ageGroup={ageGroup} activity={activityLevel} />
@@ -880,13 +900,13 @@ export default function App() {
                   <div>
                     <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-wider bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-md border border-indigo-100">
                       {selectedItem.category === 'outer'
-                        ? 'Слой 4. Ветро-влагозащита'
+                        ? tr("Слой 4. Ветро-влагозащита")
                         : selectedItem.category === 'upper'
-                          ? 'Слой 3. Термоизоляция'
+                          ? tr("Слой 3. Термоизоляция")
                           : selectedItem.category === 'lower'
-                            ? 'Слой 2. Основной слой'
+                            ? tr("Слой 2. Основной слой")
                             : selectedItem.category === 'underwear'
-                              ? 'Слой 1. Влагоотвод'
+                              ? tr("Слой 1. Влагоотвод")
                               : LAYER_LABELS[selectedItem.category]}
                     </span>
                     <h3 className="text-sm font-extrabold text-slate-800 mt-1.5">{selectedItem.name}</h3>
@@ -915,11 +935,10 @@ export default function App() {
 
       <footer className="mt-16 border-t border-indigo-50 pt-8 text-center space-y-3 max-w-7xl mx-auto px-4">
         <p className="text-xs text-slate-400">
-          Created by Disa. Разработано с любовью и заботой о здоровье детей во всем мире ❤️
+          {tr("Created by Disa. Разработано с любовью и заботой о здоровье детей во всем мире ❤️")}
         </p>
         <p className="text-[10px] text-slate-300">
-          Все данные о погоде предоставляются бесплатно в режиме реального времени через Open-Meteo API. 
-          Медицинские советы носят ознакомительный характер. При возникновении сомнений проконсультируйтесь с вашим педиатром.
+          {tr("Все данные о погоде предоставляются бесплатно в режиме реального времени через Open-Meteo API. \n          Медицинские советы носят ознакомительный характер. При возникновении сомнений проконсультируйтесь с вашим педиатром.")}
         </p>
       </footer>
     </div>

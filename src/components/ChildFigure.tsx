@@ -1,3 +1,4 @@
+import { tr } from '../i18n';
 import React, { useId } from 'react';
 import { ChildGender, ClothingItem, LayerVisibility, RecommendedOutfit } from '../types';
 import { zoneFromTemp } from '../utils/weatherEngine';
@@ -80,7 +81,7 @@ export const ChildFigure: React.FC<ChildFigureProps> = ({
   const legR = `M ${CX + 14} ${Y_WAIST + 16} L ${CX + 18} ${Y_ANKLE}`;
 
   return (
-    <svg viewBox="0 0 240 400" className="h-full w-full select-none" role="img" aria-label="Иллюстрация ребёнка по погоде">
+    <svg viewBox="0 0 240 400" className="h-full w-full select-none" role="img" aria-label={tr("Иллюстрация ребёнка по погоде")}>
       <defs>
         <filter id={`${uid}-soft`} x="-40%" y="-40%" width="180%" height="180%">
           <feDropShadow dx="0" dy="2.5" stdDeviation="2.5" floodColor="#3B3148" floodOpacity="0.16" />

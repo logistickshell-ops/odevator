@@ -1,3 +1,4 @@
+import { tr } from '../i18n';
 import React, { useMemo, useState } from 'react';
 import { ChevronDown, CircleHelp, HeartPulse, Layers3, Umbrella, Wind } from 'lucide-react';
 import { ActivityLevel, AgeGroup, ColdSensitivity, WeatherData, WeatherPeriodType } from '../types';
@@ -23,17 +24,17 @@ interface FaqItem {
 }
 
 const CATEGORY_META: Record<FaqCategory, { label: string; icon: React.ReactNode }> = {
-  before: { label: 'Перед выходом', icon: <CircleHelp size={15} /> },
-  comfort: { label: 'Комфорт', icon: <HeartPulse size={15} /> },
-  weather: { label: 'Осадки и ветер', icon: <Umbrella size={15} /> },
-  layers: { label: 'Слои и вещи', icon: <Layers3 size={15} /> },
+  before: { label: tr("Перед выходом"), icon: <CircleHelp size={15} /> },
+  comfort: { label: tr("Комфорт"), icon: <HeartPulse size={15} /> },
+  weather: { label: tr("Осадки и ветер"), icon: <Umbrella size={15} /> },
+  layers: { label: tr("Слои и вещи"), icon: <Layers3 size={15} /> },
 };
 
 const PERIOD_LABELS: Record<WeatherPeriodType, string> = {
-  morning: 'утром',
-  day: 'днём',
-  evening: 'вечером',
-  night: 'ночью',
+  morning: tr("утром"),
+  day: tr("днём"),
+  evening: tr("вечером"),
+  night: tr("ночью"),
 };
 
 export const FaqSection: React.FC<FaqSectionProps> = ({ weather, period, ageGroup, activity, sensitivity, childName }) => {
@@ -46,50 +47,50 @@ export const FaqSection: React.FC<FaqSectionProps> = ({ weather, period, ageGrou
     {
       id: 'before-check',
       category: 'before',
-      question: 'Что проверить за минуту до выхода?',
-      answer: 'Смотрите не только на температуру: важны ветер, осадки и ощущаемая температура. Затем проверьте обувь, возможность снять слой и то, комфортно ли ребёнку двигаться.',
-      action: 'Сейчас: ощущается как ' + `${weather.feelsLike > 0 ? '+' : ''}${weather.feelsLike}°C` + (weather.windSpeed >= 15 ? ', ветер заметно усиливает охлаждение.' : '.'),
+      question: tr("Что проверить за минуту до выхода?"),
+      answer: tr("Смотрите не только на температуру: важны ветер, осадки и ощущаемая температура. Затем проверьте обувь, возможность снять слой и то, комфортно ли ребёнку двигаться."),
+      action: tr("Сейчас: ощущается как ") + `${weather.feelsLike > 0 ? '+' : ''}${weather.feelsLike}°C` + (weather.windSpeed >= 15 ? tr(", ветер заметно усиливает охлаждение.") : '.'),
     },
     {
       id: 'comfort-check',
       category: 'comfort',
-      question: 'Как понять, ребёнку жарко или холодно?',
-      answer: 'Оцените шею и верх спины через 10–15 минут после выхода. Тёплая и сухая кожа — комфортно; влажная и горячая — снимите слой; холодная — добавьте утепление. Нос и ладони на ветру не показательны.',
-      action: 'Если ребёнок вялый, дрожит, сильно потеет или говорит, что ему плохо, меняйте план прогулки сразу.',
+      question: tr("Как понять, ребёнку жарко или холодно?"),
+      answer: tr("Оцените шею и верх спины через 10–15 минут после выхода. Тёплая и сухая кожа — комфортно; влажная и горячая — снимите слой; холодная — добавьте утепление. Нос и ладони на ветру не показательны."),
+      action: tr("Если ребёнок вялый, дрожит, сильно потеет или говорит, что ему плохо, меняйте план прогулки сразу."),
     },
     {
       id: 'rain-plan',
       category: 'weather',
-      question: 'Что важнее при дожде и слякоти?',
-      answer: 'Сухие ноги и возможность быстро переодеться. Непромокаемый внешний слой работает только вместе с подходящей обувью и запасными носками. Не стоит продолжать прогулку в мокрой одежде.',
-      action: weather.isRainy || weather.precipProb >= 50 ? 'Для выбранного периода есть риск осадков: добавьте защиту от луж и запасные носки.' : 'Риск осадков сейчас низкий, но для долгой прогулки полезна лёгкая защита от дождя.',
+      question: tr("Что важнее при дожде и слякоти?"),
+      answer: tr("Сухие ноги и возможность быстро переодеться. Непромокаемый внешний слой работает только вместе с подходящей обувью и запасными носками. Не стоит продолжать прогулку в мокрой одежде."),
+      action: weather.isRainy || weather.precipProb >= 50 ? tr("Для выбранного периода есть риск осадков: добавьте защиту от луж и запасные носки.") : tr("Риск осадков сейчас низкий, но для долгой прогулки полезна лёгкая защита от дождя."),
     },
     {
       id: 'wind-plan',
       category: 'weather',
-      question: 'Почему при ветре нужен другой комплект?',
-      answer: 'Ветер уносит тёплый воздух вокруг тела. Лучше добавить непродуваемый внешний слой, закрыть шею и уши, но не перекрывать обзор ребёнку капюшоном.',
+      question: tr("Почему при ветре нужен другой комплект?"),
+      answer: tr("Ветер уносит тёплый воздух вокруг тела. Лучше добавить непродуваемый внешний слой, закрыть шею и уши, но не перекрывать обзор ребёнку капюшоном."),
       action: weather.windSpeed >= 15 ? `Сейчас ветер ${weather.windSpeed} км/ч: приоритет — ветровка или мембрана, шапка и защита шеи.` : `Сейчас ветер ${weather.windSpeed} км/ч: достаточно обычной защиты по температуре.`,
     },
     {
       id: 'layers-rule',
       category: 'layers',
-      question: 'Как работает правило слоёв без лишнего утепления?',
-      answer: 'Первый слой управляет влагой, следующий удерживает тепло, а внешний защищает от ветра и воды. Чем активнее ребёнок, тем легче должен быть утепляющий слой. Слои важнее одной очень тёплой вещи, потому что их можно регулировать.',
-      action: 'Главное правило: на прогулке должно быть легко снять один слой до того, как ребёнок вспотеет.',
+      question: tr("Как работает правило слоёв без лишнего утепления?"),
+      answer: tr("Первый слой управляет влагой, следующий удерживает тепло, а внешний защищает от ветра и воды. Чем активнее ребёнок, тем легче должен быть утепляющий слой. Слои важнее одной очень тёплой вещи, потому что их можно регулировать."),
+      action: tr("Главное правило: на прогулке должно быть легко снять один слой до того, как ребёнок вспотеет."),
     },
     {
       id: 'night-safety',
       category: 'before',
-      question: 'Что добавить для вечерней или ночной прогулки?',
-      answer: 'В темноте ребёнка должно быть видно со стороны дороги и велодорожки. Световозвращатель лучше расположить на верхнем слое или рюкзаке, а не прятать под курткой.',
-      action: period === 'evening' || period === 'night' ? 'Для выбранного времени добавьте светоотражатель и учтите вечернее похолодание.' : 'Для дневной прогулки заранее положите светоотражатель в карман на случай задержки.',
+      question: tr("Что добавить для вечерней или ночной прогулки?"),
+      answer: tr("В темноте ребёнка должно быть видно со стороны дороги и велодорожки. Световозвращатель лучше расположить на верхнем слое или рюкзаке, а не прятать под курткой."),
+      action: period === 'evening' || period === 'night' ? tr("Для выбранного времени добавьте светоотражатель и учтите вечернее похолодание.") : tr("Для дневной прогулки заранее положите светоотражатель в карман на случай задержки."),
     },
     {
       id: 'profile-adjustment',
       category: 'layers',
-      question: 'Почему комплект может отличаться для детей при одинаковой погоде?',
-      answer: 'Сервис учитывает возраст, активность и индивидуальную реакцию на прохладу. Это меняет регулирующие слои, но не отменяет наблюдение за тем, как ребёнок себя чувствует.',
+      question: tr("Почему комплект может отличаться для детей при одинаковой погоде?"),
+      answer: tr("Сервис учитывает возраст, активность и индивидуальную реакцию на прохладу. Это меняет регулирующие слои, но не отменяет наблюдение за тем, как ребёнок себя чувствует."),
       action: `Сейчас выбран профиль: ${profileSummary}.`,
     },
   ], [period, profileSummary, weather]);
@@ -102,12 +103,12 @@ export const FaqSection: React.FC<FaqSectionProps> = ({ weather, period, ageGrou
         <div className="flex items-start gap-2.5 mb-4">
           <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl shrink-0"><CircleHelp size={20} /></div>
           <div>
-            <h3 className="text-base sm:text-xl font-black text-slate-800">FAQ для прогулки</h3>
-            <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 leading-relaxed">Короткие ответы для выбранного сценария {PERIOD_LABELS[period]}{displayName ? ` · ${displayName}` : ''}. Профиль: {profileSummary}.</p>
+            <h3 className="text-base sm:text-xl font-black text-slate-800">{tr("FAQ для прогулки")}</h3>
+            <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 leading-relaxed">{tr("Короткие ответы для выбранного сценария")} {PERIOD_LABELS[period]}{displayName ? ` · ${displayName}` : ''}{tr(". Профиль:")} {profileSummary}.</p>
           </div>
         </div>
-        <div className="flex flex-wrap gap-2" aria-label="Категории FAQ">
-          <button onClick={() => setSelectedCategory('all')} className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${selectedCategory === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>Все</button>
+        <div className="flex flex-wrap gap-2" aria-label={tr("Категории FAQ")}>
+          <button onClick={() => setSelectedCategory('all')} className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${selectedCategory === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>{tr("Все")}</button>
           {(Object.keys(CATEGORY_META) as FaqCategory[]).map((category) => (
             <button key={category} onClick={() => setSelectedCategory(category)} className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${selectedCategory === category ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
               {CATEGORY_META[category].icon}<span>{CATEGORY_META[category].label}</span>
@@ -135,7 +136,7 @@ export const FaqSection: React.FC<FaqSectionProps> = ({ weather, period, ageGrou
                 <div className="px-4 sm:px-5 pb-4 sm:pb-5 pt-0 animate-fadeIn">
                   <p className="text-[12px] sm:text-sm text-slate-600 leading-relaxed">{item.answer}</p>
                   <div className="mt-3 rounded-xl bg-indigo-50/70 border border-indigo-100 px-3 py-2.5 flex gap-2 text-[11px] sm:text-xs text-indigo-900 leading-relaxed">
-                    <Wind size={15} className="shrink-0 mt-0.5 text-indigo-600" /><p><strong>Что делать:</strong> {item.action}</p>
+                    <Wind size={15} className="shrink-0 mt-0.5 text-indigo-600" /><p><strong>{tr("Что делать:")}</strong> {item.action}</p>
                   </div>
                 </div>
               )}

@@ -3,7 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 const allowedEvents = new Set([
   'app_opened', 'weather_loaded', 'weather_error', 'city_changed',
   'outfit_generated', 'weekly_forecast_loaded', 'weekly_forecast_saved',
-  'weekly_forecast_shared', 'telegram_share_clicked', 'language_changed',
+  'weekly_forecast_shared', 'telegram_share_clicked', 'language_changed', 'session_ended',
 ]);
 
 const corsHeaders = {

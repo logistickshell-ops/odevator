@@ -12,7 +12,7 @@ Create a Supabase project and copy its Project URL and anon/publishable key. In 
 
 ## 2. Apply the database migration
 
-Run `supabase/migrations/001_analytics.sql` in the Supabase SQL Editor or apply it with the Supabase CLI. The migration enables RLS, revokes browser read/write grants except insert, validates event names and bounds, and creates indexes for time and event queries. Run `supabase/tests/analytics_rls.test.sql` with the Supabase test database workflow where available.
+Run `supabase/migrations/001_analytics.sql` in the Supabase SQL Editor or apply it with the Supabase CLI. Then run `supabase/migrations/002_analytics_enhancements.sql` once. The second migration adds the `session_ended` event and indexes for anonymous visitor and gender metadata. Existing rows remain valid and the migration is safe to run once on the already-created table.
 
 ## 3. Deploy Edge Functions
 
@@ -23,7 +23,7 @@ supabase functions deploy record-event --no-verify-jwt
 supabase functions deploy admin-dashboard
 ```
 
-The `record-event` function is public by design because anonymous visitors must be able to send analytics; it validates every payload, applies a per-session rate limit, and writes with the server-only service role. Browser roles have no direct table access. The dashboard function remains JWT-protected and additionally checks the authenticated user's email against `ADMIN_EMAIL`.
+The `record-event` function is public by design because anonymous visitors must be able to send analytics; it validates every payload, applies a per-session rate limit, and writes with the server-only service role. Browser roles have no direct table access. The dashboard function remains JWT-protected and additionally checks the authenticated user's email against `ADMIN_EMAIL`. It returns Russian dashboard metrics for visitors, visits, new users, returning users, cities, genders, daily event/visit curves and average session duration.
 
 Set function secrets:
 
@@ -50,11 +50,11 @@ Redeploy the site. The public values are safe for a browser client, but RLS rema
 
 ## 5. Use the dashboard
 
-A small low-contrast dot appears in the footer. It is only a discovery mechanism, not a security boundary. Open it, enter the administrator password, and use the dashboard period selector. The dashboard shows total events, unique sessions, daily activity, event rankings, cities and languages. Browser users cannot select, update or delete analytics rows.
+A small low-contrast dot appears in the footer. It is only a discovery mechanism, not a security boundary. Open it, enter the administrator password, and use the dashboard period selector. The dashboard is always displayed in Russian and shows total events, visitors, visits, new users, returning users, average time on site, daily SVG curves for events and visits, readable city names, child gender distribution, event rankings and languages. Browser users cannot select, update or delete analytics rows.
 
 ## 6. Events
 
-The browser client sends only an allowlisted event name, anonymous session ID, optional city key, language, child count and small metadata. It cannot insert into the table directly; the Edge Function is the only write path. It never sends child names, notes, full profiles, weather payloads or Telegram bot secrets. Analytics failures are swallowed so they cannot break weather or Telegram flows.
+The browser client sends only an allowlisted event name, an anonymous visitor ID, a per-tab session ID, optional city name, language, child count and small metadata. `app_opened` records a visit, `city_changed` records selected city usage, and `session_ended` records an approximate duration when the page is hidden or closed. It cannot insert into the table directly; the Edge Function is the only write path. It never sends child names, notes, full profiles, weather payloads or Telegram bot secrets. Analytics failures are swallowed so they cannot break weather or Telegram flows.
 
 ## 7. Production checks
 

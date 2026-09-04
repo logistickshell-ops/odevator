@@ -36,7 +36,7 @@ import { getLanguage, tr, useLanguage } from './i18n';
 import { ChildProfileSettings } from './components/ChildProfileSettings';
 import { formatClothingHeading } from './utils/childProfile';
 import { AdminEntryButton } from './admin/AdminEntryButton';
-import { trackEvent } from './analytics/analyticsClient';
+import { getSessionDurationSeconds, trackEvent } from './analytics/analyticsClient';
 import { 
   MapPin, 
   Search, 
@@ -215,7 +215,25 @@ export default function App() {
   const { gender, ageGroup, activityLevel, coldSensitivity } = activeChild;
 
   useEffect(() => {
-    void trackEvent({ eventName: 'app_opened', language: getLanguage(), childCount: children.length });
+    void trackEvent({
+      eventName: 'app_opened',
+      language: getLanguage(),
+      cityKey: selectedCity.name,
+      childCount: children.length,
+      metadata: { gender },
+    });
+
+    const handlePageHide = () => {
+      void trackEvent({
+        eventName: 'session_ended',
+        language: getLanguage(),
+        cityKey: selectedCity.name,
+        childCount: children.length,
+        metadata: { gender, duration_seconds: getSessionDurationSeconds() },
+      });
+    };
+    window.addEventListener('pagehide', handlePageHide, { once: true });
+    return () => window.removeEventListener('pagehide', handlePageHide);
   }, []);
   
   const [activeTab, setActiveTab] = useState<'clothing' | 'parameters' | 'tips' | 'notes'>('clothing');
@@ -565,6 +583,7 @@ export default function App() {
                     key={index}
                     onClick={() => {
                       setSelectedCity(city);
+                      void trackEvent({ eventName: 'city_changed', cityKey: city.name, language: getLanguage(), childCount: children.length, metadata: { gender } });
                       setSearchQuery('');
                       setSearchResults([]);
                     }}

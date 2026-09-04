@@ -1,0 +1,7 @@
+project_id = "meteo-odevaika"
+
+[functions.record-event]
+verify_jwt = false
+
+[functions.admin-dashboard]
+verify_jwt = true

@@ -32,9 +32,11 @@ import { ShareInvite } from './components/ShareInvite';
 import { SharePlan } from './components/SharePlan';
 import { WeeklyForecast } from './components/WeeklyForecast';
 import { LanguageSwitcher } from './components/LanguageSwitcher';
-import { tr, useLanguage } from './i18n';
+import { getLanguage, tr, useLanguage } from './i18n';
 import { ChildProfileSettings } from './components/ChildProfileSettings';
 import { formatClothingHeading } from './utils/childProfile';
+import { AdminEntryButton } from './admin/AdminEntryButton';
+import { trackEvent } from './analytics/analyticsClient';
 import { 
   MapPin, 
   Search, 
@@ -199,6 +201,7 @@ export default function App() {
   const [todayForecast, setTodayForecast] = useState<DayForecast | null>(null);
   const [tomorrowForecast, setTomorrowForecast] = useState<DayForecast | null>(null);
   const [currentCityWeather, setCurrentCityWeather] = useState<WeatherData | null>(null);
+  const [forecastResponse, setForecastResponse] = useState<OpenMeteoForecastResponse | null>(null);
   const [isLoadingWeather, setIsLoadingWeather] = useState(false);
   const [weatherError, setWeatherError] = useState<string | null>(null);
 
@@ -210,6 +213,10 @@ export default function App() {
   const [activeChildId, setActiveChildId] = useState<string>(initialActiveChildId);
   const activeChild = children.find((profile) => profile.id === activeChildId) ?? children[0];
   const { gender, ageGroup, activityLevel, coldSensitivity } = activeChild;
+
+  useEffect(() => {
+    void trackEvent({ eventName: 'app_opened', language: getLanguage(), childCount: children.length });
+  }, []);
   
   const [activeTab, setActiveTab] = useState<'clothing' | 'parameters' | 'tips' | 'notes'>('clothing');
 
@@ -281,6 +288,7 @@ export default function App() {
       
       const data = await response.json() as OpenMeteoForecastResponse;
       if (signal?.aborted) return;
+      setForecastResponse(data);
       
       if (!data.hourly || !Array.isArray(data.hourly.time) || data.hourly.time.length === 0) {
         throw new Error(tr("Некорректный формат данных прогноза."));
@@ -366,6 +374,7 @@ export default function App() {
     } catch (error) {
       if (signal?.aborted) return;
       console.error('Weather API Error. Using mock fallback:', error);
+      setForecastResponse(null);
       setWeatherError(tr("Не удалось связаться с сервером Open-Meteo. Используются симулированные данные погоды."));
       const [mockToday, mockTomorrow] = generateMockForecast(10);
       setTodayForecast(mockToday);
@@ -774,7 +783,7 @@ export default function App() {
             outfit={activeOutfit}
           />
 
-          <WeeklyForecast city={selectedCity} child={activeChild} />
+          <WeeklyForecast city={selectedCity} child={activeChild} forecast={forecastResponse} />
         </div>
           </>
         )}
@@ -930,6 +939,7 @@ export default function App() {
         <p className="text-[10px] text-slate-300">
           {tr("Все данные о погоде предоставляются бесплатно в режиме реального времени через Open-Meteo API.")} {tr("Медицинские советы носят ознакомительный характер. При возникновении сомнений проконсультируйтесь с вашим педиатром.")}
         </p>
+        <AdminEntryButton />
       </footer>
     </div>
   );

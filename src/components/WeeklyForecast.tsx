@@ -3,12 +3,13 @@ import { CalendarDays, Check, Copy, RefreshCw, Send } from 'lucide-react';
 import { CityData, ChildProfile, DayForecast, WeatherData, WeatherPeriodType } from '../types';
 import { calculateWeatherFeel, generateOutfit, interpretWeatherCode } from '../utils/weatherEngine';
 import { copyText, getBotInviteUrl, shareViaTelegram } from '../utils/telegramShare';
-import { formatDate, tr, useLanguage } from '../i18n';
+import { formatDate, getLanguage, tr, useLanguage } from '../i18n';
+import { trackEvent } from '../analytics/analyticsClient';
 
 const STORAGE_KEY = 'meteo_weekly_forecast_v1';
 const PERIODS: Array<[WeatherPeriodType, number]> = [['morning', 8], ['day', 14], ['evening', 18], ['night', 23]];
 
-type WeeklyForecastProps = { city: CityData; child: ChildProfile };
+type WeeklyForecastProps = { city: CityData; child: ChildProfile; forecast?: import('../types').OpenMeteoForecastResponse | null };
 type SavedWeeklyForecast = { cityKey: string; childKey: string; savedAt: string; days: DayForecast[] };
 
 function valueAt(values: Array<number | null> | undefined, index: number, fallback: number) {
@@ -59,7 +60,7 @@ function createDays(response: import('../types').OpenMeteoForecastResponse, chil
   });
 }
 
-export function WeeklyForecast({ city, child }: WeeklyForecastProps) {
+export function WeeklyForecast({ city, child, forecast }: WeeklyForecastProps) {
   useLanguage();
   const [days, setDays] = useState<DayForecast[]>([]);
   const [loading, setLoading] = useState(false);
@@ -82,21 +83,25 @@ export function WeeklyForecast({ city, child }: WeeklyForecastProps) {
   const loadForecast = async () => {
     setLoading(true); setError(undefined);
     try {
-      const url = `https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&hourly=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation_probability,weather_code,wind_speed_10m&forecast_days=7&timezone=auto`;
-      const response = await fetch(url);
-      if (!response.ok) throw new Error(tr('Сервис погоды временно недоступен.'));
-      const data = await response.json() as import('../types').OpenMeteoForecastResponse;
+      const data = forecast ?? await (async () => {
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&hourly=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation_probability,weather_code,wind_speed_10m&forecast_days=7&timezone=auto`;
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(tr('Сервис погоды временно недоступен.'));
+        return await response.json() as import('../types').OpenMeteoForecastResponse;
+      })();
       const nextDays = createDays(data, child);
       const now = new Date().toISOString();
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ cityKey, childKey, savedAt: now, days: nextDays } satisfies SavedWeeklyForecast));
       setDays(nextDays); setSavedAt(now);
+      void trackEvent({ eventName: 'weekly_forecast_loaded', cityKey, language: getLanguage(), metadata: { days: nextDays.length } });
+      void trackEvent({ eventName: 'weekly_forecast_saved', cityKey, language: getLanguage(), metadata: { days: nextDays.length } });
     } catch (e) {
       setError(e instanceof Error ? e.message : tr('Не удалось загрузить прогноз.'));
       loadSaved();
     } finally { setLoading(false); }
   };
 
-  useEffect(() => { loadSaved(); void loadForecast(); }, [cityKey, childKey]);
+  useEffect(() => { loadSaved(); void loadForecast(); }, [cityKey, childKey, forecast]);
 
   const shareText = useMemo(() => {
     if (!days.length) return '';
@@ -110,7 +115,10 @@ export function WeeklyForecast({ city, child }: WeeklyForecastProps) {
     return lines.join('\n');
   }, [days, city.name, child]);
 
-  const share = () => shareViaTelegram({ title: tr('Прогноз гардероба на 7 дней'), text: `${shareText}\n\n${inviteUrl}`, url: inviteUrl });
+  const share = () => {
+    void trackEvent({ eventName: 'weekly_forecast_shared', cityKey, language: getLanguage(), metadata: { days: days.length } });
+    void shareViaTelegram({ title: tr('Прогноз гардероба на 7 дней'), text: `${shareText}\n\n${inviteUrl}`, url: inviteUrl });
+  };
   const copy = async () => { setCopied(await copyText(`${shareText}\n\n${inviteUrl}`)); window.setTimeout(() => setCopied(false), 2200); };
 
   return <section className="rounded-3xl border border-violet-100 bg-gradient-to-br from-violet-50/80 via-white to-sky-50/70 p-4 shadow-sm sm:p-6">

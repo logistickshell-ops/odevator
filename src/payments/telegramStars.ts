@@ -1,4 +1,5 @@
 import { tr } from '../i18n';
+import { trackEvent } from '../analytics/analyticsClient';
 import {
   EntitlementResponse,
   InvoiceResponse,
@@ -58,11 +59,13 @@ export async function createWeeklyForecastInvoice(): Promise<InvoiceResponse> {
   const initData = getInitData();
   if (!initData) throw new Error(tr("Откройте приложение внутри Telegram, чтобы оплатить прогноз."));
 
-  return request<InvoiceResponse>('/api/payments/invoices/weekly-wardrobe-forecast', {
+  const invoice = await request<InvoiceResponse>('/api/payments/invoices/weekly-wardrobe-forecast', {
     method: 'POST',
     headers: { 'X-Telegram-Init-Data': initData },
     body: JSON.stringify({ productId: WEEKLY_FORECAST_PRODUCT.id }),
   });
+  void trackEvent({ eventName: 'telegram_invoice_created', metadata: { product_id: invoice.productId, amount_stars: invoice.amount } });
+  return invoice;
 }
 
 export async function openWeeklyForecastInvoice(): Promise<PaymentStatus> {

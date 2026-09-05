@@ -4,6 +4,12 @@ const allowedEvents = new Set([
   'app_opened', 'weather_loaded', 'weather_error', 'city_changed',
   'outfit_generated', 'weekly_forecast_loaded', 'weekly_forecast_saved',
   'weekly_forecast_shared', 'telegram_share_clicked', 'language_changed', 'session_ended',
+  'funnel_city_selected', 'funnel_weather_loaded', 'funnel_outfit_viewed', 'funnel_outfit_generated',
+  'funnel_weekly_forecast_opened', 'funnel_share_started', 'funnel_share_completed', 'technical_metric',
+  'telegram_app_opened', 'telegram_share_started', 'telegram_share_completed', 'telegram_share_cancelled',
+  'telegram_payment_started', 'telegram_invoice_created', 'telegram_payment_completed', 'telegram_payment_cancelled',
+  'telegram_payment_failed', 'telegram_entitlement_checked', 'pricing_viewed', 'payment_started',
+  'payment_completed', 'payment_cancelled', 'payment_failed', 'outfit_item_opened',
 ]);
 
 const corsHeaders = {

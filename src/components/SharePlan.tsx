@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import { Check, Copy, Send, Share2 } from 'lucide-react';
 import { RecommendedOutfit, WeatherData, WeatherPeriodType } from '../types';
 import { copyText, getBotInviteUrl, shareViaTelegram } from '../utils/telegramShare';
+import { trackEvent } from '../analytics/analyticsClient';
 
 interface SharePlanProps {
   childName: string;
@@ -61,14 +62,23 @@ export function SharePlan({ childName, cityName, selectedDay, selectedPeriod, we
     const fullPlan = `${shareText}\n\n${tr('Открыть приложение')}: ${inviteUrl}`;
     const copied = await copyText(fullPlan);
     setIsCopied(copied);
-    if (copied) window.setTimeout(() => setIsCopied(false), 2200);
+    if (copied) {
+      void trackEvent({ eventName: 'funnel_share_completed', cityKey: cityName, metadata: { content: 'walk_plan', method: 'copy' } });
+      window.setTimeout(() => setIsCopied(false), 2200);
+    }
   };
 
-  const sharePlan = () => shareViaTelegram({
-    title: `${tr('План прогулки для')} ${childLabel}`,
-    text: shareText,
-    url: inviteUrl,
-  });
+  const sharePlan = async () => {
+    void trackEvent({ eventName: 'funnel_share_started', cityKey: cityName, metadata: { content: 'walk_plan', method: 'telegram' } });
+    void trackEvent({ eventName: 'telegram_share_started', cityKey: cityName, metadata: { content: 'walk_plan' } });
+    await shareViaTelegram({
+      title: `${tr('План прогулки для')} ${childLabel}`,
+      text: shareText,
+      url: inviteUrl,
+    });
+    void trackEvent({ eventName: 'funnel_share_completed', cityKey: cityName, metadata: { content: 'walk_plan', method: 'telegram' } });
+    void trackEvent({ eventName: 'telegram_share_completed', cityKey: cityName, metadata: { content: 'walk_plan' } });
+  };
 
   return (
     <section className="rounded-2xl sm:rounded-3xl border border-sky-100 bg-gradient-to-br from-sky-50/85 via-white to-rose-50/45 p-4 sm:p-6 shadow-sm">

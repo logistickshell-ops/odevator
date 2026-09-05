@@ -7,6 +7,7 @@ import {
   openWeeklyForecastInvoice,
 } from '../payments/telegramStars';
 import { PaymentStatus, WEEKLY_FORECAST_PRODUCT } from '../payments/types';
+import { getTelegramContext, trackEvent } from '../analytics/analyticsClient';
 
 export function WeeklyForecastPurchase() {
   const [status, setStatus] = useState<PaymentStatus>('idle');
@@ -22,6 +23,7 @@ export function WeeklyForecastPurchase() {
 
     try {
       const entitlement = await getWeeklyForecastEntitlement();
+      void trackEvent({ eventName: 'telegram_entitlement_checked', metadata: { product_id: WEEKLY_FORECAST_PRODUCT.id, status: entitlement.status, source: getTelegramContext().isTelegram ? 'telegram' : 'web' } });
       setStatus(entitlement.status === 'active' ? 'paid' : 'idle');
       setValidUntil(entitlement.validUntil);
     } catch (error) {
@@ -31,6 +33,7 @@ export function WeeklyForecastPurchase() {
   };
 
   useEffect(() => {
+    void trackEvent({ eventName: 'pricing_viewed', metadata: { product_id: WEEKLY_FORECAST_PRODUCT.id, price_stars: WEEKLY_FORECAST_PRODUCT.priceStars } });
     void refreshAccess();
   }, []);
 
@@ -39,19 +42,29 @@ export function WeeklyForecastPurchase() {
     setStatus('loading');
 
     try {
+      void trackEvent({ eventName: 'payment_started', metadata: { product_id: WEEKLY_FORECAST_PRODUCT.id, price_stars: WEEKLY_FORECAST_PRODUCT.priceStars } });
+      void trackEvent({ eventName: 'telegram_payment_started', metadata: { product_id: WEEKLY_FORECAST_PRODUCT.id, price_stars: WEEKLY_FORECAST_PRODUCT.priceStars } });
       const paymentStatus = await openWeeklyForecastInvoice();
       setStatus(paymentStatus);
       if (paymentStatus === 'paid') {
+        void trackEvent({ eventName: 'payment_completed', metadata: { product_id: WEEKLY_FORECAST_PRODUCT.id, price_stars: WEEKLY_FORECAST_PRODUCT.priceStars } });
+        void trackEvent({ eventName: 'telegram_payment_completed', metadata: { product_id: WEEKLY_FORECAST_PRODUCT.id, price_stars: WEEKLY_FORECAST_PRODUCT.priceStars } });
         await refreshAccess();
         setMessage(tr("Оплата подтверждена. Прогноз на 7 дней доступен."));
       } else if (paymentStatus === 'pending') {
         setMessage(tr("Платёж обрабатывается. Обновите доступ через несколько секунд."));
       } else if (paymentStatus === 'idle') {
+        void trackEvent({ eventName: 'payment_cancelled', metadata: { product_id: WEEKLY_FORECAST_PRODUCT.id } });
+        void trackEvent({ eventName: 'telegram_payment_cancelled', metadata: { product_id: WEEKLY_FORECAST_PRODUCT.id } });
         setMessage(tr("Оплата отменена. Деньги не списаны."));
       } else {
+        void trackEvent({ eventName: 'payment_failed', metadata: { product_id: WEEKLY_FORECAST_PRODUCT.id, status: paymentStatus } });
+        void trackEvent({ eventName: 'telegram_payment_failed', metadata: { product_id: WEEKLY_FORECAST_PRODUCT.id, status: paymentStatus } });
         setMessage(tr("Telegram не подтвердил оплату. Попробуйте ещё раз."));
       }
     } catch (error) {
+      void trackEvent({ eventName: 'payment_failed', metadata: { product_id: WEEKLY_FORECAST_PRODUCT.id, error_code: 'invoice_or_api_error' } });
+      void trackEvent({ eventName: 'telegram_payment_failed', metadata: { product_id: WEEKLY_FORECAST_PRODUCT.id, error_code: 'invoice_or_api_error' } });
       setStatus(isStarsPaymentsConfigured() ? 'error' : 'unavailable');
       setMessage(error instanceof Error ? error.message : tr("Не удалось открыть оплату."));
     }

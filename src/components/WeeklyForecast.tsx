@@ -101,7 +101,10 @@ export function WeeklyForecast({ city, child, forecast }: WeeklyForecastProps) {
     } finally { setLoading(false); }
   };
 
-  useEffect(() => { loadSaved(); void loadForecast(); }, [cityKey, childKey, forecast]);
+  useEffect(() => {
+    void trackEvent({ eventName: 'funnel_weekly_forecast_opened', cityKey, language: getLanguage(), metadata: { source: 'weekly_forecast_block' } });
+    loadSaved(); void loadForecast();
+  }, [cityKey, childKey, forecast]);
 
   const shareText = useMemo(() => {
     if (!days.length) return '';
@@ -115,9 +118,13 @@ export function WeeklyForecast({ city, child, forecast }: WeeklyForecastProps) {
     return lines.join('\n');
   }, [days, city.name, child]);
 
-  const share = () => {
+  const share = async () => {
     void trackEvent({ eventName: 'weekly_forecast_shared', cityKey, language: getLanguage(), metadata: { days: days.length } });
-    void shareViaTelegram({ title: tr('Прогноз гардероба на 7 дней'), text: `${shareText}\n\n${inviteUrl}`, url: inviteUrl });
+    void trackEvent({ eventName: 'funnel_share_started', cityKey, language: getLanguage(), metadata: { content: 'weekly_forecast', days: days.length } });
+    void trackEvent({ eventName: 'telegram_share_started', cityKey, language: getLanguage(), metadata: { content: 'weekly_forecast', days: days.length } });
+    await shareViaTelegram({ title: tr('Прогноз гардероба на 7 дней'), text: `${shareText}\n\n${inviteUrl}`, url: inviteUrl });
+    void trackEvent({ eventName: 'funnel_share_completed', cityKey, language: getLanguage(), metadata: { content: 'weekly_forecast', days: days.length } });
+    void trackEvent({ eventName: 'telegram_share_completed', cityKey, language: getLanguage(), metadata: { content: 'weekly_forecast', days: days.length } });
   };
   const copy = async () => { setCopied(await copyText(`${shareText}\n\n${inviteUrl}`)); window.setTimeout(() => setCopied(false), 2200); };
 

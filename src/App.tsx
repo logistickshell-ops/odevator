@@ -36,7 +36,7 @@ import { getLanguage, tr, useLanguage } from './i18n';
 import { ChildProfileSettings } from './components/ChildProfileSettings';
 import { formatClothingHeading } from './utils/childProfile';
 import { AdminEntryButton } from './admin/AdminEntryButton';
-import { getSessionDurationSeconds, trackEvent } from './analytics/analyticsClient';
+import { getSessionDurationSeconds, getTelegramContext, trackEvent } from './analytics/analyticsClient';
 import { 
   MapPin, 
   Search, 
@@ -215,13 +215,15 @@ export default function App() {
   const { gender, ageGroup, activityLevel, coldSensitivity } = activeChild;
 
   useEffect(() => {
+    const telegram = getTelegramContext();
     void trackEvent({
       eventName: 'app_opened',
       language: getLanguage(),
       cityKey: selectedCity.name,
       childCount: children.length,
-      metadata: { gender },
+      metadata: { gender, source: telegram.isTelegram ? 'telegram' : 'web', telegram_platform: telegram.platform, telegram_version: telegram.version },
     });
+    if (telegram.isTelegram) void trackEvent({ eventName: 'telegram_app_opened', language: getLanguage(), cityKey: selectedCity.name, metadata: { platform: telegram.platform, version: telegram.version } });
 
     const handlePageHide = () => {
       void trackEvent({
@@ -299,6 +301,7 @@ export default function App() {
     setWeatherError(null);
     
     try {
+      const startedAt = typeof performance !== 'undefined' ? performance.now() : Date.now();
       const url = `https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation_probability,weather_code,wind_speed_10m&hourly=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation_probability,weather_code,wind_speed_10m&timezone=auto`;
       
       const response = await fetch(url, { signal });
@@ -382,7 +385,11 @@ export default function App() {
 
       setTodayForecast(today);
       setTomorrowForecast(tomorrow);
-
+      const durationMs = Math.round((typeof performance !== 'undefined' ? performance.now() : Date.now()) - startedAt);
+      void trackEvent({ eventName: 'weather_loaded', cityKey: city.name, language: getLanguage(), metadata: { duration_ms: durationMs, source: 'open_meteo' } });
+      void trackEvent({ eventName: 'funnel_weather_loaded', cityKey: city.name, language: getLanguage(), metadata: { duration_ms: durationMs } });
+      void trackEvent({ eventName: 'technical_metric', cityKey: city.name, language: getLanguage(), metadata: { metric: 'weather_load_ms', value: durationMs, provider: 'open_meteo' } });
+      
       const activeVal = today.periods.day;
       setManualTemp(activeVal.temp);
       setManualWindSpeed(Math.round(activeVal.windSpeed));
@@ -392,6 +399,8 @@ export default function App() {
     } catch (error) {
       if (signal?.aborted) return;
       console.error('Weather API Error. Using mock fallback:', error);
+      void trackEvent({ eventName: 'weather_error', cityKey: city.name, language: getLanguage(), metadata: { error_code: 'open_meteo_request_failed', fallback: true } });
+      void trackEvent({ eventName: 'technical_metric', cityKey: city.name, language: getLanguage(), metadata: { metric: 'weather_error', error_code: 'open_meteo_request_failed' } });
       setForecastResponse(null);
       setWeatherError(tr("Не удалось связаться с сервером Open-Meteo. Используются симулированные данные погоды."));
       const [mockToday, mockTomorrow] = generateMockForecast(10);
@@ -506,6 +515,13 @@ export default function App() {
 
   const activeWeather = getActiveWeatherData();
   const activeOutfit = generateOutfit(gender, activeWeather, activityLevel, coldSensitivity, ageGroup, selectedPeriod);
+  const outfitAnalyticsKey = `${selectedCity.name}:${activeChildId}:${selectedDay}:${selectedPeriod}:${isManual}:${manualTemp}:${manualWindSpeed}:${manualCondition}`;
+  useEffect(() => {
+    if (!isManual && !todayForecast) return;
+    const itemCount = [...activeOutfit.outer, ...activeOutfit.upper, ...activeOutfit.lower, ...activeOutfit.headwear, ...activeOutfit.shoes].length;
+    void trackEvent({ eventName: 'funnel_outfit_viewed', cityKey: selectedCity.name, language: getLanguage(), childCount: children.length, metadata: { gender, period: selectedPeriod, item_count: itemCount } });
+    void trackEvent({ eventName: 'funnel_outfit_generated', cityKey: selectedCity.name, language: getLanguage(), childCount: children.length, metadata: { gender, period: selectedPeriod, item_count: itemCount } });
+  }, [outfitAnalyticsKey]);
   const computedFeelsLike = calculateRecommendationTemp(
     activeWeather,
     activityLevel,
@@ -584,6 +600,7 @@ export default function App() {
                     onClick={() => {
                       setSelectedCity(city);
                       void trackEvent({ eventName: 'city_changed', cityKey: city.name, language: getLanguage(), childCount: children.length, metadata: { gender } });
+                      void trackEvent({ eventName: 'funnel_city_selected', cityKey: city.name, language: getLanguage(), metadata: { source: 'geocoding_search' } });
                       setSearchQuery('');
                       setSearchResults([]);
                     }}
@@ -790,7 +807,10 @@ export default function App() {
             isRainy={activeWeather.isRainy}
             isSnowy={activeWeather.isSnowy}
             isWindy={activeWeather.isWindy}
-            onItemSelect={(item) => setSelectedItem(item)}
+            onItemSelect={(item) => {
+              setSelectedItem(item);
+              void trackEvent({ eventName: 'outfit_item_opened', cityKey: selectedCity.name, language: getLanguage(), childCount: children.length, metadata: { item_id: item.id, item_name: item.name, item_category: item.category, gender } });
+            }}
           />
 
           <SharePlan
